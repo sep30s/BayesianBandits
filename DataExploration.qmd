@@ -1,0 +1,221 @@
+---
+title: "Data Exploration"
+author: "Sara Parrish"
+date: 09/21/2024
+date-format: "MMM D, YYYY"
+format:
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
+    toc-depth: 6
+course: Capstone Projects in Data Science
+bibliography: references.bib
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+theme: solar
+---
+
+```{css, echo=FALSE}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+```
+
+# Data Set 1: Bureau of Transportation Statistics
+## Airline On-Time Statistics and Delay Causes for PNS
+<https://www.transtats.bts.gov/OT_Delay/OT_DelayCause1.asp?20=E>
+
+- The following disclaimer can be found on the website:
+  "A flight is considered delayed when it arrived 15 or more minutes [later] than the schedule (see definitions in Frequently Asked Questions). Delayed minutes are calculated for delayed flights only. Data presented summarizes arriving flights only.
+When multiple causes are assigned to one delayed flight, each cause is prorated based on delayed minutes it is responsible for. The displayed numbers are rounded and may not add up to the total."
+
+- I began by reading the data in and inspecting the organization. 
+
+```{r}
+library(knitr)
+
+BTSdelays <- read.csv("BTS_Delays.csv")
+```
+
+<div class="table-scroll"> 
+```{r} 
+kable(head(BTSdelays)) 
+``` 
+</div> 
+
+
+
+<div class="table-scroll"> 
+```{r}
+dim(BTSdelays)
+knitr::kable(tail(BTSdelays))
+```
+</div> 
+
+
+- So we have 1355 entries, with 21 columns, going back to January of 2010. 
+
+```{r}
+names(BTSdelays)
+```
+- This data set is composed of data reported by domestic carriers monthly to the Bureau of Transportation Statistics (BTS). The BTS has data on all domestic airports, but the Pensacola Airport was chosen for this review. Each monthly report by the carrier includes information on flights arriving at the selected airport, not on departures.  
+Columns with the "_ct" abbreviation (9-13) are not explicit counts but likely the proportion of delayed arrivals that were due to the specified issue (carrier, National Aviation System, security, or late aircraft). This information was not explicit on the BTS site. Cancelled and diverted arrivals (arr_cancelled and arr_diverted) are counts. Arrival delay (arr_delay) through late aircraft delay are the calculated delayed minutes for all flights for the specified carrier for that month. 
+
+- Below I view and remove NA inputs.
+
+```{r}
+library(tidyr)
+colSums(is.na(BTSdelays))
+print(BTSdelays[rowSums(is.na(BTSdelays)) > 0, ])
+BTSdelays1 <-na.omit(BTSdelays)
+unique(BTSdelays1$carrier)
+```
+
+- Below I group data by carrier and get the total arrived flights and average arrival delay. I want to look into the average arrival delays by carrier. 
+
+```{r}
+
+library(dplyr)
+carrier_summary <- BTSdelays1 %>%
+  group_by(carrier) %>%
+  summarize(
+    total_flights = sum(arr_flights),
+    avg_arr_delay = sum(arr_delay)/total_flights
+  )
+
+print(carrier_summary)
+```
+
+- This is over a ten year span, so I want to look at how many months each carrier reported data for PNS.
+
+
+```{r}
+carrier_count <- BTSdelays %>%
+  count(carrier)
+print(carrier_count)
+```
+
+
+- Since there are quite a few carriers with much less data, I remove some with the fewest reported months.
+
+```{r}
+library(psych)
+carrier_stats <- describe(carrier_count$n)
+print(carrier_stats)
+```
+
+- The median falls fairly close to the mean, so I chose it as the cutoff. 
+
+```{r}
+carrier_summary1 <- carrier_summary%>%
+  left_join(carrier_count, by= "carrier", suffix = c("", "_count")) %>%
+  filter(n > 69)
+
+print(carrier_summary1)
+```
+
+- Below is a visualization for the average arrival delay by carrier with a gradient fill to indicate the number of months the carrier reported arriving flights at the Pensacola International Airport. 
+
+```{r}
+library(ggplot2)
+ggplot(carrier_summary1, aes(x = carrier, y = avg_arr_delay, fill=n)) +
+  geom_col() +
+  scale_fill_gradient2(low = "paleturquoise1", mid = "paleturquoise2", high = "paleturquoise4", midpoint = mean(carrier_summary1$n)) +
+  labs(title = "Average Arrival Delays by Carrier",
+       x = "Carrier",
+       y = "Average Arrival Delay (minutes)",
+       fill = "Carrier Count") +
+  theme_minimal()
+```
+
+- This data set has a large amount of data to choose from. I only worked with the data for PNS from 2010 through June 2024. There are many possibilites if we choose to work with this data set. 
+
+# Data Set 2: Flight Delay and Cancellation Data Set
+## Also From the BTS 
+<https://www.kaggle.com/datasets/patrickzel/flight-delay-and-cancellation-dataset-2019-2023?resource=download>
+
+- This data set appears to be from the same database as the previous data set, but includes an additional 11 attributes to include scheduled and actual arrival and departure time. 
+
+
+```{r}
+Kaggledelays <- read.csv(gzfile("Kaggledelays.csv.gz"))
+knitr::kable(head(Kaggledelays))
+```
+
+```{r}
+dim(Kaggledelays)
+```
+
+- This data set is much larger with 3 million rows and 32 columns.
+
+```{r}
+names(Kaggledelays)
+```
+
+- The additional columns appear to include scheduled arrival and departure as well as departure delay, the specific cancellation code, air time, distance, taxi times, flight number, destination and origin. Although this data set is a bit larger, it provides more options for analysis. 
+
+
+```{r}
+unique_airlines <- Kaggledelays %>%
+  summarise(unique_airlines = n_distinct(AIRLINE))
+print(unique_airlines)
+```
+
+```{r}
+unique_dest <- Kaggledelays %>%
+  summarise(unique_dest = n_distinct(DEST))
+print(unique_dest)
+```
+
+- Given this data set is working with 380 unique destinations, it makes sense that it is also comprised of 18 different airlines. There is an issue when it comes to computation with this data set. Three million lines can be quite much for 8GB of RAM. 
+
+
+```{r}
+KaggleMiami <- Kaggledelays %>%
+  filter(DEST == "MIA")
+dim(KaggleMiami)
+```
+
+- Nice. Manageable. 
+
+
+```{r}
+airline_summary <- KaggleMiami %>%
+  na.omit() %>%
+  group_by(AIRLINE_CODE) %>%
+  summarize(
+    avg_arr_delay = mean(ARR_DELAY),
+    avg_airtime = mean(AIR_TIME)
+  )
+
+print(airline_summary)
+```
+
+
+- I considered visualizing this but then decided tracking arrival delays as a function of airtime would be more interesting.
+
+```{r}
+library(ggplot2)
+ggplot(KaggleMiami, aes(x = AIR_TIME, y = ARR_DELAY, color = AIRLINE_CODE)) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Arrival Delay vs. Air Time by Airline",
+    x = "Air Time",
+    y = "Arrival Delay",
+    color = "Airline Code"
+  )
+```
+
+
+- This graph is very rudimentary but further exploration in a relationship between air time and arrival delay could be interesting. This data set also provides the opportunity to investigate some other variables such as taxi time or time of day of the flight. While this data set is fairly large, interesting insight can  be extracted from it. 
+
+
+  
