@@ -1,0 +1,100 @@
+---
+title: "A Literature Review for Bayesian Linear Regression"
+author: "Sara Parrish"
+format:
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
+    toc-depth: 6
+course: Capstone Projects in Data Science
+bibliography: references.bib
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+theme: solar
+---
+
+
+
+This literature review explores Bayesian linear regression (BLR) as a powerful tool for statistical analysis. The discussion will pertain to BLR’s foundations in Bayesian inference as well as its use across various applications from the prediction of surface roughness in wood milling for quality analysis [@surfacerough] to the analysis of neuroimaging data to identify the presence of psychiatric disorders[@warped] and more. 
+
+
+
+Bayesian inference was initially developed by Reverend Thomas Bayes, but his ruminations on inverse probability wouldn’t be known until a friend polished and submitted his work to the Royal Society. Bayes’ work was eventually developed and refined by Laplace. Bayesian inference was wildly different from Fisher's work in defining classical statistical theory [@lesaffre]. 
+
+In opposition to the Bayesian approach is the frequentist approach. The frequentist approach considers the parameter of interest fixed and inference on the parameter is based on the result of repeated sampling. In the Bayesian approach, the parameter of interest is not fixed but stochastic, and inference on the parameter is based on observed data and prior knowledge [@lesaffre].
+
+
+
+The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data, is proportional to the conditional density of $D$ given $\Theta$, $f(D|\Theta)$, and the prior density of $\Theta$, $f(\Theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\Theta$[@xiaogang]. 
+$$
+f(\theta|D) \propto f(D|\Theta)f(\Theta) \tag{1}
+$$
+
+
+
+A benefit of the Bayesian approach lies in the ability to include prior knowledge through the selection of a prior. Priors can be subjective or objective. Subjective priors incorporate opinions, of an individual or of a group, which can negatively impact the perceived integrity of the findings. Objective priors are preferred which follow formal rules for determining noninformative priors [@lesaffre].
+
+When prior knowledge is lackluster, has little information, or is otherwise not sufficient, a *noninformative* prior may be used. 	A common choice for a noninformative prior, in cases with binomial likelihood, is a uniform distribution, also known as a *flat prior*. In cases with a Gaussian likelihood, the noninformative prior would be a normal prior with $\sigma^2 \to \infty$ which functions similarly to the flat prior. For cases with a Poisson likelihood, a Gamma($\alpha_0$, $\beta_0$) prior is used where the sum of the counts are $(\alpha_0 - 1)$ and the experiment size is $\beta_0$ [@lesaffre]. For normal linear regression models, conjugate normal-gamma priors can be used to provide a resulting posterior that is of the same family[@xiaogang]. 
+
+A *discounted* prior is the result of adjusting a known prior to provide a better distribution for the chosen parameter, for example, one could decrease the impact of a normal prior on the posterior by increasing $\sigma^2$ in order to better reflect their relation[@lesaffre]. 
+
+
+
+There are a variety of ways to summarize the posterior in order to derive conclusions about the parameter. Its location and variability can be specified by finding the mode, mean, and median of the distribution. Its range can be defined with the equal tail credible interval (not to be confused with the confidence interval in the frequentist approach) or with the high posterior density (HDP) interval. Future predictions for the parameter can be made through posterior predictive distributions (PPD) which factor out $\theta$ with the assumption that past data will not influence future data, hierarchical independence[@lesaffre].
+
+It is not uncommon for the marginal posterior density function of a parameter to be unavailable, requiring an alternate approach to extract insight. It is safe to assert that sampling techniques are used in nearly all Bayesian analyses[@xiaogang]. General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. Monte Carlo integration can be combined with the Markov property given by [@lesaffre] in the following equation
+
+$$
+p(\Theta^{(k+1)}| \Theta^k , \Theta^{(k-1)} , . . . , y) = p(\Theta^{(k+1)} | \Theta^k, y)\tag{2}
+$$
+
+Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm[@lesaffre].
+
+
+## Applications  
+
+
+Kong et al. (2020) explored the use of BLR for surface roughness prediction in the milling process of wood. Input was taken from the time-domain of 3 different vibration signals to quantify surface roughness, tool wear monitoring was also taken into account. 
+
+Modifications to the standard BLR model were utilized to compare the accuracy of results in 4 different regressions:
+
+![BLR models used[@surfacerough]](images/BLRx4_Kong.png)
+
+Standard_BLR was found to be the superior of the four and to outperform even partial least squares (PLS) artificial neural networks (ANN) and support vector machines (SVM). BLR is also beneficial as it produces a CI which is advantageous for quality control[@surfacerough].
+
+
+
+Fraza et al. (2021) propose a warped BLR model that would solve the issue of non-Gaussian distributions using a “likelihood warping technique”. Gaussian process regression is used historically in the analysis of neuroimaging but is problematic because the method assumes a Gaussian distribution which is not the best fit for each modality being assessed. Gaussian process regression is also insufficient to handle emerging big data. 
+The study acquired imaging data from the UK Biobank imaging dataset, using specifically image-derived phenotypes (IDPs) for their prevalence and diffusion tensor imaging (DTI) data for their likelihood to have non-gaussian and non-linear trends. 
+The warped BLR model was found to outperform both standard and Gaussian process regression models in terms of fit and scalability for the larger data sets[@warped]. 
+
+
+
+Zhang et al. (2022) used k-means clustering and standard BLR to create a performance indicator to monitor the health of a bridge. Data was acquired from weigh-in-motion (WIM) and structural health monitoring (SHM) systems from a concrete box girder bridge; these two systems are typically used independently but were both integrated into the model. 
+The study identifies the slope of the regression, deemed the model slope indicator (MSI),  for vehicle load (from the WIM system) and vehicle induced strain (from the SHM system) as a performance indicator for the bridge where a change in the regression would indicate a performance or structural issue.
+Metropolis-Hastings (M-H) sampling was the chosen sampling method to help solve problems in the data with noise, abnormal signals, and missing and omitted data. Three BLR models were made based on three different classes of vehicle weight and associated bridge strain that were determined through k-means clustering. 
+
+The threshold for change in MSI was set to 5$\%$ and hypothesis testing was used to verify its significance. The model would not trigger a warning when the change of MSI was lower than 5% as this was an acceptable damage level for the concrete bridge used in this study[@bridge].
+
+
+
+Li et al. (2023) proposed the use of BLR with Cauchy prior (BLRC) for the analysis of multiple-input multiple-output (MIMO) radar systems with improved resolution by sparse array (SPA) designs. The researchers compared BLRC to the more traditional approaches Cauchy-Gaussian(CG) and sparse Bayesian learning (SBL).  The frameworks for the traditional approaches were found to be insufficient. CG uses the maximum a posteriori (MAP) framework which is inefficient as optimal hyperparameters can only be found via trial and error. SBL was superior to CG but was found to have room for improvement in cases where input was from SPA. 
+BLRC was found to be superior to SBL in a few ways. BLRC uses a long-tailed Cauchy distribution resulting in the need for only two hyperparameters. SBL has many hyperparameters. BLRC also outperforms SBL with higher resolution radar images, better handling of noise, and flexibility of the system[@cauchyprior]. 
+
+
+
+Yang et al. (2019) aimed to improve the prediction of storm wind speed forecasts with the use of gridded Bayesian linear regression (GBLR). Historical storm data, a database of 92 storms in the Northeast US, was used to adjust predictions for the National Center for Atmospheric Research (NCAR) real-time dynamic ensemble prediction system (EPS). 
+The GBLR approach involved inverse distance weighting to interpolate regression coefficients, transitioning from station locations to a model grid, and a novel “implicit” method wherein the BLR optimizes regression coefficients for the ensemble members collectively.
+GBLR was found to reduce bias in wind speed forecasts and improved $R^2$ and RMSE values when compared to the ensemble mean for global and event-based metrics. Similar improvements were seen in seasonal analyses. However, GBLR struggles with extreme values and in areas of the grid with sparse observations[@stormwind]. 
+
+
+
+This review covered the theoretical foundations, principles, and various applications of Bayesian linear regression. Bayesian theory may have had a rough beginning, but its practicality and versatility have been proven through its application in diverse fields of study. BLR's flexibility allows for broadened applicability. 
+Future research should dive deeper into the basic principles of Bayesian linear regression to include the individual MCMC methods. 
+
