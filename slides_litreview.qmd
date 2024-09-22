@@ -1,0 +1,137 @@
+---
+title: "Bayesian Linear Regression"
+subtitle: "Literature Review"
+author: "Heather Anderson, Sara Parrish (Advisor: Dr. Seals)"
+date: 09/21/2024
+date-format: "MMM D, YYYY"
+format:
+  revealjs:
+    css: custom.css
+    theme: dark
+    embed-resources: true
+    slide-number: false
+    width: 1600
+    height: 900
+    df-print: paged
+    html-math-method: katex
+course: Capstone Projects in Data Science
+bibliography: references.bib
+csl: ieee.csl
+#always_allow_html: true # this allows to get PDF with HTML features
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+pdf-separate-fragments: true
+fig-align: center
+---
+
+# Introduction to Bayesian Linear Regression
+
+- Linear regression
+    - A variable is used to predict another variable
+    - Linear regression finds best-fitting line to observed data to make further predictions
+- The Bayesian approach:
+    - Requires the use of prior information
+    - Provides a posterior distribution
+
+## Bayesian vs. Frequentist Approach
+
+- Frequentist Approach
+    - Typical linear model $$
+        y = \beta^TX + \epsilon \tag{1}
+        $$
+    - A regression coefficient that best fits the line that relates variables [@Koehrsen2018]
+- Bayesian Approach
+    - Bayes' theorem informs the model [@xiaogang] $$
+        f(\theta|D) \propto f(D|\Theta)f(\Theta) \tag{2}
+        $$
+    - Predictions are made in light of prior knowledge
+    - The resulting prediction is not a point estimate, but a
+        distribution [@Bayes1991]
+
+## Role of prior knowledge in shaping predictions
+
+- Priors can be subjective or objective
+    - objective is preferred
+- Noninformative priors can be used when there is not adequate prior
+    knowledge
+- Discounted priors are the result of adjusting a known prior to
+    better reflect the current data[@lesaffre]
+
+![Figure from [@lesaffre]](images/priorposterior.png)
+
+# Understanding the Bayesian Framework
+
+::: {layout-ncol=2}
+
+- Bayes’ theorem is used to update prior beliefs about model
+    parameters with new data
+    - This results in a posterior distribution [@Bayes1991]
+- Posterior distribution vs. point estimates
+    - measures the uncertainty in predictions
+    - richer picture for predictions
+    - better uncertainty quantification [@Koehrsen2018]
+
+
+![Figure from [@lesaffre]](images/priorposterior.png){fig-align="right" width="50%"}
+
+:::
+
+## Interpreting the Posterior
+
+- The marginal posterior density function (output) may not be available
+- Makov Chain Monte Carlo is commonly used
+  - Markov chain sequence establishes a sample space from the posterior
+  - Integration of samples generated through Monte Carlo techniques from the sample space
+- Some popular MCMC algorithms:
+  - Gibbs sampler
+  - Metropolis-Hastings (MH) [@lesaffre]
+
+# Tools and Techniques in Bayesian Analysis
+
+![BAT logo (https://bat.mpp.mpg.de/?page=home)](images/BAT.png){fig-align="right"}
+
+- The Bayesian Analysis Toolkit (BAT)
+  - real-world application of Bayesian methods
+  - Markov Chain Monte Carlo (MCMC) for sampling and model comparison[@Caldwell2009]
+  - Visualization tools (trace plots, HMC diagnostics) for model
+    assessment [@Gabry2019]
+
+# Advantages of Bayesian Methods
+
+- Findings from Zyphur and Oswald on reliability 
+  - Bayesian methods are more reliable with small samples
+  - Better predictions and understanding of data [@Zyphur2015]
+
+- Better analysis of complex data due to advancements in computational power
+  - e.g. autoencoders [@Van2021]
+
+- Interpretation of posteriors 
+  - commonly done with MCMC
+  - variational inference has been offered as an alternative [@Blei2017]
+  
+# Modifications to BLR
+  - Kernalization (with Gaussian kernel) and Sparsification[@surfacerough]
+  - Warping to handle non-linear trends [@warped]
+  - BLR in concert with k-means clustering to creat subdivisions of the population [@bridge]
+  - Use with Cauchy prior to improve performance with sparse array input [@cauchyprior]
+  - Gridded BLR by means of producing a model grid to predict storm winds [@stormwind]
+
+# Conclusion and Future Directions
+
+- Key strengths of BLR
+  - flexibility
+  - uncertainty management
+
+- Exploration of MCMC and foundational Bayesian principles
+
+- Potential for future applications in complex data analysis
+
+## References
+
+::: {#refs}
+:::
