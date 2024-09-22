@@ -1,0 +1,236 @@
+---
+title: "Literature Review"
+author: "Sara Parrish"
+format:
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
+    toc-depth: 6
+course: Capstone Projects in Data Science
+bibliography: references.bib
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+theme: solar
+---
+
+## Source 1 [@surfacerough]
+
+Kong, Dongdong, Junjiang Zhu, Chaoqun Duan, Lixin Lu, and Dongxing Chen. 2020. “Bayesian Linear Regression for Surface Roughness Prediction.” Mechanical Systems and Signal Processing 142 (C): 106770-. <https://doi.org/10.1016/j.ymssp.2020.106770>.
+
+-   Explores the use of BLR for surface roughness prediction in the milling process of wood
+    -   Input taken from the time-domain of 3 different vibration signals to quantify surface roughness, also taking into account tool wear monitoring
+    -   BLR is used along with principal component analysis (PCA) and kernel principal component analysis based on the integrated radial basis function (KPCA_IRBF) for dimension reduction and dimension-increment
+-   Utilizes modifications to the standard BLR model to compare the accuracy of results in 4 different regressions:
+    -   Standard \_BLR
+    -   Gaussian_BLR - a “kernelized” model that includes the gaussian kernel function to address nonlinear relationships
+    -   Standard_SBLR - a “sparsified” model to address overfitting
+    -   Gaussian_SBLR - a “kernelized” and “sparsified” model
+-   Standard_BLR is found to be the superior of the four, and to even outperform partial least squares (PLS) artificial neural networks (ANN) and support vector machine(SVM)
+    -   BLR also has the benefit of producing a CI which is advantageous for quality control as the research does focus on surface roughness which would be a concern in the milling process
+
+## Source 2 [@warped]
+
+Fraza, Charlotte J, Richard Dinga, Christian F Beckmann, and Andre F Marquand. 2021. “Warped Bayesian Linear Regression for Normative Modelling of Big Data.” NeuroImage 245: 118715–118715. <https://doi.org/10.1016/j.neuroimage.2021.118715>.
+
+-   Historically, Gaussian process regression is the normative modeling approach for the use of neuroimaging to assist in the identification of psychiatric disorders
+    -   These models are problematic because they assume a gaussian distribution which is not always effective depending on the modality being assessed
+    -   Gaussian process regression
+        -   Pros: flexibility, accuracy
+        -   Cons: computational complexity
+            -   I.e. not good for big data
+-   The authors propose a warped BLR model that would address the non-gaussian distributions
+    -   “Likelihood warping technique”
+    -   Benefits of BLR
+        -   B-splines used in combination with warping allows for non-linearity (without requiring total curvature of the regression as would a polynomial)
+        -   Scaling for bigger data
+        -   Options to model different types of neuroimaging data (different modalities, different conditions that would have different distributions) due to the flexible warping of the gaussian function
+        -   Warped component
+            -   functions tested were affine, Box-Cox and SinhArcsinh transformations and compositions of the transformations
+-   Imaging data was taken from the UK Biobank imaging dataset, using specifically image derived phenotypes (IDPs) for their prevalence and diffusion tensor imaging (DTI) data for its likelihood to have non-gaussian and non-linear trends
+    -   The same UK Biobank was the source of the cognitive phenotype (behavior) data
+-   The warped BLR model outperformed both standard and Gaussian process regression models
+    -   Benefits listed above
+    -   Better fit
+-   Must select model criteria to provide balance between complexity and fit
+
+## Source 3 [@bridge]
+
+Zhang, Xiaonan, Youliang Ding, Hanwei Zhao, and Letian Yi. 2022. “Long‐term Bridge Performance Assessment Using Clustering and Bayesian Linear Regression for Vehicle Load and Strain Mapping Model.” Structural Control & Health Monitoring/Structural Control and Health Monitoring 29 (12). <https://doi.org/10.1002/stc.3118>.
+
+-   This study uses k-means clustering and standard BLR to create a performance indicator to monitor the health of a bridge
+-   The study uses long-term data from weigh-in-motion (WIM) and structural health monitoring (SHM) systems from a concrete box girder bridge, two systems that are typically used independently
+    -   WIM collects data on vehicle weight and speed
+    -   SHM collects data on the response of the bridge to various factors which is helpful to understand the performance of the bridge
+    -   The two systems are used to extract insights on vehicle weight and the resulting structural strain
+-   The study aims to use the slope of the regression for vehicle load and vehicle induced strain as a performance indicator for the bridge
+    -   Changes in slope would indicate performance/structural issues
+    -   K-means clustering was used to classify the vehicle weights and associated bridge strain into 3 different clusters
+    -   Metropolis-Hastings (M-H) sampling, a submethod of markov chain monte carlo (MCMC) sampling, to perform random simulation sampling which solves problems in the data with noise, abnormal signals,and missing and omitted data
+        -   This also helps address the problem of varied vehicle lengths
+    -   BLR is used to form the models of vehicle load and vehicle-induced strain models for each cluster
+        -   Histograms are shown comparing the original data to sampled data
+-   The slope of the mapping model is denoted as the model slope indicator (MSI)
+    -   The threshold is set to 5% and hypothesis testing is used to verify that this level of deviation in MSI is significant
+    -   the model does not trigger a warning when the change of MSI is lower than 5% as this was an acceptable damage level for the concrete bridge used in this study
+
+## Source 4 [@cauchyprior]
+
+Li, Jun, Ryan Wu, I-Tai Lu, and Dongyin Ren. 2023. “Bayesian Linear Regression With Cauchy Prior and Its Application in Sparse MIMO Radar.” IEEE Transactions on Aerospace and Electronic Systems 59 (6): 9576–97. <https://doi.org/10.1109/TAES.2023.3321585>.
+
+-   Proposed use of BLR with cauchy prior (BLRC) for the analyzation of multiple-input multiple output (MIMO) radar systems with improved resolution by sparse array (SPA) designs
+    -   Sparse signal recovery (SSR) is used to handle the sparse signals, specifically to provide high-resolution results in angle space
+-   BLRC is compared to traditional approaches: Cauchy-Gaussian (CG) and sparse Bayesian learning (SBL)
+-   Two frameworks for BLR are considered: maximum a posteriori (MAP) and hierarchical frameworks
+    -   The Cauchy-Gaussian uses MAP framework with the Cauchy prior
+        -   Optimal hyperparameters can only be found via trial and error
+    -   SBL uses a hierarchical framework and conditional Gaussian prior
+        -   Usually works well with sparse signal recovery (SSR)
+        -   Parameters are self-tuned and has a sufficient signal-to-noise ratio unlike some alternatives
+        -   SBL has room for improvement for cases where input is from SPA measurements
+-   BLRC is found to be superior to SBL due to
+    -   Only needing two hyperparameters vs. many hyperparameters in SBL
+        -   This is due to BLRC using a long-tailed Cauchy distribution
+    -   BLRC also outperforms SBL with “numerical robustness, spurious target suppression, target resolution, system flexibility, noise tolerance, and noise variance estimation”
+    -   BLRC also produces higher resolution radar images
+-   BLRC
+    -   Parameters c and Q are estimated with CG $\sigma_n$ and $\lambda$ are updates via a novel AEM approach
+    -   Pruning of the input to improve computational efficiency is not discussed
+
+## Source 5 [@stormwind]
+
+Yang, Jaemo, Marina Astitha, and Craig S Schwartz. 2019. “Assessment of Storm Wind Speed Prediction Using Gridded Bayesian Regression Applied to Historical Events With NCAR’s Real‐Time Ensemble Forecast System.” Journal of Geophysical Research. Atmospheres 124 (16): 9241–61. <https://doi.org/10.1029/2018JD029590>.
+
+-   This paper aims to improve the prediction of storm wind speed forecasts with the use of gridded bayesian linear regression (GBLR)
+    -   Historical storm data is used to adjust predictions for the National Center for Atmospheric Research (NCAR) real-time dynamic ensemble prediction system (EPS)
+        -   The database used includes 92 storms
+        -   Validation is done with leave-one-storm-out cross validation and leave-one-station-out cross validation
+-   Guidance from EPS is done in a few ways, but systematic errors are prevalent among all
+    -   Taking the mean of all ensemble members which is more accurate than individual members
+    -   There are two ways to remedy the biases - postprocessing techniques that use model-observation data -“Explicit” required the postprocessing of each ensemble member to correct bias followed by their averaging -“Implicit” calculates optimum weight for individual ensemble members
+        -   May not be ideal to eliminate bias
+-   This paper focuses on improving the BLR technique using
+    -   Inverse distance weighting to interpolate regression coefficients, transitioning from station locations to a model grid
+    -   A novel “implicit” method wherein the BLR optimizes regression coefficients for the ensemble members collectively
+-   GBLR was found to reduce bias in wind speed forecasts
+    -   It improves $R^2$ and RMSE values when compared to the ensemble mean for global and event-based metrics
+    -   It shows similar improvements in seasonal analysis
+    -   GBLR struggles with extreme values and in areas of the grid with sparse observations
+
+## Source 6 [@xiaogang]
+
+Xiaogang Su, and Xin Yan. 2009. “Bayesian Linear Regression.” In Linear Regression Analysis: Theory And Computing. Singapore: World Scientific Publishing Company.
+
+<https://ebookcentral.proquest.com/lib/uwf/reader.action?docID=477274&ppg=318&pq-origsite=primo>
+
+-   Bayesian methods come from Reverend Thomas Bayes
+    -   Treats regression coefficients $\beta$ and error variance $\sigma^2$ as random variables rather than fixed parameters such that all uncertainties are treated as probabilistic in the Fisherian approach
+    -   Involve prior and posterior distributions and inference made with Bayes estimation
+    -   The posterior distribution is found in the following equation
+
+$$
+\begin{align*}
+f(\theta | D) &= \frac{f(D|\Theta) f(\theta)}{f(D)} \\
+\\
+&= \frac{f(D|\Theta) f(\theta)}{\Sigma_{\Omega} f(D|\Theta) f(\theta) \, d\Theta} \\
+\\
+&= c \cdot f(D|\Theta) f(\theta) \\
+\\
+&\propto f(D|\Theta) f(\theta)
+\end{align*}
+$$
+
+-   $D$ is observed data
+
+-   $\Theta$ is the vector of interest
+
+-   $f(D|\theta)$ is the conditional density of $D$ given $\theta$
+
+-   $f(\theta)$ is the prior density
+
+-   $f(D)$ is the marginal density
+
+-   $\Omega$ gives the range of $\Theta$
+
+-   $\propto$ here is defined as “up to a constant”
+
+-   $c$ is the normalizing constant
+
+-   The posterior distribution is derived by combining the likelihood and prior distribution
+
+-   Priors are occasionally chose for mathematical convenience
+
+    -   Conjugate priors fall under this category as the allow for a resulting posterior that is from the same family
+
+-   Conjugate normal-gamma priors are introduced as an approach for fitting normal linear regression models
+
+-   Markov Chain Monte Carlo (MCMC) method is introduced as a widely used method among many fields
+
+    -   Used in Bayesian analysis when the marginal posterior density function for a parameter is not available
+    -   The *Gibbs sampler* is a special case of the MCMC method used in BLR
+        -   Used when the conditional posterior distribution of each parameter is known
+        -   From conditional distributions, the Gibbs sampler alternates a sequence of random draws to approximate the joint posterior distribution
+
+-   Bayesian Model Averaging (BMA)
+
+    -   Comes from the understanding that alternative models provide good fit to the data but may also provide different predictions
+    -   BMA provides a method to address uncertainties of individual models to provide a more comprehensive and robust model
+
+## Source 7 [@lesaffre]
+
+Lesaffre, Emmanuel, and Andrew B Lawson. 2012. Bayesian Biostatistics. 1st ed. Somerset: John Wiley & Sons, Ltd. <https://doi.org/10.1002/9781119942412>.
+
+
+- A Bayesian approach in statistical inference incorporates prior knowledge with current data to provide a revised probability (posterior)
+  - A frequentist approach does not account for prior knowledge
+  - The frequentist approach considers the parameter of interest fixed and inference on the parameter is based on the result of repeated sampling
+  - The Bayesian approach relies on a parameter that is not fixed like in the frequentist approach, but stochastic.
+    - Inference based on observed data
+- Priors
+  - Can be subjective or objective
+    - Subjective priors incorporate opinions, of an individual or of a group, which can alter the integrity of the findings
+    - Objective priors follow formal rules to determining noninformative priors
+  - When prior knowledge is lackluster, little information or otherwise not sufficient, a *noninformative* prior may be used. 	
+    - A common choice for a noninformative prior, in cases with binomial likelihood, is a uniform distribution, also known as a *flat prior*. 
+    - In cases with a gaussian likelihood, the noninformative prior would be a normal prior with $\sigma^2 \to \infty$ which functions similarly to the flat prior
+    - In cases with a Poisson likelihood, a Gamma($\alpha_0$, $\beta_0$) prior is used where the sum of the counts are $(\alpha_0 - 1)$ and the experiment size is $\beta_0$
+  - A *discounted* prior is the result of discounting a known prior
+    - e.g.decreasing the impact of a prior on the posterior by increasing $\sigma^2$
+- Measures for summarizing the posterior
+  - Specifying the location and variability of the posterior
+    - Locating the posterior can be done by finding the mode, mean, and median of the distribution
+  - Defining the range of the posterior which can be done via the equal tail credible interval (distinguished from frequentist confidence interval) or the highest posterior density (HDP) interval, the latter of which contains more probable $\theta$ values
+    - These methods require the cumulative distribution function (cdf) and the density on the distribution respectively. 
+- Posterior Predictive distributions (PPD)
+  - Applies the property of hierarchical independence which assumes that, given $\theta$, past data will not influence future data. They are independent. 
+  - Future predictions
+- Exchangeability
+  - Similar random variables can be assumed to be exchangeable when the joint probability distribution is not altered with changes in the sequence of the variables
+- Techniques for determining the posterior
+  - Numerical integration
+  - Sampling (commonly Monte Carlo)
+    - Sampling is done in nearly all Bayesian analyses
+    - General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. 
+    - The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. 
+    - Monte Carlo integration can be combined with the markov property given by [@lesaffre] in the following equation
+$$
+p(\Theta^{(k+1)}| \Theta^k , \Theta^{(k-1)} , . . . , y) = p(\Theta^{(k+1)} | \Theta^k, y)
+$$
+    - Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm.
+- Hypothesis testing
+  - There are two common Bayesian tools for hypothesis testing.  One tool uses inference by means of credible intervals, rejecting the null if it ($H_0 : \theta = \theta_0) falls outside of the $95\%$ CI. The other method uses the *contour probability* $p_B$ which is calculated using the smallest HPD interval that contains $\theta_0$. A smaller $p_B$ indicates a poorly supported null hypothesis.
+  - The Bayes factor $BF(y)$ is the Bayesian equivalent of the likelihood ratio test. A $BF(y)$ greater than 1 indicates support for the null hypothesis as the posterior odds and probability of $H_0$, are greater than the priors. 
+- BLR
+  - The noninformative prior of choice for a Bayesian linear regression model $(\beta, \sigma^2)$ is $p(\beta, \sigma^2) \propto \sigma^{-2}$. 
+  - The joint posterior distribution will have $d+2$ dimensions, the regression parameters $\beta$ accounting for $d+1$ dimensions and the residual variance $\sigma^2$ accounting for the remaining dimension. 
+- Historical Note
+  - Rev. Thomas Bayes
+  - Bayes’ ruminations on inverse probability wouldn’t be known until a friend submitted Bayes’ work after his death to the Royal Society
+  - Bayes’ work was then developed and refined by Laplace
+  - Bayesian inference was wildly different from the work Fisher was doing to define classical statistical theory
+
