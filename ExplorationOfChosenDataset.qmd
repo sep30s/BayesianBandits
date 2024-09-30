@@ -1,0 +1,373 @@
+---
+title: "Exploration of Chosen Dataset"
+author: "Sara Parrish"
+date: 09/28/2024
+date-format: "MMM D, YYYY"
+format:
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
+    toc-depth: 6
+course: Capstone Projects in Data Science
+bibliography: references.bib
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+theme: solar
+---
+
+```{css, echo=FALSE}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+```
+
+- The [dataset](https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=b0-gvzr) was acquired from the Bureau of Transportation Statistics(BTS). The BTS allows for selective download from all of their available data on commercial delays (On-Time : Reporting Carrier On-Time Performance (1987-present)). The 'selective' option was not working with my attempts, so I filtered out the unwanted variables. The dataset initially comes with 110.  
+
+
+```{r}
+#| echo: false
+library(knitr)
+
+BTSdelays <- read.csv("Delays1.csv")
+
+kable(head(BTSdelays)) 
+``` 
+
+```{r}
+#| echo: false
+dim(BTSdelays)
+```
+
+- The original dataset has 520,880 observations with 110 variables. We will retain Year, Month, Day of Month, Date of Week, Flight Date, Reporting Airline, Origin and Destination Airports, CRS Departure Time, Actual Departure Time, Departure Delay, Taxi Out Time, Wheels off Time, Wheels On Time, Taxi In Time, CRS Arrival Time, Arrival Time, Arrival Delay, Cancellation indicator, Cancellation Code,  Diverted indicator, CRS Elapsed Flight Time, Actual Elapsed Flight Time, Air Time, Carrier Delay, Weather Delay, NAS Delay, Security Delay, and Late Aircraft Delay. This will leave us with 29 variables. 
+
+```{r}
+#| echo: false
+library(dplyr)
+BTSdelays1 <- BTSdelays %>%
+  select(Year, Month, DayofMonth, DayOfWeek, FlightDate, Reporting_Airline, Origin, Dest, CRSDepTime, DepTime, DepDelay, TaxiOut, WheelsOff, WheelsOn, TaxiIn, CRSArrTime, ArrTime, ArrDelay, Cancelled, CancellationCode, Diverted, CRSElapsedTime, ActualElapsedTime, AirTime, CarrierDelay, WeatherDelay, NASDelay, SecurityDelay, LateAircraftDelay)
+
+
+dim(BTSdelays1)
+
+kable(head(BTSdelays1))
+```
+
+- Cancellation code is not populated in the head of the table but possible values are: 
+
+```{r}
+#| echo: false
+unique(BTSdelays1$CancellationCode)
+
+```
+
+- I plan on dividing the observations into groups based on departure times. There appear to be peaks around 9 a.m. (900), 11 a.m. and 3 p.m., but without more sophisticated analysis (like k-means clustering) to select groups, I make partitions for Morning (5 a.m. to noon), Afternoon (noon to 5 p.m.), and Evening (5 p.m.). 
+
+```{r}
+#| echo: false
+
+library(ggplot2)
+
+
+ggplot(BTSdelays1, aes(x=CRSDepTime)) +
+  geom_histogram() +
+  labs(title = "Histogram of Departure Times",
+       x = "Departure Time", 
+       y = "Frequency"
+       )
+
+BTSdelays1 <- BTSdelays1 %>%
+  mutate(FlightPeriod = case_when(
+    CRSDepTime >= 500 & CRSDepTime < 1200 ~ "Morning",
+    CRSDepTime >= 1200 & CRSDepTime < 1700 ~ "Afternoon",
+    CRSDepTime >= 1700 | CRSDepTime < 500 ~ "Evening"
+  ))
+
+
+ggplot(BTSdelays1, aes(x=FlightPeriod)) +
+  geom_bar() +
+  labs(title = "Flights Departing by Time of Day",
+       x = "Time Period", 
+       y = "Flights Departing"
+       )
+```
+
+
+- I'm interested in visualizing the dataset to see if there are any obvious trends with delay types so I used a scatterplot to show the relation between the delay minutes (of an individual delay type - multiple delays can be credited to the delay time of a single flight) and the total arrival delay of the aircraft. 
+
+```{r}
+#| echo: false
+
+library(tidyr)
+library(ggplot2)
+
+long_delays <- BTSdelays1 %>%
+  pivot_longer(
+    cols = c(CarrierDelay, WeatherDelay, NASDelay, SecurityDelay, LateAircraftDelay),
+    names_to = "DelayType", values_to = "DelayMinutes") %>%
+  replace_na(list(DelayMinutes = 0)
+             )
+
+ggplot(long_delays, aes(x = DelayMinutes, y = ArrDelay, color = DelayType)) +
+  geom_point(alpha = 0.5) +
+  scale_color_manual(
+    values = c("CarrierDelay" = "dodgerblue", "WeatherDelay" = "mediumseagreen", 
+               "NASDelay" = "darkseagreen1", "SecurityDelay" = "orchid2", 
+               "LateAircraftDelay" = "lightskyblue")) +
+  labs(x = "Delay Minutes (min)", y = "Arrival Delay (min)", color = "Delay Type") +
+  theme_minimal()
+```
+
+- As you can see, Delay Minutes cannot be less than total Arrival Delay. There also appears to be a trend with delays attributed to the carrier causing a lengthier setbacks. 
+
+- The values of the variables chosen for the table 1 were calculated using R in RStudio and formatted in Google Sheets and [tablesgenerator.com](https://www.tablesgenerator.com/html_tables#). 
+
+```{r}
+#| echo: false
+
+BTSdelays1 <- BTSdelays1 %>%
+  mutate(FlightDate = as.Date(FlightDate, format = "%Y-%m-%d"))
+
+
+
+table1 <- BTSdelays1 %>%
+  group_by(FlightPeriod) %>%
+  summarise(
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(FlightDate),
+    TotalUniqueOrigins = n_distinct(Origin),
+    TotalUniqueDestinations = n_distinct(Dest),
+    AvgCRSDepTime = mean(CRSDepTime, na.rm = TRUE),
+    AvgDepTime = mean(DepTime, na.rm = TRUE),
+    AvgDepDelay = mean(DepDelay, na.rm = TRUE),
+    AvgTaxiOut = mean(TaxiOut, na.rm = TRUE),
+    AvgTaxiIn = mean(TaxiIn, na.rm = TRUE),
+    AvgCRSArrTime = mean(CRSArrTime, na.rm = TRUE),
+    AvgArrTime = mean(ArrTime, na.rm = TRUE),
+    AvgArrDelay = mean(ArrDelay, na.rm = TRUE),
+    AvgAirTime = mean(AirTime, na.rm = TRUE),
+    CancelledFlights = sum(Cancelled, na.rm = TRUE),
+    DivertedFlights = sum(Diverted, na.rm = TRUE), 
+    CarrierDelay = mean(CarrierDelay, na.rm = TRUE),
+    SecurityDelay = mean(SecurityDelay, na.rm = TRUE),
+    WeatherDelay = mean(WeatherDelay, na.rm = TRUE),
+    NASDelay = mean(NASDelay, na.rm = TRUE),
+    LateAircraftDelay = mean(LateAircraftDelay, na.rm = TRUE),
+  )
+
+table1.1 <- BTSdelays1 %>%
+  summarise(
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(FlightDate),
+    TotalUniqueOrigins = n_distinct(Origin),
+    TotalUniqueDestinations = n_distinct(Dest),
+    AvgCRSDepTime = mean(CRSDepTime, na.rm = TRUE),
+    AvgDepTime = mean(DepTime, na.rm = TRUE),
+    AvgDepDelay = mean(DepDelay, na.rm = TRUE),
+    AvgTaxiOut = mean(TaxiOut, na.rm = TRUE),
+    AvgTaxiIn = mean(TaxiIn, na.rm = TRUE),
+    AvgCRSArrTime = mean(CRSArrTime, na.rm = TRUE),
+    AvgArrTime = mean(ArrTime, na.rm = TRUE),
+    AvgArrDelay = mean(ArrDelay, na.rm = TRUE),
+    AvgAirTime = mean(AirTime, na.rm = TRUE),
+    CancelledFlights = sum(Cancelled, na.rm = TRUE),
+    DivertedFlights = sum(Diverted, na.rm = TRUE), 
+    CarrierDelay = mean(CarrierDelay, na.rm = TRUE),
+    SecurityDelay = mean(SecurityDelay, na.rm = TRUE),
+    WeatherDelay = mean(WeatherDelay, na.rm = TRUE),
+    NASDelay = mean(NASDelay, na.rm = TRUE),
+    LateAircraftDelay = mean(LateAircraftDelay, na.rm = TRUE),
+  )
+
+
+
+kable(print(table1))
+
+```
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-color:#9ABAD9;border-spacing:0;}
+.tg td{background-color:#EBF5FF;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#444;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{background-color:#409cff;border-color:#9ABAD9;border-style:solid;border-width:1px;color:#fff;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-gagn{border-color:#ffffff;text-align:right;vertical-align:bottom}
+.tg .tg-nwho{background-color:#3166ff;border-color:#ffffff;
+  font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif !important;text-align:left;vertical-align:bottom}
+.tg .tg-aunz{background-color:#3166ff;border-color:#ffffff;
+  font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif !important;font-weight:bold;text-align:center;
+  vertical-align:bottom}
+.tg .tg-n0of{border-color:#ffffff;font-weight:bold;text-align:left;vertical-align:bottom}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 669px"><colgroup>
+<col style="width: 196px">
+<col style="width: 114px">
+<col style="width: 122px">
+<col style="width: 124px">
+<col style="width: 113px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-nwho">Flight Period </th>
+    <th class="tg-aunz">Morning</th>
+    <th class="tg-aunz">Afternoon</th>
+    <th class="tg-aunz">Evening</th>
+    <th class="tg-aunz">All</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-n0of">Total Flights</td>
+    <td class="tg-gagn">213797 (41%)</td>
+    <td class="tg-gagn">156449 (30%)</td>
+    <td class="tg-gagn">150634 (29%)</td>
+    <td class="tg-gagn">520880</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Total Unique Dates<br></td>
+    <td class="tg-gagn">31</td>
+    <td class="tg-gagn">31</td>
+    <td class="tg-gagn">31</td>
+    <td class="tg-gagn">31</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Total Unique Origins<br></td>
+    <td class="tg-gagn">302</td>
+    <td class="tg-gagn">294</td>
+    <td class="tg-gagn">274</td>
+    <td class="tg-gagn">315</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Total Unique Destinations<br></td>
+    <td class="tg-gagn">287</td>
+    <td class="tg-gagn">294</td>
+    <td class="tg-gagn">294</td>
+    <td class="tg-gagn">315</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average CRS Departure Time<br></td>
+    <td class="tg-gagn">853.77</td>
+    <td class="tg-gagn">1426.76</td>
+    <td class="tg-gagn">1906.42</td>
+    <td class="tg-gagn">1330.29</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Departure Time<br></td>
+    <td class="tg-gagn">858.66</td>
+    <td class="tg-gagn">1447.71</td>
+    <td class="tg-gagn">1908.66</td>
+    <td class="tg-gagn">1337.15</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Departure Delay<br></td>
+    <td class="tg-gagn">4.92</td>
+    <td class="tg-gagn">14.00</td>
+    <td class="tg-gagn">20.19</td>
+    <td class="tg-gagn">12.04</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Taxi Out<br></td>
+    <td class="tg-gagn">15.20</td>
+    <td class="tg-gagn">15.97</td>
+    <td class="tg-gagn">16.10</td>
+    <td class="tg-gagn">15.69</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Taxi In<br></td>
+    <td class="tg-gagn">7.31</td>
+    <td class="tg-gagn">7.32</td>
+    <td class="tg-gagn">6.92</td>
+    <td class="tg-gagn">7.20</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average CRS Arrival Time<br></td>
+    <td class="tg-gagn">1085.59</td>
+    <td class="tg-gagn">1641.12</td>
+    <td class="tg-gagn">1897.6</td>
+    <td class="tg-gagn">1487.28</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Arrival Time<br></td>
+    <td class="tg-gagn">1088.49</td>
+    <td class="tg-gagn">1651.34</td>
+    <td class="tg-gagn">1809.68</td>
+    <td class="tg-gagn">1464.60</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Arrival Delay<br></td>
+    <td class="tg-gagn">1.67</td>
+    <td class="tg-gagn">11.23</td>
+    <td class="tg-gagn">16.45</td>
+    <td class="tg-gagn">8.78</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Average Air Time<br></td>
+    <td class="tg-gagn">113.81</td>
+    <td class="tg-gagn">108.13</td>
+    <td class="tg-gagn">114.32</td>
+    <td class="tg-gagn">112.25</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Cancelled Flights<br></td>
+    <td class="tg-gagn">2417 (29%)</td>
+    <td class="tg-gagn">2410 (29%)</td>
+    <td class="tg-gagn">3563 (42%)</td>
+    <td class="tg-gagn">8390</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Diverted Flights<br></td>
+    <td class="tg-gagn">460 (31%)</td>
+    <td class="tg-gagn">636 (43%)</td>
+    <td class="tg-gagn">391 (26%)</td>
+    <td class="tg-gagn">1487</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Carrier Delay<br></td>
+    <td class="tg-gagn">24.74</td>
+    <td class="tg-gagn">15.90</td>
+    <td class="tg-gagn">15.62</td>
+    <td class="tg-gagn">17.93</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Security Delay<br></td>
+    <td class="tg-gagn">0.0552</td>
+    <td class="tg-gagn">0.0326</td>
+    <td class="tg-gagn">0.0531</td>
+    <td class="tg-gagn">0.0466</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Weather Delay<br></td>
+    <td class="tg-gagn">1.71</td>
+    <td class="tg-gagn">3.17</td>
+    <td class="tg-gagn">2.95</td>
+    <td class="tg-gagn">2.72</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">NAS Delay<br></td>
+    <td class="tg-gagn">15.05</td>
+    <td class="tg-gagn">14.51</td>
+    <td class="tg-gagn">10.15</td>
+    <td class="tg-gagn">12.83</td>
+  </tr>
+  <tr>
+    <td class="tg-n0of">Late Aircraft Delay<br></td>
+    <td class="tg-gagn">13.50</td>
+    <td class="tg-gagn">24.41</td>
+    <td class="tg-gagn">32.37</td>
+    <td class="tg-gagn">25.07</td>
+  </tr>
+</tbody></table>
+
+
+- Total unique dates for the 520,880 entries only came out to be 31. This was not an error with the data, but in the download from the BTS as only the month of July from 2014 was selected. 
+- The averages were taken for many of the variables, but this information does not give much insight on the variables whose value is a time of day. 
+- Average departure and arrival delay, and average air time are in minutes. 
+- Variables with count data, total flights, cancelled flights, and diverted flights, can be seen with their percentages. 
+- An attempt was made, in various ways with a few different R packages, to get a count of the delay types for each flight period. The attempt failed, largely due to the group_by function. 
+- Moving forward, it would be pertinent to quantify more of the information in this dataset so that it is more digestible in the format of a table 1. 
