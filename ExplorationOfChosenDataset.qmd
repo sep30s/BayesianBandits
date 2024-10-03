@@ -1,7 +1,7 @@
 ---
-title: "Exploration of Chosen Dataset"
+title: "Exploratory Data Analysis"
 author: "Sara Parrish"
-date: 09/28/2024
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 date-format: "MMM D, YYYY"
 format:
   html:
@@ -28,7 +28,7 @@ pre {
 }
 
 ```
-
+# Dataset 1: Week 6 Deliverable
 - The [dataset](https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=b0-gvzr) was acquired from the Bureau of Transportation Statistics(BTS). The BTS allows for selective download from all of their available data on commercial delays (On-Time : Reporting Carrier On-Time Performance (1987-present)). The 'selective' option was not working with my attempts, so I filtered out the unwanted variables. The dataset initially comes with 110.  
 
 
@@ -118,9 +118,9 @@ long_delays <- BTSdelays1 %>%
 ggplot(long_delays, aes(x = DelayMinutes, y = ArrDelay, color = DelayType)) +
   geom_point(alpha = 0.5) +
   scale_color_manual(
-    values = c("CarrierDelay" = "dodgerblue", "WeatherDelay" = "mediumseagreen", 
-               "NASDelay" = "darkseagreen1", "SecurityDelay" = "orchid2", 
-               "LateAircraftDelay" = "lightskyblue")) +
+    values = c("CarrierDelay" = "blue", "WeatherDelay" = "green", 
+               "NASDelay" = "red", "SecurityDelay" = "purple", 
+               "LateAircraftDelay" = "yellow")) +
   labs(x = "Delay Minutes (min)", y = "Arrival Delay (min)", color = "Delay Type") +
   theme_minimal()
 ```
@@ -189,7 +189,7 @@ table1.1 <- BTSdelays1 %>%
 
 
 kable(print(table1))
-
+kable(print(table1.1))
 ```
 
 <style type="text/css">
@@ -371,3 +371,202 @@ kable(print(table1))
 - Variables with count data, total flights, cancelled flights, and diverted flights, can be seen with their percentages. 
 - An attempt was made, in various ways with a few different R packages, to get a count of the delay types for each flight period. The attempt failed, largely due to the group_by function. 
 - Moving forward, it would be pertinent to quantify more of the information in this dataset so that it is more digestible in the format of a table 1. 
+
+
+
+
+# Dataset 2 : Week 7 Deliverable
+## Flight Delays and Cancellations from the Bureau of Transportation Statistics
+Compiled by Patrick Zelazko
+<https://www.kaggle.com/datasets/patrickzel/flight-delay-and-cancellation-dataset-2019-2023?resource=download>
+
+
+```{r}
+#| echo: false
+Delays <- read.csv("Kaggle_flights.csv")
+
+kable(head(Delays))
+names(Delays)
+```
+
+
+```{r}
+#| echo: false
+
+Delays1 <- Delays %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0)
+  ) %>%
+  rename_with(tolower) %>%
+  rename(
+    carrier_delay = delay_due_carrier,
+    weather_delay = delay_due_weather,
+    nas_delay = delay_due_nas,
+    security_delay = delay_due_security,
+    lateaircraft_delay = delay_due_late_aircraft
+  )
+
+
+Table1.2 <- Delays1 %>%
+  mutate(flight_duration = case_when(
+    air_time < 60 ~ "Short-haul",
+    air_time >= 60 & air_time  < 90 ~ "Light-Medium-haul",
+    air_time  >= 90 & air_time  <= 120 ~ "Medium-haul", 
+    air_time  > 120 ~ "Long-haul"
+  )) %>%
+  group_by(flight_duration) %>%
+  summarize(
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(fl_date),
+    TotalUniqueOrigins = n_distinct(origin),
+    TotalUniqueDestinations = n_distinct(dest),
+    AvgCRSDepTime = mean(crs_dep_time, na.rm = TRUE),
+    AvgDepTime = mean(dep_time, na.rm = TRUE),
+    AvgDepDelay = mean(dep_delay, na.rm = TRUE),
+    AvgTaxiOut = mean(taxi_out, na.rm = TRUE),
+    AvgTaxiIn = mean(taxi_in, na.rm = TRUE),
+    AvgCRSArrTime = mean(crs_arr_time, na.rm = TRUE),
+    AvgArrTime = mean(arr_time, na.rm = TRUE),
+    AvgArrDelay = mean(arr_delay, na.rm = TRUE),
+    AvgAirTime = mean(air_time, na.rm = TRUE),
+    CancelledFlights = sum(cancelled, na.rm = TRUE),
+    DivertedFlights = sum(diverted, na.rm = TRUE), 
+    AvgCarrierDelay = mean(carrier_delay),
+    AvgSecurityDelay = mean(security_delay),
+    AvgWeatherDelay = mean(weather_delay),
+    AvgNASDelay = mean(nas_delay),
+    AvgLateAircraftDelay = mean(lateaircraft_delay),
+    CarrierDelay_ct = sum(carrier_delay > 0),
+    SecurityDelay_ct = sum(security_delay > 0),
+    WeatherDelay_ct = sum(weather_delay > 0),
+    NASDelay_ct = sum(nas_delay > 0),
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)
+  )
+
+kable(print(Table1.2))
+
+```
+
+
+```{r}
+#| echo: false
+ggplot(Delays, aes(x=AIR_TIME)) +
+  geom_histogram() +
+  labs(title = "Histogram of Air Times",
+       x = "Air Time", 
+       y = "Frequency")+
+  xlim(NA, 400)
+
+
+library(summarytools)
+
+descr(Delays$AIR_TIME)
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+
+
+```{r}
+#| echo: false
+BTSdelays1 <- BTSdelays1 %>%
+  mutate(FlightDate = as.Date(FlightDate, format = "%Y-%m-%d"))
+
+
+
+table1 <- BTSdelays1 %>%
+  group_by(FlightPeriod) %>%
+  summarise(
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(FlightDate),
+    TotalUniqueOrigins = n_distinct(Origin),
+    TotalUniqueDestinations = n_distinct(Dest),
+    AvgCRSDepTime = mean(CRSDepTime, na.rm = TRUE),
+    AvgDepTime = mean(DepTime, na.rm = TRUE),
+    AvgDepDelay = mean(DepDelay, na.rm = TRUE),
+    AvgTaxiOut = mean(TaxiOut, na.rm = TRUE),
+    AvgTaxiIn = mean(TaxiIn, na.rm = TRUE),
+    AvgCRSArrTime = mean(CRSArrTime, na.rm = TRUE),
+    AvgArrTime = mean(ArrTime, na.rm = TRUE),
+    AvgArrDelay = mean(ArrDelay, na.rm = TRUE),
+    AvgAirTime = mean(AirTime, na.rm = TRUE),
+    CancelledFlights = sum(Cancelled, na.rm = TRUE),
+    DivertedFlights = sum(Diverted, na.rm = TRUE), 
+    CarrierDelay = mean(CarrierDelay, na.rm = TRUE),
+    SecurityDelay = mean(SecurityDelay, na.rm = TRUE),
+    WeatherDelay = mean(WeatherDelay, na.rm = TRUE),
+    NASDelay = mean(NASDelay, na.rm = TRUE),
+    LateAircraftDelay = mean(LateAircraftDelay, na.rm = TRUE),
+  )
+
+table1.1 <- BTSdelays1 %>%
+  summarise(
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(FlightDate),
+    TotalUniqueOrigins = n_distinct(Origin),
+    TotalUniqueDestinations = n_distinct(Dest),
+    AvgCRSDepTime = mean(CRSDepTime, na.rm = TRUE),
+    AvgDepTime = mean(DepTime, na.rm = TRUE),
+    AvgDepDelay = mean(DepDelay, na.rm = TRUE),
+    AvgTaxiOut = mean(TaxiOut, na.rm = TRUE),
+    AvgTaxiIn = mean(TaxiIn, na.rm = TRUE),
+    AvgCRSArrTime = mean(CRSArrTime, na.rm = TRUE),
+    AvgArrTime = mean(ArrTime, na.rm = TRUE),
+    AvgArrDelay = mean(ArrDelay, na.rm = TRUE),
+    AvgAirTime = mean(AirTime, na.rm = TRUE),
+    CancelledFlights = sum(Cancelled, na.rm = TRUE),
+    DivertedFlights = sum(Diverted, na.rm = TRUE), 
+    CarrierDelay = mean(CarrierDelay, na.rm = TRUE),
+    SecurityDelay = mean(SecurityDelay, na.rm = TRUE),
+    WeatherDelay = mean(WeatherDelay, na.rm = TRUE),
+    NASDelay = mean(NASDelay, na.rm = TRUE),
+    LateAircraftDelay = mean(LateAircraftDelay, na.rm = TRUE),
+  )
+
+
+
+kable(print(table1))
+kable(print(table1.1))
+```
+
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+

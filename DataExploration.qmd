@@ -1,7 +1,7 @@
 ---
 title: "Data Exploration"
 author: "Sara Parrish"
-date: 09/21/2024
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 date-format: "MMM D, YYYY"
 format:
   html:
@@ -29,7 +29,7 @@ pre {
 
 ```
 
-# Data Set 1: Bureau of Transportation Statistics
+# Dataset 1: Bureau of Transportation Statistics
 ## Airline On-Time Statistics and Delay Causes for PNS
 <https://www.transtats.bts.gov/OT_Delay/OT_DelayCause1.asp?20=E>
 
@@ -302,7 +302,7 @@ ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
 
 - This data set has a large amount of data to choose from. I only worked with the data for PNS from 2010 through June 2024. There are many possibilities if we choose to work with this data set. 
 
-# Data Set 2: Flight Delay and Cancellation Data Set
+# Dataset 2: Flight Delay and Cancellation Data Set
 ## Also From the BTS 
 <https://www.kaggle.com/datasets/patrickzel/flight-delay-and-cancellation-dataset-2019-2023?resource=download>
 
