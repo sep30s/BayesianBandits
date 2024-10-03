@@ -61,13 +61,116 @@ knitr::kable(tail(BTSdelays))
 </div> 
 
 
-- So we have 1355 entries, with 21 columns, going back to January of 2010. 
+- So we have 1366 entries, with 21 columns, going back to January of 2010. 
+- Following are the provided definitions of the variables. 
 
-```{r}
-names(BTSdelays)
-```
-- This data set is composed of data reported by domestic carriers monthly to the Bureau of Transportation Statistics (BTS). The BTS has data on all domestic airports, but the Pensacola Airport was chosen for this review. Each monthly report by the carrier includes information on flights arriving at the selected airport, not on departures.  
-Columns with the "_ct" abbreviation (9-13) are not explicit counts but likely the proportion of delayed arrivals that were due to the specified issue (carrier, National Aviation System, security, or late aircraft). This information was not explicit on the BTS site. Cancelled and diverted arrivals (arr_cancelled and arr_diverted) are counts. Arrival delay (arr_delay) through late aircraft delay are the calculated delayed minutes for all flights for the specified carrier for that month. 
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;margin:0px auto;}
+.tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-ok05{background-color:#000000;color:#efefef;font-weight:bold;position:-webkit-sticky;position:sticky;text-align:center;
+  top:-1px;vertical-align:bottom;will-change:transform}
+.tg .tg-ehk8{background-color:#000000;border-color:inherit;color:#efefef;font-weight:bold;position:-webkit-sticky;position:sticky;
+  text-align:center;top:-1px;vertical-align:bottom;will-change:transform}
+.tg .tg-f5h8{color:#efefef;text-align:center;vertical-align:bottom}
+.tg .tg-ujrm{color:#efefef;text-align:center;vertical-align:middle}
+@media screen and (max-width: 767px) {.tg {width: auto !important;}.tg col {width: auto !important;}.tg-wrap {overflow-x: auto;-webkit-overflow-scrolling: touch;margin: auto 0px;}}</style>
+<div class="tg-wrap"><table class="tg"><thead>
+  <tr>
+    <th class="tg-ehk8">Variable</th>
+    <th class="tg-ok05"> Definition</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-f5h8">year</td>
+    <td class="tg-f5h8">YYYY   format</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">month</td>
+    <td class="tg-f5h8">MM   format (1-12)</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">carrier</td>
+    <td class="tg-f5h8">Code   assigned by assigned by US DOT to identify a unique airline carrier.  </td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">carrier_name</td>
+    <td class="tg-f5h8">Unique   airline (carrier) is defined as one holding and reporting under the same DOT   certificate regardless of its Code, Name, or holding company/corporation.</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">airport</td>
+    <td class="tg-f5h8">A   three character alpha-numeric code issued by the U.S. Department of   Transportation which is the official designation of the airport.</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">airport_name</td>
+    <td class="tg-f5h8">a   place from which aircraft operate that usually has paved runways and   maintenance facilities and often serves as a terminal</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">arr_flights</td>
+    <td class="tg-f5h8">Arrival   Flights</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">arr_del15</td>
+    <td class="tg-f5h8">Arrival   Delay Indicator, 15 Minutes or More Arrival delay equals the difference   of the actual arrival time minus the scheduled arrival time. A flight is   considered on-time when it arrives less than 15 minutes after its published   arrival time.</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">carrier_ct</td>
+    <td class="tg-f5h8">Carrier   Count for airline cause of delay</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">weather_ct</td>
+    <td class="tg-f5h8">Weather   Count for airline cause of delay</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">nas_ct</td>
+    <td class="tg-f5h8">NAS   (National Air System) Count for airline cause of delay</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">security_ct</td>
+    <td class="tg-f5h8">Security   County for airline cause of delay</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">late_aircraft_ct</td>
+    <td class="tg-f5h8">Late   Aircraft Delay Count for airline cause of delay</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">arr_cancelled</td>
+    <td class="tg-f5h8">flight   cancelled</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">arr_diverted</td>
+    <td class="tg-f5h8">flight   diverted</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">arr_delay</td>
+    <td class="tg-f5h8">Difference   in minutes between scheduled and actual arrival time. Early arrivals show   negative numbers.</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">carrier_delay</td>
+    <td class="tg-f5h8">Carrier   Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">weather_delay</td>
+    <td class="tg-f5h8">Weather   Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">nas_delay</td>
+    <td class="tg-f5h8">National   Air System Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">security_delay</td>
+    <td class="tg-ujrm">Security   Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-f5h8">late_aircraft_delay</td>
+    <td class="tg-f5h8">Late   Aircraft Delay, in Minutes</td>
+  </tr>
+</tbody></table></div>
+
+
+- This data set is composed of data reported by domestic carriers monthly to the Bureau of Transportation Statistics (BTS). The BTS has data on all domestic airports, but the Pensacola Airport was chosen for this review. Each monthly report by the carrier includes information on flights arriving at the selected airport, not on departures.
 
 - Below I view and remove NA inputs.
 
@@ -98,7 +201,7 @@ print(carrier_summary)
 
 
 ```{r}
-carrier_count <- BTSdelays %>%
+carrier_count <- BTSdelays1 %>%
   count(carrier)
 print(carrier_count)
 ```
@@ -116,8 +219,7 @@ print(carrier_stats)
 
 ```{r}
 carrier_summary1 <- carrier_summary%>%
-  left_join(carrier_count, by= "carrier", suffix = c("", "_count")) %>%
-  filter(n > 69)
+  left_join(carrier_count, by= "carrier", suffix = c("", "_count"))
 
 print(carrier_summary1)
 ```
@@ -126,17 +228,79 @@ print(carrier_summary1)
 
 ```{r}
 library(ggplot2)
-ggplot(carrier_summary1, aes(x = carrier, y = avg_arr_delay, fill=n)) +
-  geom_col() +
-  scale_fill_gradient2(low = "paleturquoise1", mid = "paleturquoise2", high = "paleturquoise4", midpoint = mean(carrier_summary1$n)) +
+
+carrier_summary_ci <- BTSdelays1 %>%
+  group_by(carrier) %>%
+  summarise(
+    carrier_name = first(carrier_name),
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    n = n(),
+    sd_arr_delay = sd(arr_delay, na.rm = TRUE)
+  ) %>%
+  filter(n>100) %>%
+  mutate(
+    lower_ci = avg_arr_delay - qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n),
+    upper_ci = avg_arr_delay + qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n)
+  )
+
+
+filtered_carriers <- BTSdelays1 %>%
+  group_by(carrier) %>%
+  filter(n() > 100)
+
+total_mean_delay_filtered <- mean(filtered_carriers$arr_delay)
+
+ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) + 
+  geom_hline(yintercept = total_mean_delay_filtered, linetype = "dashed", color = "red") + 
   labs(title = "Average Arrival Delays by Carrier",
-       x = "Carrier",
-       y = "Average Arrival Delay (minutes)",
-       fill = "Carrier Count") +
-  theme_minimal()
+       x = "Carrier Name",
+       y = "Average Arrival Delay (minutes)") +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-- This data set has a large amount of data to choose from. I only worked with the data for PNS from 2010 through June 2024. There are many possibilites if we choose to work with this data set. 
+
+- From January 2010 to July 2024, there are 175 months of data. The only airline that has been consistently operating through PNS over this time frame is Delta, so this visualization filtered for any airline with over 100 months of data. 
+
+- With some quick research, Envoy is a [subsidiary](https://www.envoyair.com/#:~:text=Envoy%20Air%20Inc.%20is%20a%20wholly%2Downed%20subsidiary%20of%20American%20Airlines%20Group) of American Airlines, Mesa is [partnered](https://www.mesa-air.com/#:~:text=As%20part%20of%20this%20collaboration,travel%20options%20across%20the%20globe.) with United, and ExpressJet [closed its doors in 2022](ExpressJet Airlines, a former U.S. regional carrier with roots that go back more than 30 years).
+
+```{r}
+carrier_summary_ci <- BTSdelays1 %>%
+  group_by(carrier) %>%
+  summarise(
+    carrier_name = first(carrier_name),
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    n = n(),
+    sd_arr_delay = sd(arr_delay, na.rm = TRUE)
+  ) %>%
+  filter(n>70) %>%
+  mutate(
+    lower_ci = avg_arr_delay - qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n),
+    upper_ci = avg_arr_delay + qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n)
+  )
+
+filtered_carriers <- BTSdelays1 %>%
+  group_by(carrier) %>%
+  filter(n() > 70)
+
+total_mean_delay_filtered <- mean(filtered_carriers$arr_delay)
+
+ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) + 
+  geom_hline(yintercept = total_mean_delay_filtered, linetype = "dashed", color = "red") + 
+  labs(title = "Average Arrival Delays by Carrier",
+       x = "Carrier Name",
+       y = "Average Arrival Delay (minutes)") +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+- With a smaller requirement of over 70 months of data, we can see the inclusion of SkyWest, Southwest, PSA, Frontier, and American Airlines.
+
+- This data set has a large amount of data to choose from. I only worked with the data for PNS from 2010 through June 2024. There are many possibilities if we choose to work with this data set. 
 
 # Data Set 2: Flight Delay and Cancellation Data Set
 ## Also From the BTS 
@@ -217,5 +381,3 @@ ggplot(KaggleMiami, aes(x = AIR_TIME, y = ARR_DELAY, color = AIRLINE_CODE)) +
 
 - This graph is very rudimentary but further exploration in a relationship between air time and arrival delay could be interesting. This data set also provides the opportunity to investigate some other variables such as taxi time or time of day of the flight. While this data set is fairly large, interesting insight can  be extracted from it. 
 
-
-  
