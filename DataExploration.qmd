@@ -310,7 +310,7 @@ ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
 
 
 ```{r}
-Kaggledelays <- read.csv(gzfile("Kaggledelays.csv.gz"))
+Kaggledelays <- read.csv("Kaggle_flights.csv")
 knitr::kable(head(Kaggledelays))
 ```
 
@@ -326,6 +326,7 @@ names(Kaggledelays)
 
 - The additional columns appear to include scheduled arrival and departure as well as departure delay, the specific cancellation code, air time, distance, taxi times, flight number, destination and origin. Although this data set is a bit larger, it provides more options for analysis. 
 
+- When filtering the data down to a location, I considered PNS and MIA. As the data only covers a three year span, I was curious if PNS would have enough recorded flights to extract meaningful insight.
 
 ```{r}
 unique_airlines <- Kaggledelays %>%
@@ -337,6 +338,11 @@ print(unique_airlines)
 unique_dest <- Kaggledelays %>%
   summarise(unique_dest = n_distinct(DEST))
 print(unique_dest)
+
+dest_count <- Kaggledelays %>%
+  count(DEST) %>%
+  filter(DEST %in% c("PNS", "MIA"))
+print(dest_count)
 ```
 
 - Given this data set is working with 380 unique destinations, it makes sense that it is also comprised of 18 different airlines. There is an issue when it comes to computation with this data set. Three million lines can be quite much for 8GB of RAM. 
@@ -346,38 +352,105 @@ print(unique_dest)
 KaggleMiami <- Kaggledelays %>%
   filter(DEST == "MIA")
 dim(KaggleMiami)
+
+KagglePensacola <- Kaggledelays %>%
+  filter(DEST == "PNS")
+dim(KagglePensacola)
 ```
 
 - Nice. Manageable. 
 
 
 ```{r}
-airline_summary <- KaggleMiami %>%
+airline_summaryMIA <- KaggleMiami %>%
   na.omit() %>%
   group_by(AIRLINE_CODE) %>%
   summarize(
     avg_arr_delay = mean(ARR_DELAY),
-    avg_airtime = mean(AIR_TIME)
+    avg_airtime = mean(AIR_TIME), 
+    n = n()
   )
 
-print(airline_summary)
+airline_summaryPNS <- KagglePensacola %>%
+  na.omit() %>%
+  group_by(AIRLINE_CODE) %>%
+  summarize(
+    avg_arr_delay = mean(ARR_DELAY),
+    avg_airtime = mean(AIR_TIME), 
+    n = n()
+  )
+
+carrier_counts_MIA <- KaggleMiami %>%
+  count(AIRLINE_CODE)
+
+carrier_counts_PNS <- KagglePensacola %>%
+  count(AIRLINE_CODE)
+
+library(summarytools)
+
+descr(carrier_counts_MIA$n)
+
+descr(carrier_counts_PNS$n)
+
+print(airline_summaryMIA)
+
+print(airline_summaryPNS)
+
 ```
 
 
 - I considered visualizing this but then decided tracking arrival delays as a function of airtime would be more interesting.
 
 ```{r}
+#Filter for n
+#MIA - n > 372
+carrier_counts_MIA <- KaggleMiami %>%
+  count(AIRLINE_CODE) %>%
+  filter(n >= 3186)
+
+print(carrier_counts_MIA)
+
+KaggleMiami1 <- KaggleMiami %>%
+  filter(AIRLINE_CODE %in% carrier_counts_MIA$AIRLINE_CODE & ARR_DELAY >= 15)
+
+
+#PNS - n > 54
+
+carrier_counts_PNS <- KagglePensacola %>%
+  count(AIRLINE_CODE) %>%
+  filter(n >= 762)
+
+print(carrier_counts_PNS)
+
+KagglePensacola1 <- KagglePensacola %>%
+  filter(AIRLINE_CODE %in% carrier_counts_PNS$AIRLINE_CODE & ARR_DELAY >= 15)
+
+
+
+
 library(ggplot2)
-ggplot(KaggleMiami, aes(x = AIR_TIME, y = ARR_DELAY, color = AIRLINE_CODE)) +
-  geom_smooth(se = FALSE) +
+ggplot(KaggleMiami1, aes(x = AIR_TIME, y = ARR_DELAY, color = AIRLINE)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(se=FALSE) +
   labs(
-    title = "Arrival Delay vs. Air Time by Airline",
+    title = "MIA Arrival Delay vs. Air Time by Airline",
     x = "Air Time",
     y = "Arrival Delay",
-    color = "Airline Code"
-  )
+    color = "Airline Code") +
+  ylim(NA, 150)
+
+
+ggplot(KagglePensacola1, aes(x = AIR_TIME, y = ARR_DELAY, color = AIRLINE)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE) + 
+  labs(
+    title = "PNS Arrival Delay vs. Air Time by Airline",
+    x = "Air Time",
+    y = "Arrival Delay",
+    color = "Airline Code") +
+  ylim(NA, 150)
 ```
-
-
-- This graph is very rudimentary but further exploration in a relationship between air time and arrival delay could be interesting. This data set also provides the opportunity to investigate some other variables such as taxi time or time of day of the flight. While this data set is fairly large, interesting insight can  be extracted from it. 
+- PSA Airlines is a [subsidiary](https://www.psaairlines.com/about/#:~:text=PSA%20is%20a%20proud%20wholly%20owned%20subsidiary%20of%20American%20Airlines) of American Airlines. 
+- Kinda useless but maybe slightly better. There doesn't appear to be an obvious relationship between air time and arrival delay. It may be beneficial to look into other relationships, potentially between type of delay and total delay. 
+- Further exploration in a relationship between air time and arrival delay could be interesting. This data set also provides the opportunity to investigate some other variables such as taxi time or time of day of the flight. While this data set is fairly large, interesting insight can  be extracted from it. 
 
