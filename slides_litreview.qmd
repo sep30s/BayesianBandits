@@ -2,7 +2,7 @@
 title: "Bayesian Linear Regression"
 subtitle: "Literature Review"
 author: "Heather Anderson, Sara Parrish (Advisor: Dr. Seals)"
-date: 09/21/2024
+date: 10/03/2024
 date-format: "MMM D, YYYY"
 format:
   revealjs:
@@ -31,27 +31,96 @@ fig-align: center
 
 # Introduction to Bayesian Linear Regression
 
-- Linear regression
-    - A variable is used to predict another variable
+- Regression under the *frequentist* framework
+    - Independent variables are used to predict dependent variables
     - Linear regression finds best-fitting line to observed data to make further predictions
-- The Bayesian approach:
-    - Requires the use of prior information
-    - Provides a posterior distribution
+      - Regression parameters ($\beta$) are assumed to be fixed
+    - Only collected data is used for approximation
+- Regression under the *Bayesian* framework
+    - Independent variables are used to predict dependent variables
+    - Regression parameters ($\beta$) *are not* assumed to be fixed
+    - Collected data is used alongside prior knowledge for approximation
 
-## Bayesian vs. Frequentist Approach
+## Frequentist vs. Bayesian Approach
 
-- Frequentist Approach
-    - Typical linear model $$
-        y = \beta^TX + \epsilon \tag{1}
-        $$
-    - A regression coefficient that best fits the line that relates variables [@Koehrsen2018]
-- Bayesian Approach
-    - Bayes' theorem informs the model [@xiaogang] $$
-        f(\theta|D) \propto f(D|\Theta)f(\Theta) \tag{2}
-        $$
-    - Predictions are made in light of prior knowledge
-    - The resulting prediction is not a point estimate, but a
-        distribution [@Bayes1991]
+- **Frequentist** Approach
+  - Typical linear model 
+  
+$$
+Y = \beta_0 + \beta_1X + \varepsilon \tag{1}
+$$
+
+  - $Y$ : Dependent variable, the outcome
+  - $\beta_0$ : y intercept
+  - $\beta_1$ : The regression coefficient 
+  - $X$ : Independent variable
+  - $\varepsilon$ : Random error [@xiaogang]
+- $\hat\beta$ provides a point estimate
+
+
+## Frequentist vs. Bayesian Approach
+
+- **Bayesian** Approach
+  - A regression is constructed using probability distributions, not point estimates as in the frequentist approach
+  - Bayes Rule (2) is used to inform the model [@xiaogang]
+
+$$
+p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)} \tag{2}
+$$
+
+- Bayes Rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
+- $p(B|A) \text{ and } p(A|B)$ are conditional probabilities
+- $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
+
+
+## Frequentist vs. Bayesian Approach
+
+- **Bayesian** Approach
+    - Bayesian Inference can be written simply [@Koehrsen2018]
+    
+$$
+Posterior = \frac{Likelihood \times Prior}{Normalization}
+$$
+
+- The $Prior$ is model of prior knowledge on the subject
+- The $Likelihood$ is the probability of the data given the prior
+- The $Normalization$ is a constant that ensures the posterior distribution is a valid density function whose integration is equal to 1
+- The $Posterior$ is the probability model that expresses an updated view of the model parameters
+  - From the initial parameters of the prior
+  - Updated with new data expressed in the likelihood function
+
+
+## Frequentist vs. Bayesian Approach
+
+- **Bayesian** Approach
+  - A more formal expression of Bayes Rule applied for continous parameters
+  
+$$
+\begin{align*}
+p(\theta|y) =& \frac{ L(\theta|y)p(\theta) }{p(y)}\\
+\\
+p(\theta|y) \propto &   \text{ }L(\theta|y)p(\theta)
+\end{align*}
+$$
+
+- The normalization constant ($p(y)$ above) ensures the posterior distribution is a valid distribution
+  - The posterior density function can be written without this constant
+- The resulting prediction is not a point estimate, but a distribution [@Bayes1991]
+
+## Frequentist vs. Bayesian Approach
+
+:::{.callout-note}
+trying to include formulas for actual BLR :(
+:::
+
+- The Bayesian Linear Regression Model
+
+- The Likelihood 
+
+- The Posterior 
+
+- The Prior
+
 
 ## Role of prior knowledge in shaping predictions
 
@@ -103,6 +172,10 @@ fig-align: center
 
 # Advantages of Bayesian Methods
 
+:::{.callout-note}
+need more explanation for both statements on Zyphur and Oswald
+:::
+
 - Findings from Zyphur and Oswald on reliability 
   - Bayesian methods are more reliable with small samples
   - Better predictions and understanding of data [@Zyphur2015]
@@ -114,12 +187,7 @@ fig-align: center
   - commonly done with MCMC
   - variational inference has been offered as an alternative [@Blei2017]
   
-# Modifications to BLR
-  - Kernalization (with Gaussian kernel) and Sparsification[@surfacerough]
-  - Warping to handle non-linear trends [@warped]
-  - BLR in concert with k-means clustering to creat subdivisions of the population [@bridge]
-  - Use with Cauchy prior to improve performance with sparse array input [@cauchyprior]
-  - Gridded BLR by means of producing a model grid to predict storm winds [@stormwind]
+
 
 # Conclusion and Future Directions
 
@@ -130,6 +198,16 @@ fig-align: center
 - Exploration of MCMC and foundational Bayesian principles
 
 - Potential for future applications in complex data analysis
+
+# Further Research
+
+**Modifications to BLR**
+
+  - Kernalization (with Gaussian kernel) and Sparsification[@surfacerough]
+  - Warping to handle non-linear trends [@warped]
+  - BLR in concert with k-means clustering to creat subdivisions of the population [@bridge]
+  - Use with Cauchy prior to improve performance with sparse array input [@cauchyprior]
+  - Gridded BLR by means of producing a model grid to predict storm winds [@stormwind]
 
 ## References
 
