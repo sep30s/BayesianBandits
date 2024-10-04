@@ -104,7 +104,7 @@ ggplot(BTSdelays1, aes(x=FlightPeriod)) +
 
 ```{r}
 #| echo: false
-
+```
 library(tidyr)
 library(ggplot2)
 
@@ -123,7 +123,6 @@ ggplot(long_delays, aes(x = DelayMinutes, y = ArrDelay, color = DelayType)) +
                "LateAircraftDelay" = "yellow")) +
   labs(x = "Delay Minutes (min)", y = "Arrival Delay (min)", color = "Delay Type") +
   theme_minimal()
-```
 
 - As you can see, Delay Minutes cannot be less than total Arrival Delay. There also appears to be a trend with delays attributed to the carrier causing a lengthier setbacks. 
 
@@ -191,6 +190,7 @@ table1.1 <- BTSdelays1 %>%
 kable(print(table1))
 kable(print(table1.1))
 ```
+
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-color:#9ABAD9;border-spacing:0;}
@@ -383,15 +383,26 @@ Compiled by Patrick Zelazko
 
 ```{r}
 #| echo: false
+
 Delays <- read.csv("Kaggle_flights.csv")
 
 kable(head(Delays))
 names(Delays)
+
 ```
+
+
+
+
+
+
 
 
 ```{r}
 #| echo: false
+
+library(tidyr)
+library(gt)
 
 Delays1 <- Delays %>%
   mutate(
@@ -412,13 +423,11 @@ Delays1 <- Delays %>%
 
 
 Table1.2 <- Delays1 %>%
-  mutate(flight_duration = case_when(
-    air_time < 60 ~ "Short-haul",
-    air_time >= 60 & air_time  < 90 ~ "Light-Medium-haul",
-    air_time  >= 90 & air_time  <= 120 ~ "Medium-haul", 
-    air_time  > 120 ~ "Long-haul"
-  )) %>%
-  group_by(flight_duration) %>%
+  mutate(flight_period = case_when(
+    crs_dep_time >= 400 & crs_dep_time < 1200 ~ "Morning",
+    crs_dep_time >= 1200 & crs_dep_time < 2000 ~ "Afternoon",
+    crs_dep_time >= 2000 | crs_dep_time < 400 ~ "Evening" )) %>%
+  group_by(flight_period) %>%
   summarize(
     TotalFlights = n(),
     TotalUniqueDates = n_distinct(fl_date),
@@ -444,10 +453,130 @@ Table1.2 <- Delays1 %>%
     SecurityDelay_ct = sum(security_delay > 0),
     WeatherDelay_ct = sum(weather_delay > 0),
     NASDelay_ct = sum(nas_delay > 0),
-    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)
-  )
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)) %>%
+ungroup()
 
-kable(print(Table1.2))
+
+Table1.2_total <- Delays1 %>%
+  summarize(
+    flight_period = "Total",
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(fl_date),
+    TotalUniqueOrigins = n_distinct(origin),
+    TotalUniqueDestinations = n_distinct(dest),
+    AvgCRSDepTime = mean(crs_dep_time, na.rm = TRUE),
+    AvgDepTime = mean(dep_time, na.rm = TRUE),
+    AvgDepDelay = mean(dep_delay, na.rm = TRUE),
+    AvgTaxiOut = mean(taxi_out, na.rm = TRUE),
+    AvgTaxiIn = mean(taxi_in, na.rm = TRUE),
+    AvgCRSArrTime = mean(crs_arr_time, na.rm = TRUE),
+    AvgArrTime = mean(arr_time, na.rm = TRUE),
+    AvgArrDelay = mean(arr_delay, na.rm = TRUE),
+    AvgAirTime = mean(air_time, na.rm = TRUE),
+    CancelledFlights = sum(cancelled, na.rm = TRUE),
+    DivertedFlights = sum(diverted, na.rm = TRUE), 
+    AvgCarrierDelay = mean(carrier_delay),
+    AvgSecurityDelay = mean(security_delay),
+    AvgWeatherDelay = mean(weather_delay),
+    AvgNASDelay = mean(nas_delay),
+    AvgLateAircraftDelay = mean(lateaircraft_delay),
+    CarrierDelay_ct = sum(carrier_delay > 0),
+    SecurityDelay_ct = sum(security_delay > 0),
+    WeatherDelay_ct = sum(weather_delay > 0),
+    NASDelay_ct = sum(nas_delay > 0),
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0))
+
+
+
+Table1.2_combined <- bind_rows(Table1.2, Table1.2_total)
+
+print(Table1.2_combined)
+
+Table1.2_pivoted <- Table1.2_combined %>% 
+  pivot_longer(
+    cols = -flight_period,
+    names_to = "Statistic", 
+    values_to = "Value") %>% 
+  pivot_wider(
+    names_from = flight_period,
+    values_from = Value)
+
+
+Table1.2_pivoted %>%
+  gt() %>%
+  tab_header(
+    title = "Flight Delay Summary by Flight Period") %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalFlights",
+    decimals =0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalUniqueDates",  
+    decimals = 0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalUniqueOrigins",  
+    decimals = 0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalUniqueDestinations",
+    decimals = 0) %>%
+  fmt_time(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "AvgCRSDepTime",
+    time_style = "h_m_p") %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalFlights",  
+    decimals = 0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalCancelled",  
+    decimals = 0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "AvgArrDelay",
+    decimals = 1) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalFlights",
+    decimals =0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalFlights",  
+    decimals = 0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "TotalCancelled",  
+    decimals = 0) %>%
+  fmt_number(
+    columns = c(Morning, Afternoon, Evening, Total),
+    rows = Statistic == "AvgArrDelay",
+    decimals = 1) %>%
+  cols_label(
+    Statistic = "Flight Period",
+    Morning = "Morning",
+    Afternoon = "Afternoon",
+    Evening = "Evening",
+    Total = "Total") %>%
+  tab_spanner(
+    label = "Flight Period",
+    columns = c(Morning, Afternoon, Evening, Total)) %>%
+ tab_style(
+    style = list(
+      cell_text(color = "white"), 
+      cell_fill(color = "rgba(0, 43, 54, 1)") ),
+    locations = cells_body(
+      columns = everything())) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")),
+    locations = cells_column_labels(
+      columns = everything()))
+
+
 
 ```
 
