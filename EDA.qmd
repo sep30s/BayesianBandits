@@ -1,0 +1,601 @@
+---
+title: "Exploratory Data Analysis"
+author: "Sara Parrish"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+date-format: "MMM D, YYYY"
+format:
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
+    toc-depth: 6
+course: Capstone Projects in Data Science
+bibliography: references.bib
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+theme: solar
+---
+
+```{css, echo=FALSE}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+```
+
+# Exploratory Data Analysis
+
+## Flight Delays and Cancellations from the Bureau of Transportation Statistics
+
+Dataset compiled by Patrick Zelazko.
+
+<https://www.kaggle.com/datasets/patrickzel/flight-delay-and-cancellation-dataset-2019-2023?resource=download>
+
+- This is a large dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. 
+
+### Following are the definitions of the given variables in this dataset. 
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;margin:0px auto;}
+.tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-83kh{background-color:#002b36;border-color:#ffffff;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  font-size:large;font-weight:bold;position:-webkit-sticky;position:sticky;text-align:center;top:-1px;
+  vertical-align:top;will-change:transform}
+.tg .tg-9nvq{background-color:#002b36;border-color:#002b36;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  text-align:center;vertical-align:middle}
+.tg .tg-kr5n{background-color:#002b36;border-color:#ffffff;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  text-align:left;vertical-align:middle}
+.tg .tg-su5p{background-color:#002b36;border-color:#ffffff;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  text-align:center;vertical-align:middle}
+@media screen and (max-width: 767px) {.tg {width: auto !important;}.tg col {width: auto !important;}.tg-wrap {overflow-x: auto;-webkit-overflow-scrolling: touch;margin: auto 0px;}}</style>
+<div class="tg-wrap"><table class="tg"><thead>
+  <tr>
+    <th class="tg-83kh">Header</th>
+    <th class="tg-83kh">Description</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-9nvq">Fl Date</td>
+    <td class="tg-kr5n">Flight Date (yyyy-mm-dd)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Airline</td>
+    <td class="tg-kr5n">Airline Name</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Airline DOT</td>
+    <td class="tg-kr5n">Airline Name and Unique Carrier Code. When the same code has been used by multiple carriers, a numeric suffix is used for earlier users, for example, PA, PA(1), PA(2). Use this field for analysis across a range of years.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Airline Code</td>
+    <td class="tg-kr5n">Unique Carrier Code</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">DOT Code</td>
+    <td class="tg-kr5n">An identification number assigned by US DOT to identify a unique airline (carrier). A unique airline (carrier) is defined as one holding and reporting under the same DOT certificate regardless of its Code, Name, or holding company/corporation.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Fl Number</td>
+    <td class="tg-kr5n">Flight Number</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Origin</td>
+    <td class="tg-kr5n">Origin Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Origin City</td>
+    <td class="tg-kr5n">Origin City Name, State Code</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dest</td>
+    <td class="tg-kr5n">Destination Airport, Airport ID.   An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dest City</td>
+    <td class="tg-kr5n">Destination City Name, State   Code</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">CRS Dep Time</td>
+    <td class="tg-kr5n">CRS Departure Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dep Time</td>
+    <td class="tg-kr5n">Actual Departure Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dep Delay</td>
+    <td class="tg-kr5n">Difference in minutes between scheduled and actual departure time. Early departures show negative numbers.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Taxi Out</td>
+    <td class="tg-kr5n">Taxi Out Time, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Wheels Off</td>
+    <td class="tg-kr5n">Wheels Off Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Wheels On</td>
+    <td class="tg-kr5n">Wheels On Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Taxi In</td>
+    <td class="tg-kr5n">Taxi In Time, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">CRS Arr Time</td>
+    <td class="tg-kr5n">CRS Arrival Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Arr Time</td>
+    <td class="tg-kr5n">Actual Arrival Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Arr Delay</td>
+    <td class="tg-kr5n">Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Cancelled</td>
+    <td class="tg-kr5n">Cancelled Flight Indicator   (1=Yes)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Cancellation Code</td>
+    <td class="tg-kr5n">Specifies The Reason For Cancellation</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Diverted</td>
+    <td class="tg-kr5n">Diverted Flight Indicator   (1=Yes)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">CRS Elapsed Time</td>
+    <td class="tg-kr5n">CRS Elapsed Time of Flight, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Actual Elapsed Time</td>
+    <td class="tg-kr5n">Elapsed Time of Flight, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Air Time</td>
+    <td class="tg-kr5n">Flight Time, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Distance</td>
+    <td class="tg-kr5n">Distance between airports (miles)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Carrier Delay</td>
+    <td class="tg-kr5n">Carrier Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Weather Delay</td>
+    <td class="tg-kr5n">Weather Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">NAS Delay</td>
+    <td class="tg-kr5n">National Air System Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Security Delay</td>
+    <td class="tg-kr5n">Security Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Late  Aircraft Delay</td>
+    <td class="tg-kr5n">Late Aircraft Delay, in Minutes</td>
+  </tr>
+</tbody></table></div>
+
+
+
+```{r}
+#| echo: false
+#| 
+library(knitr)
+
+Delays <- read.csv("Kaggle_flights.csv")
+
+
+```
+
+
+
+### Table 1 for the dataset. 
+
+
+
+```{r}
+#| echo: false
+
+library(tidyr)
+library(gt)
+library(dplyr)
+
+# remove NA's, set lowercase
+
+Delays1 <- Delays %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0)
+  ) %>%
+  rename_with(tolower) %>%
+  rename(
+    carrier_delay = delay_due_carrier,
+    weather_delay = delay_due_weather,
+    nas_delay = delay_due_nas,
+    security_delay = delay_due_security,
+    lateaircraft_delay = delay_due_late_aircraft
+  )
+
+#Math for table 1
+
+Table1.2 <- Delays1 %>%
+  mutate(flight_period = case_when(
+    crs_dep_time >= 400 & crs_dep_time < 1200 ~ "Morning",
+    crs_dep_time >= 1200 & crs_dep_time < 2000 ~ "Afternoon",
+    crs_dep_time >= 2000 | crs_dep_time < 400 ~ "Evening" )) %>%
+  group_by(flight_period) %>%
+  summarize(
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(fl_date),
+    TotalUniqueOrigins = n_distinct(origin),
+    TotalUniqueDestinations = n_distinct(dest),
+    AvgCRSDepTime = mean(crs_dep_time, na.rm = TRUE),
+    AvgDepTime = mean(dep_time, na.rm = TRUE),
+    AvgDepDelay = round(mean(dep_delay, na.rm = TRUE), 2),
+    AvgTaxiOut = round(mean(taxi_out, na.rm = TRUE), 2),
+    AvgTaxiIn = round(mean(taxi_in, na.rm = TRUE), 2),
+    AvgCRSArrTime = mean(crs_arr_time, na.rm = TRUE),
+    AvgArrTime = mean(arr_time, na.rm = TRUE),
+    AvgArrDelay = round(mean(arr_delay, na.rm = TRUE), 2),
+    AvgAirTime = round(mean(air_time, na.rm = TRUE), 2),
+    CancelledFlights = sum(cancelled, na.rm = TRUE),
+    DivertedFlights = sum(diverted, na.rm = TRUE), 
+    AvgCarrierDelay = round(mean(carrier_delay, na.rm = TRUE), 2),
+    AvgSecurityDelay = round(mean(security_delay, na.rm = TRUE), 2),
+    AvgWeatherDelay = round(mean(weather_delay, na.rm = TRUE), 2),
+    AvgNASDelay = round(mean(nas_delay, na.rm = TRUE), 2),
+    AvgLateAircraftDelay = round(mean(lateaircraft_delay, na.rm = TRUE), 2),
+    CarrierDelay_ct = sum(carrier_delay > 0),
+    SecurityDelay_ct = sum(security_delay > 0),
+    WeatherDelay_ct = sum(weather_delay > 0),
+    NASDelay_ct = sum(nas_delay > 0),
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)) %>%
+  ungroup() %>%
+  mutate(
+    TotalFlightsCount = sprintf("%d (%.1f%%)", TotalFlights, 100 * TotalFlights / sum(TotalFlights)),
+    CancelledFlightsCount = sprintf("%d (%.1f%%)", CancelledFlights, 100 * CancelledFlights / sum(CancelledFlights)),
+    DivertedFlightsCount = sprintf("%d (%.1f%%)", DivertedFlights, 100 * DivertedFlights / sum(DivertedFlights)),
+    CarrierDelayCount = sprintf("%d (%.1f%%)", CarrierDelay_ct, 100 * CarrierDelay_ct / sum(CarrierDelay_ct)),
+    SecurityDelayCount = sprintf("%d (%.1f%%)", SecurityDelay_ct, 100 * SecurityDelay_ct / sum(SecurityDelay_ct)),
+    WeatherDelayCount = sprintf("%d (%.1f%%)", WeatherDelay_ct, 100 * WeatherDelay_ct / sum(WeatherDelay_ct)),
+    NASDelayCount = sprintf("%d (%.1f%%)", NASDelay_ct, 100 * NASDelay_ct / sum(NASDelay_ct)),
+    LateAircraftDelayCount = sprintf("%d (%.1f%%)", LateAircraftDelay_ct, 100 * LateAircraftDelay_ct / sum(LateAircraftDelay_ct))
+  )
+
+Table1.2_total <- Delays1 %>%
+  summarize(
+    flight_period = "Total",
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(fl_date),
+    TotalUniqueOrigins = n_distinct(origin),
+    TotalUniqueDestinations = n_distinct(dest),
+    AvgCRSDepTime = mean(crs_dep_time, na.rm = TRUE),
+    AvgDepTime = mean(dep_time, na.rm = TRUE),
+    AvgDepDelay = round(mean(dep_delay, na.rm = TRUE), 2),
+    AvgTaxiOut = round(mean(taxi_out, na.rm = TRUE), 2),
+    AvgTaxiIn = round(mean(taxi_in, na.rm = TRUE), 2),
+    AvgCRSArrTime = mean(crs_arr_time, na.rm = TRUE),
+    AvgArrTime = mean(arr_time, na.rm = TRUE),
+    AvgArrDelay = round(mean(arr_delay, na.rm = TRUE), 2),
+    AvgAirTime = round(mean(air_time, na.rm = TRUE), 2),
+    CancelledFlights = sum(cancelled, na.rm = TRUE),
+    DivertedFlights = sum(diverted, na.rm = TRUE), 
+    AvgCarrierDelay = round(mean(carrier_delay, na.rm = TRUE), 2),
+    AvgSecurityDelay = round(mean(security_delay, na.rm = TRUE), 2),
+    AvgWeatherDelay = round(mean(weather_delay, na.rm = TRUE), 2),
+    AvgNASDelay = round(mean(nas_delay, na.rm = TRUE), 2),
+    AvgLateAircraftDelay = round(mean(lateaircraft_delay, na.rm = TRUE), 2),
+    CarrierDelay_ct = sum(carrier_delay > 0),
+    SecurityDelay_ct = sum(security_delay > 0),
+    WeatherDelay_ct = sum(weather_delay > 0),
+    NASDelay_ct = sum(nas_delay > 0),
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)) %>%
+  mutate(
+    TotalFlightsCount = sprintf("%d (100%%)", TotalFlights),
+    CancelledFlightsCount = sprintf("%d (100%%)", CancelledFlights),
+    DivertedFlightsCount = sprintf("%d (100%%)", DivertedFlights),
+    CarrierDelayCount = sprintf("%d (100%%)", CarrierDelay_ct),
+    SecurityDelayCount = sprintf("%d (100%%)", SecurityDelay_ct),
+    WeatherDelayCount = sprintf("%d (100%%)", WeatherDelay_ct),
+    NASDelayCount = sprintf("%d (100%%)", NASDelay_ct),
+    LateAircraftDelayCount = sprintf("%d (100%%)", LateAircraftDelay_ct)
+  )
+
+Table1.2_combined <- bind_rows(Table1.2, Table1.2_total)
+
+
+
+library(lubridate)
+
+# Converting time HHMM.SS to HH:MM:SS
+
+convert_to_time <- function(time_val) {
+  rounded_time <- round(time_val, 2)
+  hours <- floor(rounded_time / 100)
+  minutes_with_secs <- (rounded_time %% 100)
+  minutes <- floor(minutes_with_secs)
+  seconds <- round((minutes_with_secs - minutes) * 60, 0)
+  time_formatted <- sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+  return(time_formatted)
+}
+
+#Apply time conversion, remove extra rows
+
+Table1.3_combined <- Table1.2_combined %>%
+  mutate(
+    AvgCRSDepTime = sapply(AvgCRSDepTime, convert_to_time),
+    AvgDepTime = sapply(AvgDepTime, convert_to_time),
+    AvgCRSArrTime = sapply(AvgCRSArrTime, convert_to_time),
+    AvgArrTime = sapply(AvgArrTime, convert_to_time),
+  ) %>%
+  mutate(across(-flight_period, as.character)
+  ) %>%
+  select(
+    flight_period,
+    TotalFlightsCount,
+    CancelledFlightsCount,
+    DivertedFlightsCount,
+    AvgCRSDepTime,
+    AvgDepTime,
+    AvgDepDelay,
+    AvgTaxiOut,
+    AvgTaxiIn,
+    AvgCRSArrTime,
+    AvgArrTime,
+    AvgArrDelay,
+    AvgAirTime,
+    CarrierDelayCount,
+    SecurityDelayCount,
+    WeatherDelayCount,
+    NASDelayCount,
+    LateAircraftDelayCount
+  )
+
+#Pivot table
+
+Table1.3_pivoted <- Table1.3_combined %>% 
+  pivot_longer(
+    cols = -flight_period,
+    names_to = "Statistic", 
+    values_to = "Value") %>% 
+  pivot_wider(
+    names_from = flight_period,
+    values_from = Value
+)
+
+#gt Table1
+
+Table1.3_pivoted %>%
+  gt() %>%
+  tab_header(
+    title = "Flight Delay Summary by Flight Period"
+  ) %>%
+  cols_label(
+    Statistic = "Flight Period",
+    Morning = "Morning",
+    Afternoon = "Afternoon",
+    Evening = "Evening",
+    Total = "Total"
+  ) %>%
+  tab_spanner(
+    label = "Flight Period",
+    columns = c(Morning, Afternoon, Evening, Total)
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white"), 
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_body(
+      columns = everything()
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_column_labels(
+      columns = everything()
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white", weight = "bold"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_title(
+      groups = c("title", "subtitle")
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white", weight = "bold"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_column_spanners(
+      spanners = everything()
+    )
+  ) %>%
+  tab_source_note(
+    source_note = "Table 1: Summary includes morning, afternoon, and evening flight periods."
+  )
+
+```
+
+
+
+  The three flight periods are each comprised of 8-hour segments (i.e. Morning has flights with departure times from 4am to noon followed by afternoon and evening). The Afternoon period is comprised of the most flights (47.4%), followed closely by the Morning period (41.5%), and the Evening period trails the two (11%). The table also gives the means of the departure and arrival times, giving an indication of the density of the flights in the given period. The average departure and arrival delays show much better numbers for the Morning period (5.23, -0.77 minutes) with increasing delays for the Afternoon and Evening periods. The delay counts by type show That the Afternoon and Morning periods account for significantly more of the total delays, though that is without taking into account the smaller contribution of flights by the Evening period on the whole. 
+
+
+### Some Visualizations of the Dataset
+
+```{r}
+#| echo: false
+library(ggplot2)
+
+
+Delays %>%
+  pivot_longer(cols = c(DEP_DELAY, AIR_TIME, ARR_DELAY), 
+               names_to = "Variable", 
+               values_to = "Value") %>%
+  ggplot(aes(x = Value)) +
+  geom_histogram(bins = 25, fill = "blue", alpha = 0.5) +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(title = "Histograms of Air Time and Flight Delays",
+       x = "Time in Minutes",
+       y = "Square Root of Frequency") +
+  xlim(NA, 650)+
+  scale_y_sqrt()
+
+```
+
+- These histograms illustrate the frequencies of air time, arrival delays, and departure delays. The y-axis was transformed to make the visualizations more legible. All show a skew to the right. This makes sense for air times with a higher proportion of regional flights and the exclusion of international departures and arrivals. Shorter delays (for both arrivals and departures) being more frequent than longer delays is also to be expected. 
+
+```{r}
+#| echo: false
+carrier_summary_ci <- Delays1 %>%
+  group_by(airline_code) %>%
+  summarise(
+    carrier_name = first(airline),
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    n = n(),
+    sd_arr_delay = sd(arr_delay, na.rm = TRUE)
+  ) %>%
+  filter(n > 200000) %>% 
+  mutate(
+    lower_ci = avg_arr_delay - qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n),
+    upper_ci = avg_arr_delay + qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n)
+  )
+total_mean_delay_filtered <- mean(carrier_summary_ci$avg_arr_delay, na.rm = TRUE)
+
+# Create the plot
+ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) + 
+  geom_hline(yintercept = total_mean_delay_filtered, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Average Arrival Delays by Carrier",
+    x = "Carrier",
+    y = "Average Arrival Delay (minutes)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+- This visualization shows the average arrival delay for the largest five airlines (filtered for carriers with over 200,000 flights in the given period). The standard deviations for these airlines are fairly small, indicating a low variability in the arrival delays for these airlines. 
+
+
+```{r}
+#| echo: false
+
+airport_loc <- read.csv("usa-airports.csv")
+
+
+
+
+# Load necessary libraries
+library(maps)
+library(ggmap)
+
+
+
+delays_with_loc <- Delays1 %>%
+  group_by(origin) %>%
+  summarize(avg_arr_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  left_join(airport_loc, by = c("origin" = "iata")) %>%
+  na.omit()
+
+delays_with_loc$longitude <- as.numeric(delays_with_loc$longitude)
+delays_with_loc$latitude <- as.numeric(delays_with_loc$latitude)
+
+us_map <- map_data("state")
+alaska_map <- map_data("world", "USA:Alaska")
+
+
+combined_map <- rbind(us_map, alaska_map)
+
+lon_limits <- c(-180, -60)  
+lat_limits <- c(10, 80)
+
+library(plotly)
+
+plot_ly(data = delays_with_loc, 
+        lat = ~latitude, 
+        lon = ~longitude, 
+        type = 'scattergeo', 
+        mode = 'markers',
+        marker = list(size = 10, color = ~avg_arr_delay, colorscale = 'Viridis', colorbar = list(title = "Avg Arrival Delay (min)")),
+        text = ~paste("Airport Code: ", origin, "<br>",
+                      "Avg Arrival Delay: ", round(avg_arr_delay, 2), " min<br>",
+                      "Longitude: ", round(longitude, 2), "<br>",
+                      "Latitude: ", round(latitude, 2)),
+        hoverinfo = 'text') %>%
+  layout(title = 'Average Arrival Delays by Origin Airport',
+         geo = list(scope = 'usa',
+                    showland = TRUE,
+                    landcolor = 'lightgray',
+                    subunitcolor = 'white',
+                    countrycolor = 'white'))
+
+
+
+```
+
+- This heat map shows the average arrival delay for flights at their origin airport. This comes from the idea that if a flight is delayed at departure, then it may also be delayed on arrival at it's destination. 
+
+- Airport location information downloaded from <https://github.com/RandomFractals/geo-data-viewer/blob/master/data/csv/usa-airports.csv>
+
+
+```{r}
+#| echo: false
+
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
+```{r}
+#| echo: false
+
+```
+
+
