@@ -568,34 +568,159 @@ plot_ly(data = delays_with_loc,
 - Airport location information downloaded from <https://github.com/RandomFractals/geo-data-viewer/blob/master/data/csv/usa-airports.csv>
 
 
-```{r}
-#| echo: false
 
-
-```
 
 
 ```{r}
 #| echo: false
 
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(psych)
+library(Hmisc)
+
+set.seed(123)
+
+sample_size <- 100000  
+Delays_sample <- Delays %>% 
+  sample_n(sample_size) %>%
+  select(-FL_DATE)
+
+convert_to_hour <- function(time_column) {
+  hour_category <- (as.numeric(time_column) %/% 100) %% 24 + 1
+  return(ifelse(is.na(hour_category), NA, hour_category))
+}
+
+Delays_sample <- Delays_sample %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0),
+    CRS_DEP_HOUR = convert_to_hour(CRS_DEP_TIME), 
+    DEP_HOUR = convert_to_hour(DEP_TIME), 
+    WHEELS_OFF_HOUR = convert_to_hour(WHEELS_OFF),
+    WHEELS_ON_HOUR = convert_to_hour(WHEELS_ON),
+    CRS_ARR_HOUR = convert_to_hour(CRS_ARR_TIME),
+    ARR_HOUR = convert_to_hour(ARR_TIME),
+    CANCELLATION_CODE = ifelse(CANCELLATION_CODE == "", "Z", CANCELLATION_CODE),
+    FLIGHT_PERIOD = case_when(
+      CRS_DEP_TIME >= 400 & CRS_DEP_TIME < 1200 ~ "Morning",
+      CRS_DEP_TIME >= 1200 & CRS_DEP_TIME < 2000 ~ "Afternoon",
+      CRS_DEP_TIME >= 2000 | CRS_DEP_TIME < 400 ~ "Evening" )) %>%
+  filter(DIVERTED == 0, CANCELLED == 0 )
+
+continuous_vars <- Delays_sample %>%
+  select(
+    DEP_DELAY,
+    TAXI_OUT,
+    TAXI_IN, 
+    ARR_DELAY,
+    CRS_ELAPSED_TIME, 
+    ELAPSED_TIME,
+    AIR_TIME,
+    DISTANCE
+  )
+
+categorical_vars <- Delays_sample %>%
+  select(
+    AIRLINE_CODE,
+    ORIGIN,
+    DEST,
+    DELAY_DUE_CARRIER,
+    DELAY_DUE_WEATHER,
+    DELAY_DUE_NAS,
+    DELAY_DUE_SECURITY,
+    DELAY_DUE_LATE_AIRCRAFT,
+    CRS_DEP_HOUR, 
+    DEP_HOUR,
+    WHEELS_OFF_HOUR,
+    WHEELS_ON_HOUR,
+    CRS_ARR_HOUR,
+    ARR_HOUR,
+    FLIGHT_PERIOD
+  )
+
+cat("Correlation Matrix for Continuous Variables:\n")
+cor_matrix <- cor(continuous_vars, use = "pairwise.complete.obs")
+print(cor_matrix)
+
+corrplot(cor_matrix, method = "color", type = "lower", tl.col = "black", tl.srt = 45)
+
+
 ```
+
 
 
 ```{r}
 #| echo: false
 
-```
+library(reshape2)
+library(ggplot2)
 
+p_value_results <- matrix(NA, nrow = ncol(categorical_vars), ncol = ncol(continuous_vars),
+                           dimnames = list(colnames(categorical_vars), colnames(continuous_vars)))
+
+
+for(cat_var in colnames(categorical_vars)) {
+  for(cont_var in colnames(continuous_vars)) {
+    cat("Testing between", cat_var, "and", cont_var, ":\n")
+    if(length(unique(categorical_vars[[cat_var]])) == 2) {
+      t_test <- t.test(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      p_value_results[cat_var, cont_var] <- t_test$p.value
+    } else {
+      anova_test <- aov(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      p_value_results[cat_var, cont_var] <- summary(anova_test)[[1]][["Pr(>F)"]][1] 
+    }
+    cat("\n")
+  }
+}
+
+p_value_long <- melt(p_value_results, na.rm = TRUE)  # Remove NAs
+
+ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "blue", high = "red", na.value = "gray90", name = "p-value") +
+  labs(x = "Categorical Variable", y = "Continuous Variable", title = "Heatmap of p-values for Categorical vs Continuous Variables") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
 
 ```{r}
 #| echo: false
 
+ggplot(Delays_sample, aes(x = TAXI_OUT)) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of Taxi Out Time", x = "Taxi Out Time (minutes)", y = "Frequency") +
+  theme_minimal()
+
+ggplot(Delays_sample, aes(x = TAXI_OUT, y = DEP_DELAY)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  labs(title = "Scatterplot of Taxi Out Time vs Departure Delay", 
+       x = "Taxi Out Time (minutes)", 
+       y = "Departure Delay (minutes)") +
+  theme_minimal() +
+  ylim(-20, 150)
+
+
+ggplot(Delays_sample, aes(x = TAXI_OUT, y = DEP_DELAY, z = ARR_DELAY)) +
+  geom_density_2d(aes(color = ARR_DELAY)) +
+  geom_point(aes(color = ARR_DELAY), alpha = 0.4) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(title = "Contour Plot: Taxi Out Time, Departure Delay, and Arrival Delay",
+       x = "Taxi Out Time (minutes)",
+       y = "Departure Delay (minutes)",
+       color = "Arrival Delay (minutes)") +
+  theme_minimal()
+
+
+
+
 ```
 
 
-```{r}
-#| echo: false
-
-```
 
 

@@ -922,6 +922,61 @@ summary(delays_with_loc)
 ```{r}
 #| echo: false
 
+
+# Load required libraries
+library(dplyr)    # For data manipulation
+library(ggplot2)  # For visualizations (optional)
+library(corrplot) # For correlation plot
+library(psych)    # For describing data types
+library(Hmisc)    # For rcorr function (handles missing values)
+
+set.seed(123)
+
+sample_size <- 100000  
+Delays_sample <- Delays %>% sample_n(sample_size)
+
+continuous_vars <- Delays_sample %>%
+  select_if(is.numeric)
+
+categorical_vars <- Delays_sample %>%
+  select_if(~!is.numeric(.))
+
+cat("Correlation Matrix for CV:\n")
+cor_matrix <- cor(continuous_vars, use = "pairwise.complete.obs")  # Handles missing values
+print(cor_matrix)
+
+corrplot(cor_matrix, method = "color", type = "lower", tl.col = "black", tl.srt = 45)
+
+# 2. Chi-squared tests for Categorical Variables
+cat("\nChi-squared tests for Categorical Variables:\n")
+# Loop through pairs of categorical variables to test independence
+for(i in 1:(ncol(categorical_vars)-1)) {
+  for(j in (i+1):ncol(categorical_vars)) {
+    cat("Testing between", colnames(categorical_vars)[i], "and", colnames(categorical_vars)[j], ":\n")
+    table_data <- table(categorical_vars[[i]], categorical_vars[[j]])
+    chisq_test <- chisq.test(table_data)
+    print(chisq_test)
+    cat("\n")
+  }
+}
+
+# 3. Correlations between Continuous and Categorical Variables
+cat("\nCorrelation between Continuous and Categorical Variables (ANOVA or T-test):\n")
+for(cat_var in colnames(categorical_vars)) {
+  for(cont_var in colnames(continuous_vars)) {
+    cat("Testing between", cat_var, "and", cont_var, ":\n")
+    if(length(unique(categorical_vars[[cat_var]])) == 2) {
+      t_test <- t.test(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      print(t_test)
+    } else {
+      anova_test <- aov(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      print(summary(anova_test))
+    }
+    cat("\n")
+  }
+}
+
+
 ```
 
 
@@ -933,6 +988,37 @@ summary(delays_with_loc)
 
 ```{r}
 #| echo: false
+
+
+
+#extra code from EDA, in the same code block as CV corrplot(), uneccessary for heatmap
+cat("\nChi-squared tests for Categorical Variables:\n")
+for(i in 1:(ncol(categorical_vars)-1)) {
+  for(j in (i+1):ncol(categorical_vars)) {
+    cat("Testing between", colnames(categorical_vars)[i], "and", colnames(categorical_vars)[j], ":\n")
+    table_data <- table(categorical_vars[[i]], categorical_vars[[j]])
+    chisq_test <- chisq.test(table_data)
+    print(chisq_test)
+    cat("\n")
+  }
+}
+
+cat("\nCorrelation between Continuous and Categorical Variables (ANOVA or T-test):\n")
+for(cat_var in colnames(categorical_vars)) {
+  for(cont_var in colnames(continuous_vars)) {
+    cat("Testing between", cat_var, "and", cont_var, ":\n")
+    
+    # Check if the categorical variable has exactly 2 levels
+    if(length(unique(categorical_vars[[cat_var]])) == 2) {
+      t_test <- t.test(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      print(t_test)
+    } else {
+      anova_test <- aov(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      print(summary(anova_test))
+    }
+    cat("\n")
+  }
+}
 
 ```
 
