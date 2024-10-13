@@ -1,8 +1,9 @@
 ---
-title: "Writing a great story for data science projects"
+title: "Report Template - Updated: Methods"
 subtitle: "This is a Report Template"
-author: "Students names (Advisor: Dr. Cohen)"
-date: '`r Sys.Date()`'
+author: "Sara Parrish (Advisor: Dr. Seals)"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+date-format: "MMM D, YYYY"
 format:
   html:
     code-fold: true
@@ -16,19 +17,11 @@ execute:
 editor: 
   markdown: 
     wrap: 72
+theme: solar
 ---
 
 Slides: [slides.html](slides.html){target="_blank"} ( Go to `slides.qmd`
 to edit)
-
-::: callout-important
-**Remember:** Your goal is to make your audience understand and care
-about your findings. By crafting a compelling story, you can effectively
-communicate the value of your data science project.
-
-Carefully read this template since it has instructions and tips to
-writing!
-:::
 
 ## Introduction
 
@@ -60,32 +53,122 @@ The PCA [@daffertshofer2004pca]*
 
 *This is my work and I want to add more work...*
 
-## Methods
+## Methods - Outline Only (Still working on how to tackle analysis)
+
+### Linear regression con be achieved using different methods
+  - frequentist vs. Bayesian methodology
+    - frequentist
+      - independent variables -> dependent variables 
+      - regression coefficient is a point estimate, assumed to be fixed
+      - does not include prior information in its estimate
+    - Bayesian
+      - independent variables -> dependent variables (this doesn't change)
+      - regression coefficient is not a point estimate, but a distribution, not assumed to be a fixed value
+      - incorporates prior information in its estimate
+
+### The frequentist framework
+    - linear model
+
+$$
+Y = \beta_0 + \beta_1X + \varepsilon \tag{1}
+$$
+
+  - $Y$ : Dependent variable, the outcome
+  - $\beta_0$ : y intercept
+  - $\beta_1$ : The regression coefficient 
+  - $X$ : Independent variable
+  - $\varepsilon$ : Random error [@xiaogang]
+- $\hat\beta$ provides a point estimate
+
+### The Bayesian framework
+- relies on bayes rule
+  - written simply as
+
+$$
+Posterior = \frac{Likelihood \times Prior}{Normalization}
+$$
+
+  - The $Prior$ is model of prior knowledge on the subject
+  - The $Likelihood$ is the probability of the data given the prior
+  - The $Normalization$ is a constant that ensures the posterior distribution is a valid density function whose integration is equal to 1
+  - The $Posterior$ is the probability model that expresses an updated view of the model parameters
+  - From the initial parameters of the prior
+
+- In terms of calculating probability, bayed rule can be written as
+
+$$
+p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)} \tag{2}
+$$
+
+  - Bayes Rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
+    - $p(B|A) \text{ and } p(A|B)$ are conditional probabilities
+    - $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
+
+- For continuous parameters, Bayes rule can be written as 
+
+$$
+\begin{align*}
+p(\theta|y) =& \frac{ L(\theta|y)p(\theta) }{p(y)}\\
+\\
+p(\theta|y) \propto &   \text{ }L(\theta|y)p(\theta)
+\end{align*}
+$$
+
+- The normalization constant ($p(y)$ above) ensures the posterior distribution is a valid distribution
+  - The posterior density function can be written without this constant
+- The resulting prediction is not a point estimate, but a distribution [@Bayes1991]
+
+The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data, is proportional to the conditional density of $D$ given $\theta$, $f(D|\theta)$, and the prior density of $\theta$, $f(\theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\theta$[@xiaogang]. 
+
+$$
+f(\theta|D) \propto L(\theta|D)f(\theta) \tag{1}
+$$
+
+
+
+### Prior Selection
+
+- Unsure, still trying to get any analysis to work
+- Might compare a "prior" using data from prior years within same dataset to a flat prior
+
+### Model
+
+### Sampling
+
+### Statistical programming
+
+- [@R]
+- [@brms]
+- [@tidyverse]
+- [@dplyr]
+- [@bayesplot]
+- [@tidyr]
+
+****Do I only include packages used in analysis, outside of EDA here?
+****Do I include packages like dplyr that aren't specific to Bayesian analysis here or just in the references?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -   Detail the models or algorithms used.
 
 -   Justify your choices based on the problem and data.
 
-*The common non-parametric regression model is*
-$Y_i = m(X_i) + \varepsilon_i$*, where* $Y_i$ *can be defined as the sum
-of the regression function value* $m(x)$ *for* $X_i$*. Here* $m(x)$ *is
-unknown and* $\varepsilon_i$ *some errors. With the help of this
-definition, we can create the estimation for local averaging i.e.*
-$m(x)$ *can be estimated with the product of* $Y_i$ *average and* $X_i$
-*is near to* $x$*. In other words, this means that we are discovering
-the line through the data points with the help of surrounding data
-points. The estimation formula is printed below [@R-base]:*
-
-$$
-M_n(x) = \sum_{i=1}^{n} W_n (X_i) Y_i  \tag{1}
-$$$W_n(x)$ *is the sum of weights that belongs to all real numbers.
-Weights are positive numbers and small if* $X_i$ *is far from* $x$*.*
-
-*Another equation:*
-
-$$
-y_i = \beta_0 + \beta_1 X_1 +\varepsilon_i
-$$
 
 ## Analysis and Results
 

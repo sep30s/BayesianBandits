@@ -722,5 +722,50 @@ ggplot(Delays_sample, aes(x = TAXI_OUT, y = DEP_DELAY, z = ARR_DELAY)) +
 ```
 
 
+```{r}
 
 
+library(ggplot2)
+library(dplyr)
+library(ggcorrplot)
+library(tidyr)
+
+numeric_columns <- Delays_sample %>% select_if(is.numeric)
+cor_matrix <- cor(numeric_columns, use = "complete.obs")
+
+
+ggcorrplot(cor_matrix, 
+           method = "square",
+           type = "upper",
+           lab = FALSE, 
+           title = "Correlation Matrix of Flight Delay Variables", 
+           colors = c("blue", "white", "red"),
+           tl.cex = 6,
+           ggtheme = theme_minimal())
+
+df_long <- Delays_sample %>%
+  gather(key = "Delay_Type", value = "Value", DELAY_DUE_CARRIER:DELAY_DUE_LATE_AIRCRAFT)
+
+
+#histogram arr_delay
+ggplot(Delays_sample, aes(x = ARR_DELAY)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black") +
+  ggtitle("Distribution of Arrival Delay") +
+  xlab("Arrival Delay (minutes)") +
+  ylab("Frequency") +
+  xlim(NA, 500)
+
+
+##ALL DEALY TYPES AVERAGED TOGETHER< THIS CODE DOESN"T WORK
+# Boxplot delay type & arrival delay
+ggplot(df_long, aes(x = Delay_Type, y = ARR_DELAY, fill = Delay_Type)) +
+  geom_boxplot() +
+  stat_summary(fun = mean, geom = "text", aes(label = round(..y.., 1)), vjust = -0.5, color = "red", size = 4) +
+  scale_y_log10() +
+  ggtitle("Boxplot of Arrival Delay by Delay Type") +
+  xlab("Delay Type") +
+  ylab("Arrival Delay (minutes)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```

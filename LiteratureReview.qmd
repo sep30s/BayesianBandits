@@ -31,9 +31,9 @@ In opposition to the Bayesian approach is the frequentist approach. The frequent
 
 
 
-The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data, is proportional to the conditional density of $D$ given $\Theta$, $f(D|\Theta)$, and the prior density of $\Theta$, $f(\Theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\Theta$[@xiaogang]. 
+The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data, is proportional to the conditional density of $D$ given $\theta$, $f(D|\theta)$, and the prior density of $\theta$, $f(\theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\theta$[@xiaogang]. 
 $$
-f(\theta|D) \propto f(D|\Theta)f(\Theta) \tag{1}
+f(\theta|D) \propto f(D|\theta)f(\theta) \tag{1}
 $$
 
 
