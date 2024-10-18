@@ -1,0 +1,634 @@
+---
+title: "Analysis"
+author: "Sara Parrish"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+date-format: "MMM D, YYYY"
+format:
+  html:
+    mathjax: default
+    code-fold: true
+    link-external-icon: true
+    link-external-newwindow: true
+    toc: true
+    toc-depth: 6
+course: Capstone Projects in Data Science
+bibliography: references.bib
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+theme: solar
+---
+```{css, echo=FALSE}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+```
+
+```{r dataset}
+
+#| echo: false
+
+
+library(brms)
+library(tidyverse)
+library(dplyr)
+library(bayesplot)
+library(tidyr)
+library(BAS)
+
+Delays <- read.csv("Kaggle_flights.csv")
+
+
+set.seed(123)
+
+sample_size <- 100000  
+Delays_sample <- Delays %>% 
+  sample_n(sample_size)
+
+convert_to_hour <- function(time_column) {
+  hour_category <- (as.numeric(time_column) %/% 100) %% 24 
+  return(ifelse(is.na(hour_category), NA, hour_category))
+}
+
+Delays_sample <- Delays_sample %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0),
+    CRS_DEP_HOUR = convert_to_hour(CRS_DEP_TIME), 
+    DEP_HOUR = convert_to_hour(DEP_TIME), 
+    WHEELS_OFF_HOUR = convert_to_hour(WHEELS_OFF),
+    WHEELS_ON_HOUR = convert_to_hour(WHEELS_ON),
+    CRS_ARR_HOUR = convert_to_hour(CRS_ARR_TIME),
+    ARR_HOUR = convert_to_hour(ARR_TIME),
+    CANCELLATION_CODE = ifelse(CANCELLATION_CODE == "", "Z", CANCELLATION_CODE),
+    FLIGHT_PERIOD = case_when(
+      CRS_DEP_TIME >= 400 & CRS_DEP_TIME < 1200 ~ "Morning",
+      CRS_DEP_TIME >= 1200 & CRS_DEP_TIME < 2000 ~ "Afternoon",
+      CRS_DEP_TIME >= 2000 | CRS_DEP_TIME < 400 ~ "Evening" )) %>%
+  filter(DIVERTED == 0, CANCELLED == 0 )
+```
+
+
+```{r hist_arr_delay}
+#ARR_DELAY is the outcome variable chosen for BLR
+
+#histogram arr_delay
+ggplot(Delays_sample, aes(x = ARR_DELAY)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black") +
+  ggtitle("Distribution of Arrival Delay") +
+  xlab("Arrival Delay (minutes)") +
+  ylab("Frequency") +
+  xlim(NA, 500)
+
+ggplot(Delays_sample, aes(x = DEP_TIME)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black") +
+  ggtitle("Distribution of Departure Time") +
+  xlab("Departure Time (time HHMM)") +
+  ylab("Frequency") +
+  xlim(NA, 2400)
+
+summary(Delays_sample$ARR_DELAY)
+```
+
+```{r eda_dep_time_spaces}
+
+Delays_sample <- Delays_sample %>%
+  arrange(DEP_TIME) %>% 
+  mutate(time_diff = c(NA, diff(DEP_TIME)))
+
+Delays_sample %>%
+  filter(time_diff > 10) %>%
+  select(DEP_TIME, time_diff)
+
+ggplot(Delays, aes(x = DEP_TIME)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  ggtitle("Distribution of Departure Time") +
+  xlab("Departure Time (time HHMM)") +
+  ylab("Frequency") +
+  xlim(60, 300)
+
+```
+
+
+```{r convert_DEP_TIME_to_mins}
+
+convert_to_minutes <- function(time) {
+  hour <- time %/% 100
+  minute <- time %% 100
+  total_minutes <- hour * 60 + minute
+  return(total_minutes)
+}
+
+Delays_sample <- Delays_sample %>%
+  mutate("DEP_TIME_MINS" = sapply(DEP_TIME, convert_to_minutes))
+
+Delays_sample %>%
+  head() %>%
+  select(CRS_DEP_TIME, CRS_DEP_HOUR, CRS_ARR_TIME, CRS_ARR_HOUR, DEP_TIME, DEP_HOUR, DEP_TIME_MINS)
+
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black") +
+  ggtitle("Distribution of Departure Time") +
+  xlab("Departure Time (mins past midnight)") +
+  ylab("Frequency") +
+  xlim(NA, 1440)
+
+```
+
+```{r convert_DEP_TIME_to_POSIX}
+
+#does not work with stan_glm
+convert_to_time_of_day <- function(time_column) {
+  time_column <- sprintf("%04d", as.numeric(time_column))
+  hours <- substr(time_column, 1, 2)
+  minutes <- substr(time_column, 3, 4)
+  return(paste(hours, minutes, sep = ":"))
+}
+
+Delays_sample <- Delays_sample %>%
+  mutate(DEP_TIME_HHMM = convert_to_time_of_day(DEP_TIME))
+
+head(Delays_sample$DEP_TIME_HHMM)
+
+```
+
+```{r setting_priors_brms}
+
+prior1 <- prior(normal(-7, 30), class = "Intercept")
+prior2 <- prior(normal(0, 10), class = "b")
+prior3 <- prior(cauchy(0, 200), class = "sigma")
+```
+
+
+```{r arr_delay_vs_dep_time_eda}
+library(ggplot2)
+library(broom)
+
+
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS, y = ARR_DELAY)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_smooth(method = "lm", se = TRUE, color = "red", linetype = "dashed") +
+  labs(
+    title = "Scatter Plot of Arrival Delay vs Departure Time",
+    x = "Departure Time (mins past midnight)",
+    y = "Arrival Delay (minutes)"
+  ) +
+  theme_minimal()
+
+
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS, y = ARR_DELAY)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  facet_wrap(vars(AIRLINE)) +
+  geom_smooth(method = "lm", se = TRUE, color = "red", linetype = "dashed") +
+  labs(
+    title = "Scatter Plot of Arrival Delay vs Departure Time",
+    x = "Departure Time (mins past midnight)",
+    y = "Arrival Delay (minutes)"
+  ) +
+  theme_minimal()
+
+fit <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
+
+summary(fit)
+
+tidy(fit)
+
+coefficients_by_airline <- Delays_sample %>%
+  group_by(AIRLINE) %>%
+  do(tidy(lm(ARR_DELAY ~ DEP_TIME_MINS, data = .)))
+
+ggplot(coefficients_by_airline, aes(x = AIRLINE, y = estimate)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(color = AIRLINE),
+              alpha = 0.6, size = 2) +             
+  labs(
+    title = "DEP_TIME Coefficients by Airline",
+    y = "DEP_TIME Coefficient",
+    x = "Airline"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+
+#haven't figured out how to do categorical predictor yet
+library(lubridate)
+
+Delays_sample <- Delays_sample %>%
+  mutate(DAY_OF_WEEK = wday(FL_DATE, label = TRUE, abbr = TRUE))
+
+ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
+  geom_boxplot() +
+  labs(
+    title = "Arrival Delay by Day of the Week",
+    x = "Day of the Week",
+    y = "Arrival Delay (minutes)"
+  ) +
+  theme_minimal()
+
+```
+
+## The Normal Data Model 
+
+  To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include a the mean specific to our predictor, departure time, $\mu_i$. The model is:
+  
+$$
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i
+\end{align*}
+$$
+Where:
+- $Y_i$ is the arrival delay for the i-th flight
+- $X_i$ is the departure delay for the i-th flight
+- $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
+- $\sigma^2$ is the variance of the errors
+-  $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
+
+<!--- 
+concerned about how this model is interpreted, the bayes rule book uses an example of bike ridership ~ temperature so the model \mu_i is a "temperature specific local mean" with a smaller \sigma. This feels like it would be a weird translation to a time specific local mean
+--->
+
+```{r stanarm_model}
+library(rstanarm)
+
+model_stan <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+                        data = Delays_sample,
+                        family = gaussian(),
+                        chains = 4,
+                        iter = 2000,
+                        warmup = 1000)
+
+summary(model_stan)
+
+#default priors in rstanarm are normal, normal, and exponential for the intercept, slope, and error respectively. The rstanarm framework also assumes independence of the priors [@bayesrulesbook].
+
+
+
+#1 minute intervals for dep_time on x axis
+predictions <- data.frame(
+  DEP_TIME_MINS = seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 1440)
+)
+
+predictions$fitted <- predict(model_stan, newdata = predictions)
+
+#labelfor lm
+intercept <- coef(model_stan)[1]
+slope <- coef(model_stan)[2]
+model_label <- paste("Y = ", round(intercept, 2), " + ", round(slope, 2), "* DEP_TIME", sep = "")
+
+
+#plot for predictions
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS, y = ARR_DELAY)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_line(data = predictions, aes(x = DEP_TIME_MINS, y = fitted), color = "red", linewidth = 1) +
+  labs(title = "Arrival Delay vs Departure Time",
+       x = "Departure Time",
+       y = "Arrival Delay") +
+  theme_minimal() +
+  annotate("text", x = 1000, y = 10, label = model_label, 
+           color = "red", size = 4, hjust = 0)
+
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS, y = ARR_DELAY)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_line(data = predictions, aes(x = DEP_TIME_MINS, y = fitted), color = "red", linewidth = 1) +
+  labs(title = "Arrival Delay vs Departure Time: Zoomed In ",
+       x = "Departure Time",
+       y = "Arrival Delay") +
+  theme_minimal() +
+  ylim(NA, 45) +
+  annotate("text", x = 1000, y = 10, label = model_label, 
+           color = "red", size = 4, hjust = 0)
+
+summary(Delays_sample$DEP_TIME_MINS)
+summary(Delays_sample$ARR_DELAY)
+
+
+```
+
+## Specifying Priors
+
+  Since we are only using two data variables, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
+  As intercept and slope regression parameters can take any real value, we will use normal prior models [@bayesrulesbook]. 
+
+$$
+\begin{align*}
+\beta_0 &\sim N(m_0, s^2_0)\\
+\beta_1 &\sim N(m_1, s^2_1)
+\end{align*}
+$$
+
+where $m_0, s_0, m_1, \text{and } s_1$ are hyperparameters. 
+
+  The standard deviation parameter must be positive, so we will use an exponential model [@bayesrulesbook]. 
+  
+$$  
+\sigma \sim \text{Exp}(l)
+$$
+
+  Due to the fact that the exponential model is a special case of the Gamma model, with $s = 1$, we can use the definitions of the mean and variance of the gamma model to to find that of the exponential model [@bayesrulesbook]. 
+
+$$
+\begin{align*}
+E(\sigma) = \frac{1}{l} && \text{and} && SD(\sigma) = \frac{1}{l}
+\end{align*}
+$$
+
+
+## The Bayesian Linear Regression Model
+  The model can be written as
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(m_0, s_0^2)\\
+\beta_1 &\sim N(m_1, s_1^2)\\
+\sigma &\sim \text{Exp}(l)
+\end{align*}
+$$
+
+
+
+## Hyperparameters
+
+
+### $\beta_0$ informs the model intercept  
+
+```{r tuning_priors_rstanarm_B_0}
+summary(Delays_sample$DEP_TIME_MINS) #mean departure time is 809.3 minutes (~ 1:30pm)
+
+Delays_sample_filtered_B0 <- subset(Delays_sample, DEP_TIME_MINS >= 800 & DEP_TIME_MINS <= 820)
+
+mean(Delays_sample_filtered_B0$ARR_DELAY) #m_0c = 2
+sd(Delays_sample_filtered_B0$ARR_DELAY)  #s_0c = 36
+
+```
+  $\beta_{0c}$ reflects the typical arrival delay at a typical departure time. With a mean departure time at  $\sim$ 1:30pm, the average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 36 minutes. 
+
+$$
+\beta_{0c} \sim N(2, 36^2)
+$$
+
+
+### $\beta_1$ informs the model slope
+  
+
+```{r tuning_priors_rstanarm_B_1}
+
+lm_model <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
+
+summary(lm_model)
+
+coef(lm_model)["DEP_TIME_MINS"] #m_1 = 0.01903
+summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
+
+```
+
+  The slope of the lineal model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
+
+
+$$
+\beta_{1} \sim N(0.02, 0.01)
+$$
+
+### $\sigma$ informs the regression standard deviation
+
+```{r tuning_priors_rstanarm_s}
+
+summary(lm_model)$sigma
+
+```
+
+  To tune the exponential model, we set the expected value of the standard deviation, $ E(\sigma) $, equal to the residual standard error, $\sim 50$. With this, we can find the rate parameter, $l$. 
+  
+$$
+\begin{align*}
+E(\sigma) &= \frac{1}{l} = 50\\\\
+l  &= \frac{1}{50} =  0.02\\\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+
+```{}
+library(ggplot2)
+library(dplyr)
+library(broom)
+library(bayesrules)
+library(rstanarm)
+library(bayesplot)
+library(tidyverse)
+library(broom.mixed)
+library(tidybayes)
+
+posterior_preds <- posterior_predict(model_stan)
+
+# Calculate mean and credible intervals
+predicted_means <- apply(posterior_preds, 2, mean)
+predicted_intervals <- apply(posterior_preds, 2, quantile, probs = c(0.025, 0.975))
+
+# Create a new data frame for plotting
+predictions <- data.frame(
+  DEP_TIME = Delays_sample$DEP_TIME,
+  ARR_DELAY = Delays_sample$ARR_DELAY,
+  fitted = predicted_means,
+  lower = predicted_intervals[1, ],
+  upper = predicted_intervals[2, ]
+)
+
+# Plot with credible intervals
+ggplot(predictions, aes(x = DEP_TIME)) +
+  geom_point(aes(y = ARR_DELAY), color = "blue", alpha = 0.5) +
+  geom_line(aes(y = fitted), color = "red", linewidth = 1) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "red") +
+  labs(title = "Bayesian Linear Regression: Arrival Delay vs Departure Time",
+       x = "Departure Time",
+       y = "Arrival Delay") +
+  theme_minimal()
+
+prior_summary(model_stan)
+
+# MCMC diagnostics
+mcmc_trace(weather_model_1, size = 0.1)
+mcmc_dens_overlay(weather_model_1)
+mcmc_acf(weather_model_1)
+neff_ratio(weather_model_1)
+rhat(weather_model_1)
+
+```
+
+
+- The mean is -7, large skew to the right
+
+Priors: 
+- for the intercept 
+  - prior(normal(-7, 30), class = "Intercept")
+  - -7 for the mean, 30 for the large variance of the variable
+- for the coeff
+  - prior(normal(0, 10), class = "b")
+  - unsure of the relationship between the dependent and independent variables
+- for the sd
+  - prior(cauchy(0, 200), class = "sigma")
+  - vary large sd to account for the skew of the target variable, this allows the model the variability to account for the large range of delays [-96, 2083]
+
+
+```{{r echo=FALSE}}
+Delays1 <- Delays %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0)
+  ) %>%
+  rename_with(tolower) %>%
+  rename(
+    carrier_delay = delay_due_carrier,
+    weather_delay = delay_due_weather,
+    nas_delay = delay_due_nas,
+    security_delay = delay_due_security,
+    lateaircraft_delay = delay_due_late_aircraft
+  )
+#removing cancelled and NA gets rid of all but 2 NAs, so those are just dropped
+Delays1_cleaned  <- Delays1 %>%
+  filter(diverted == 0, cancelled == 0 ) %>%
+  drop_na()
+
+#determining a prior
+
+```
+
+
+``` brms
+library(brms)
+
+blr_gauss = brm(ARR_DELAY ~ DEP_TIME, 
+  Delays_sample, 
+  prior = c(prior1, prior2, prior3),
+  family = gaussian(),
+  chains = 4, 
+  iter = 2000)
+
+blr_student = brm(ARR_DELAY ~ DEP_TIME, 
+  Delays_sample, 
+  prior = c(prior1, prior2, prior3),
+  family = student(),
+  chains = 4, 
+  iter = 2000)
+
+blr_skew = brm(ARR_DELAY ~ DEP_TIME, 
+  Delays_sample, 
+  prior = c(prior1, prior2, prior3),
+  family = skew_normal(),
+  chains = 4, 
+  iter = 2000)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+``` BlrArrDelFromAirlineCode
+#| echo: false
+
+
+
+
+
+
+
+#noninformative prior with uniform distribution
+
+bas_result <- bas.lm(
+  formula = arr_delay ~ airline_code,
+  data = Delays1_cleaned,
+  prior = "JZS",
+  modelprior = uniform(),
+  method = "BAS"
+)
+summary(bas_result)
+
+posterior_samples <- bas_result$coefficients[["model 1"]]
+posterior_df <- as.data.frame(posterior_samples)
+
+
+posterior_samples <- as.mcmc(bas_result)
+
+post_samples <- as.data.frame(bas_result$posterior)
+mcmc_trace(posterior_samples, facet_args = list(ncol = 2))
+str(posterior_samples)
+
+
+library(bayesplot)
+
+mcmc_intervals(as.mcmc(bas_result))
+
+```
+
+
+``` BlrSampled
+#| echo: false
+
+
+library(brms)
+library(tidyverse)
+library(dplyr)
+library(bayesplot)
+library(BAS)
+library(coda)
+
+set.seed(123)
+Delays_sample  <- Delays1 %>%
+  filter(diverted == 0, cancelled == 0) %>%
+  drop_na()%>% 
+  sample_n(10000)
+
+bas_result <- bas.lm(
+  formula = arr_delay ~ airline_code,
+  data = Delays_sample,
+  prior = "JZS",
+  modelprior = uniform(),
+  method = "BAS" 
+)
+
+summary(bas_result)
+
+posterior_samples <- predict(bas_result, estimator="BMA", nsim=1000)$beta
+
+posterior_mcmc <- as.mcmc(posterior_samples)
+
+str(posterior_mcmc)
+
+mcmc_trace(posterior_mcmc, facet_args = list(ncol = 2))
+
+mcmc_intervals(posterior_mcmc)
+
+```
