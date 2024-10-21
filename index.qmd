@@ -1,6 +1,6 @@
 ---
-title: "Report Template - Updated: Methods"
-subtitle: "This is a Report Template"
+title: "Bayesian Linear Regression"
+subtitle: "Analysis of Flight Delay Data"
 author: "Sara Parrish (Advisor: Dr. Seals)"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 date-format: "MMM D, YYYY"
@@ -53,21 +53,11 @@ The PCA [@daffertshofer2004pca]*
 
 *This is my work and I want to add more work...*
 
-## Methods - Outline Only (Still working on how to tackle analysis)
+## Methods
 
-### Linear regression con be achieved using different methods
-  - frequentist vs. Bayesian methodology
-    - frequentist
-      - independent variables -> dependent variables 
-      - regression coefficient is a point estimate, assumed to be fixed
-      - does not include prior information in its estimate
-    - Bayesian
-      - independent variables -> dependent variables (this doesn't change)
-      - regression coefficient is not a point estimate, but a distribution, not assumed to be a fixed value
-      - incorporates prior information in its estimate
+### The Frequentist Framework
 
-### The frequentist framework
-    - linear model
+  Linear regression can be achieved using a variety of methods, two of interest are frequentist and Bayesian. The frequentist approach to linear regression is the more familiar approach. It estimates the effects of independent variables(predictors) on dependent variables(the outcome). The regression coefficient is a point estimate, assumed to be a fixed value. Following is the frequentist linear model
 
 $$
 Y = \beta_0 + \beta_1X + \varepsilon \tag{1}
@@ -80,9 +70,9 @@ $$
   - $\varepsilon$ : Random error [@xiaogang]
 - $\hat\beta$ provides a point estimate
 
-### The Bayesian framework
-- relies on bayes rule
-  - written simply as
+### The Bayesian Framework
+
+  The Bayesian approach estimates the relationship between predictors and an outcome in a similar way, however it's regression coefficient is not a point estimate, but a distribution. That is, the regression coefficient is not assumed to be a fixed value. The Bayesian approach also goes a step further then frequentist regression in it's inclusion of prior data. The Bayesian approach is so named because it is based on Bayes' rule which is written as follows:
 
 $$
 Posterior = \frac{Likelihood \times Prior}{Normalization}
@@ -94,17 +84,17 @@ $$
   - The $Posterior$ is the probability model that expresses an updated view of the model parameters
   - From the initial parameters of the prior
 
-- In terms of calculating probability, bayed rule can be written as
+  In terms of calculating probability, Bayes' rule can be written as
 
 $$
 p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)} \tag{2}
 $$
 
-  - Bayes Rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
+  - Bayes' rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
     - $p(B|A) \text{ and } p(A|B)$ are conditional probabilities
     - $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
 
-- For continuous parameters, Bayes rule can be written as 
+ For continuous parameters, Bayes rule can be written as 
 
 $$
 \begin{align*}
@@ -114,100 +104,864 @@ p(\theta|y) \propto &   \text{ }L(\theta|y)p(\theta)
 \end{align*}
 $$
 
-- The normalization constant ($p(y)$ above) ensures the posterior distribution is a valid distribution
-  - The posterior density function can be written without this constant
-- The resulting prediction is not a point estimate, but a distribution [@Bayes1991]
-
-The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data, is proportional to the conditional density of $D$ given $\theta$, $f(D|\theta)$, and the prior density of $\theta$, $f(\theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\theta$[@xiaogang]. 
+  The normalization constant ($p(y)$ above) ensures the posterior distribution is a valid distribution, but the posterior density function can be written without this constant. The resulting prediction is not a point estimate, but a distribution [@Bayes1991].
+  The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data $p(\theta|y)$, is proportional to the likelihood of $\theta$ given $y$, $L(\theta|y)$, and the prior density of $\theta$, $p(\theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\theta$[@xiaogang]. 
 
 $$
 f(\theta|D) \propto L(\theta|D)f(\theta) \tag{1}
 $$
 
+### The Model
+
+  To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include a the mean specific to our predictor, departure time, $\mu_i$. The model is:
+  
+$$
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i
+\end{align*}
+$$
+Where:
+- $Y_i$ is the arrival delay for the i-th flight
+- $X_i$ is the departure delay for the i-th flight
+- $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
+- $\sigma^2$ is the variance of the errors
+-  $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
+
+#### Prior Selection
+
+  This analysis will explore the differences in Bayesian linear regression using flat priors and tuned priors. 
+  
+  Since we are only using two data variables, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
+  As intercept and slope regression parameters can take any real value, we will use normal prior models [@bayesrulesbook]. 
+$$
+\begin{align*}
+\beta_0 &\sim N(m_0, s^2_0)\\
+\beta_1 &\sim N(m_1, s^2_1)
+\end{align*}
+$$
+
+where $m_0, s_0, m_1, \text{and } s_1$ are hyperparameters. 
+
+  The standard deviation parameter must be positive, so we will use an exponential model [@bayesrulesbook]. 
+  
+$$  
+\sigma \sim \text{Exp}(l)
+$$
+
+  Due to the fact that the exponential model is a special case of the Gamma model, with $s = 1$, we can use the definitions of the mean and variance of the gamma model to to find that of the exponential model [@bayesrulesbook]. 
+
+$$
+\begin{align*}
+E(\sigma) = \frac{1}{l} && \text{and} && SD(\sigma) = \frac{1}{l}
+\end{align*}
+$$
 
 
-### Prior Selection
+#### The Bayesian Linear Regression Model
 
-- Unsure, still trying to get any analysis to work
-- Might compare a "prior" using data from prior years within same dataset to a flat prior
+  The model can be written as
 
-### Model
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(m_0, s_0^2)\\
+\beta_1 &\sim N(m_1, s_1^2)\\
+\sigma &\sim \text{Exp}(l)
+\end{align*}
+$$
 
-### Sampling
+#### Tuning Hyperparameters
 
-### Statistical programming
+##### $\beta_0$ informs the model intercept  
 
-- [@R]
-- [@brms]
-- [@tidyverse]
-- [@dplyr]
-- [@bayesplot]
-- [@tidyr]
+```{r readin_sample}
+#| echo: false
 
-****Do I only include packages used in analysis, outside of EDA here?
-****Do I include packages like dplyr that aren't specific to Bayesian analysis here or just in the references?
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(psych)
+library(Hmisc)
+library(brms)
+library(tidyverse)
+library(bayesplot)
+library(tidyr)
+library(BAS)
+library(gt)
+
+Delays <- read.csv("Kaggle_flights.csv")
+
+set.seed(123)
+
+sample_size <- 100000  
+Delays_sample <- Delays %>% 
+  sample_n(sample_size) %>%
+  select(-FL_DATE)
+
+convert_to_hour <- function(time_column) {
+  hour_category <- (as.numeric(time_column) %/% 100) %% 24 + 1
+  return(ifelse(is.na(hour_category), NA, hour_category))
+}
+
+convert_to_minutes <- function(time) {
+  hour <- time %/% 100
+  minute <- time %% 100
+  total_minutes <- hour * 60 + minute
+  return(total_minutes)
+}
+
+Delays_sample <- Delays_sample %>%
+  mutate("DEP_TIME_MINS" = sapply(DEP_TIME, convert_to_minutes))
+
+Delays_sample <- Delays_sample %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0),
+    CRS_DEP_HOUR = convert_to_hour(CRS_DEP_TIME), 
+    DEP_HOUR = convert_to_hour(DEP_TIME), 
+    WHEELS_OFF_HOUR = convert_to_hour(WHEELS_OFF),
+    WHEELS_ON_HOUR = convert_to_hour(WHEELS_ON),
+    CRS_ARR_HOUR = convert_to_hour(CRS_ARR_TIME),
+    ARR_HOUR = convert_to_hour(ARR_TIME),
+    CANCELLATION_CODE = ifelse(CANCELLATION_CODE == "", "Z", CANCELLATION_CODE),
+    FLIGHT_PERIOD = case_when(
+      CRS_DEP_TIME >= 400 & CRS_DEP_TIME < 1200 ~ "Morning",
+      CRS_DEP_TIME >= 1200 & CRS_DEP_TIME < 2000 ~ "Afternoon",
+      CRS_DEP_TIME >= 2000 | CRS_DEP_TIME < 400 ~ "Evening" )) %>%
+  filter(DIVERTED == 0, CANCELLED == 0 )
+
+```
+
+```{r tuning_priors_rstanarm_B_0}
+#| output: false
+
+summary(Delays_sample$DEP_TIME_MINS) #mean departure time is 809.3 minutes (~ 1:30pm)
+
+Delays_sample_filtered_B0 <- subset(Delays_sample, DEP_TIME_MINS >= 800 & DEP_TIME_MINS <= 820)
+
+mean(Delays_sample_filtered_B0$ARR_DELAY) #m_0c = 2
+sd(Delays_sample_filtered_B0$ARR_DELAY)  #s_0c = 36
+
+```
+
+  $\beta_{0c}$ reflects the typical arrival delay at a typical departure time. With a mean departure time at $\sim$ 1:30pm, the average arrival delay is $\sim$ 2 minutes with a standard deviation $\sim$ 36 minutes. 
+
+$$
+\beta_{0c} \sim N(2, 36^2)
+$$
 
 
+##### $\beta_1$ informs the model slope
+  
+
+```{r tuning_priors_rstanarm_B_1}
+#| output: false
+
+lm_model <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
+
+summary(lm_model)
+
+coef(lm_model)["DEP_TIME_MINS"] #m_1 = 0.01903
+summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
+
+```
+
+  The slope of the lineal model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
 
 
+$$
+\beta_{1} \sim N(0.02, 0.01^2)
+$$
 
+##### $\sigma$ informs the model standard deviation
 
+```{r tuning_priors_rstanarm_s}
+#| output: false
 
+summary(lm_model)$sigma
 
+```
 
+  To tune the exponential model, we set the expected value of the standard deviation, $ E(\sigma) $, equal to the residual standard error, $\sim 50$. With this, we can find the rate parameter, $l$. 
+  
+$$
+\begin{align*}
+E(\sigma) &= \frac{1}{l} = 50\\\\
+l  &= \frac{1}{50} =  0.02\\\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
 
+#### The Updated Model
 
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(2, 36^2)\\
+\beta_1 &\sim N(0.02, 0.01^2)\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
 
+### Statistical Programming
 
-
-
-
-
-
-
--   Detail the models or algorithms used.
-
--   Justify your choices based on the problem and data.
+  Data was collected by the Bureau of Transportation Statistics (BTS) and accessed through a dataset compiled by Patrick Zelazko [@dataset]. The data was imported into R [@R] via CSV. 
+  This is a large time-series dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
+  The function stan_glm() was used for simulation of the Normal Bayesian linear regression model from the "rstanarm" library[@rstanarm]. This function runs the Markov Chain Monte Carlo simulation as well with specified chains, iterations, and the ability to set a seed. These were set to 4 chains, 2000 iterations, and the seed was set to 123. 
+  Simulation of the posterior was done with the posterior_predict() function, also from the "rstanarm" library[@rstanarm].
+  Evaluation of the model was done by considering the data and it's source, the assumptions of the model, and the accuracy of the prediction. The posterior predictions were evaluated with the prediction_summary() function from the "bayesrules"library [@bayesrules]. This provided median absolute error (MAE) scaled MAE, and the proportion of values that fall within 50% and 95% confidence intervals. 
+  
+*Possibly k-fold cross validation, model averaging*
 
 
 ## Analysis and Results
 
-### Data Exploration and Visualization
+### Exploratory Data Analysis
 
--   Describe your data sources and collection process.
+#### Following are the definitions of the given variables in this dataset. 
 
--   Present initial findings and insights through visualizations.
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;margin:0px auto;}
+.tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-83kh{background-color:#002b36;border-color:#ffffff;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  font-size:large;font-weight:bold;position:-webkit-sticky;position:sticky;text-align:center;top:-1px;
+  vertical-align:top;will-change:transform}
+.tg .tg-9nvq{background-color:#002b36;border-color:#002b36;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  text-align:center;vertical-align:middle}
+.tg .tg-kr5n{background-color:#002b36;border-color:#ffffff;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  text-align:left;vertical-align:middle}
+.tg .tg-su5p{background-color:#002b36;border-color:#ffffff;color:#ffffff;font-family:"Times New Roman", Times, serif !important;
+  text-align:center;vertical-align:middle}
+@media screen and (max-width: 767px) {.tg {width: auto !important;}.tg col {width: auto !important;}.tg-wrap {overflow-x: auto;-webkit-overflow-scrolling: touch;margin: auto 0px;}}</style>
+<div class="tg-wrap"><table class="tg"><thead>
+  <tr>
+    <th class="tg-83kh">Header</th>
+    <th class="tg-83kh">Description</th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-9nvq">Fl Date</td>
+    <td class="tg-kr5n">Flight Date (yyyy-mm-dd)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Airline</td>
+    <td class="tg-kr5n">Airline Name</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Airline DOT</td>
+    <td class="tg-kr5n">Airline Name and Unique Carrier Code. When the same code has been used by multiple carriers, a numeric suffix is used for earlier users, for example, PA, PA(1), PA(2). Use this field for analysis across a range of years.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Airline Code</td>
+    <td class="tg-kr5n">Unique Carrier Code</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">DOT Code</td>
+    <td class="tg-kr5n">An identification number assigned by US DOT to identify a unique airline (carrier). A unique airline (carrier) is defined as one holding and reporting under the same DOT certificate regardless of its Code, Name, or holding company/corporation.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Fl Number</td>
+    <td class="tg-kr5n">Flight Number</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Origin</td>
+    <td class="tg-kr5n">Origin Airport, Airport ID. An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Origin City</td>
+    <td class="tg-kr5n">Origin City Name, State Code</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dest</td>
+    <td class="tg-kr5n">Destination Airport, Airport ID.   An identification number assigned by US DOT to identify a unique airport. Use this field for airport analysis across a range of years because an airport can change its airport code and airport codes can be reused.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dest City</td>
+    <td class="tg-kr5n">Destination City Name, State   Code</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">CRS Dep Time</td>
+    <td class="tg-kr5n">CRS Departure Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dep Time</td>
+    <td class="tg-kr5n">Actual Departure Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Dep Delay</td>
+    <td class="tg-kr5n">Difference in minutes between scheduled and actual departure time. Early departures show negative numbers.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Taxi Out</td>
+    <td class="tg-kr5n">Taxi Out Time, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Wheels Off</td>
+    <td class="tg-kr5n">Wheels Off Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Wheels On</td>
+    <td class="tg-kr5n">Wheels On Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Taxi In</td>
+    <td class="tg-kr5n">Taxi In Time, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">CRS Arr Time</td>
+    <td class="tg-kr5n">CRS Arrival Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Arr Time</td>
+    <td class="tg-kr5n">Actual Arrival Time (local time: hhmm)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Arr Delay</td>
+    <td class="tg-kr5n">Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers.</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Cancelled</td>
+    <td class="tg-kr5n">Cancelled Flight Indicator   (1=Yes)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Cancellation Code</td>
+    <td class="tg-kr5n">Specifies The Reason For Cancellation</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Diverted</td>
+    <td class="tg-kr5n">Diverted Flight Indicator   (1=Yes)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">CRS Elapsed Time</td>
+    <td class="tg-kr5n">CRS Elapsed Time of Flight, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Actual Elapsed Time</td>
+    <td class="tg-kr5n">Elapsed Time of Flight, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Air Time</td>
+    <td class="tg-kr5n">Flight Time, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Distance</td>
+    <td class="tg-kr5n">Distance between airports (miles)</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Carrier Delay</td>
+    <td class="tg-kr5n">Carrier Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Weather Delay</td>
+    <td class="tg-kr5n">Weather Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">NAS Delay</td>
+    <td class="tg-kr5n">National Air System Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Security Delay</td>
+    <td class="tg-kr5n">Security Delay, in Minutes</td>
+  </tr>
+  <tr>
+    <td class="tg-su5p">Late  Aircraft Delay</td>
+    <td class="tg-kr5n">Late Aircraft Delay, in Minutes</td>
+  </tr>
+</tbody></table></div>
 
--   Highlight unexpected patterns or anomalies.
 
-A study was conducted to determine how...
 
-```{r, warning=FALSE, echo=T, message=FALSE}
-# loading packages 
-library(tidyverse)
+```{r readin}
+#| echo: false
+
 library(knitr)
-library(ggthemes)
-library(ggrepel)
-library(dslabs)
+
+Delays <- read.csv("Kaggle_flights.csv")
+
 ```
 
-```{r, warning=FALSE, echo=TRUE}
-# Load Data
-kable(head(murders))
 
-ggplot1 = murders %>% ggplot(mapping = aes(x=population/10^6, y=total)) 
 
-  ggplot1 + geom_point(aes(col=region), size = 4) +
-  geom_text_repel(aes(label=abb)) +
-  scale_x_log10() +
-  scale_y_log10() +
-  geom_smooth(formula = "y~x", method=lm,se = F)+
-  xlab("Populations in millions (log10 scale)") + 
-  ylab("Total number of murders (log10 scale)") +
-  ggtitle("US Gun Murders in 2010") +
-  scale_color_discrete(name = "Region")+
-      theme_bw()
-  
+### Table 1 for the dataset. 
+
+```{r table1}
+#| echo: false
+
+library(knitr)
+library(tidyr)
+library(gt)
+library(dplyr)
+
+# remove NA's, set lowercase
+
+Delays1 <- Delays %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0)
+  ) %>%
+  rename_with(tolower) %>%
+  rename(
+    carrier_delay = delay_due_carrier,
+    weather_delay = delay_due_weather,
+    nas_delay = delay_due_nas,
+    security_delay = delay_due_security,
+    lateaircraft_delay = delay_due_late_aircraft
+  )
+
+#Math for table 1
+
+Table1.2 <- Delays1 %>%
+  mutate(flight_period = case_when(
+    crs_dep_time >= 400 & crs_dep_time < 1200 ~ "Morning",
+    crs_dep_time >= 1200 & crs_dep_time < 2000 ~ "Afternoon",
+    crs_dep_time >= 2000 | crs_dep_time < 400 ~ "Evening" ))
+
+Table1.2 <- Table1.2 %>%
+  group_by(flight_period) %>%
+  summarise(
+    .by = NULL,
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(fl_date),
+    TotalUniqueOrigins = n_distinct(origin),
+    TotalUniqueDestinations = n_distinct(dest),
+    AvgCRSDepTime = mean(crs_dep_time, na.rm = TRUE),
+    AvgDepTime = mean(dep_time, na.rm = TRUE),
+    AvgDepDelay = round(mean(dep_delay, na.rm = TRUE), 2),
+    AvgTaxiOut = round(mean(taxi_out, na.rm = TRUE), 2),
+    AvgTaxiIn = round(mean(taxi_in, na.rm = TRUE), 2),
+    AvgCRSArrTime = mean(crs_arr_time, na.rm = TRUE),
+    AvgArrTime = mean(arr_time, na.rm = TRUE),
+    AvgArrDelay = round(mean(arr_delay, na.rm = TRUE), 2),
+    AvgAirTime = round(mean(air_time, na.rm = TRUE), 2),
+    CancelledFlights = sum(cancelled, na.rm = TRUE),
+    DivertedFlights = sum(diverted, na.rm = TRUE), 
+    AvgCarrierDelay = round(mean(carrier_delay, na.rm = TRUE), 2),
+    AvgSecurityDelay = round(mean(security_delay, na.rm = TRUE), 2),
+    AvgWeatherDelay = round(mean(weather_delay, na.rm = TRUE), 2),
+    AvgNASDelay = round(mean(nas_delay, na.rm = TRUE), 2),
+    AvgLateAircraftDelay = round(mean(lateaircraft_delay, na.rm = TRUE), 2),
+    CarrierDelay_ct = sum(carrier_delay > 0),
+    SecurityDelay_ct = sum(security_delay > 0),
+    WeatherDelay_ct = sum(weather_delay > 0),
+    NASDelay_ct = sum(nas_delay > 0),
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)) %>%
+  ungroup() %>%
+  mutate(
+    TotalFlightsCount = sprintf("%d (%.1f%%)", TotalFlights, 100 * TotalFlights / sum(TotalFlights)),
+    CancelledFlightsCount = sprintf("%d (%.1f%%)", CancelledFlights, 100 * CancelledFlights / sum(CancelledFlights)),
+    DivertedFlightsCount = sprintf("%d (%.1f%%)", DivertedFlights, 100 * DivertedFlights / sum(DivertedFlights)),
+    CarrierDelayCount = sprintf("%d (%.1f%%)", CarrierDelay_ct, 100 * CarrierDelay_ct / sum(CarrierDelay_ct)),
+    SecurityDelayCount = sprintf("%d (%.1f%%)", SecurityDelay_ct, 100 * SecurityDelay_ct / sum(SecurityDelay_ct)),
+    WeatherDelayCount = sprintf("%d (%.1f%%)", WeatherDelay_ct, 100 * WeatherDelay_ct / sum(WeatherDelay_ct)),
+    NASDelayCount = sprintf("%d (%.1f%%)", NASDelay_ct, 100 * NASDelay_ct / sum(NASDelay_ct)),
+    LateAircraftDelayCount = sprintf("%d (%.1f%%)", LateAircraftDelay_ct, 100 * LateAircraftDelay_ct / sum(LateAircraftDelay_ct))
+  )
+```
+
+
+```{r table1.2total}
+Table1.2_total <- Delays1 %>%
+  summarise(
+    .by = NULL,
+    flight_period = "Total",
+    TotalFlights = n(),
+    TotalUniqueDates = n_distinct(fl_date),
+    TotalUniqueOrigins = n_distinct(origin),
+    TotalUniqueDestinations = n_distinct(dest),
+    AvgCRSDepTime = mean(crs_dep_time, na.rm = TRUE),
+    AvgDepTime = mean(dep_time, na.rm = TRUE),
+    AvgDepDelay = round(mean(dep_delay, na.rm = TRUE), 2),
+    AvgTaxiOut = round(mean(taxi_out, na.rm = TRUE), 2),
+    AvgTaxiIn = round(mean(taxi_in, na.rm = TRUE), 2),
+    AvgCRSArrTime = mean(crs_arr_time, na.rm = TRUE),
+    AvgArrTime = mean(arr_time, na.rm = TRUE),
+    AvgArrDelay = round(mean(arr_delay, na.rm = TRUE), 2),
+    AvgAirTime = round(mean(air_time, na.rm = TRUE), 2),
+    CancelledFlights = sum(cancelled, na.rm = TRUE),
+    DivertedFlights = sum(diverted, na.rm = TRUE), 
+    AvgCarrierDelay = round(mean(carrier_delay, na.rm = TRUE), 2),
+    AvgSecurityDelay = round(mean(security_delay, na.rm = TRUE), 2),
+    AvgWeatherDelay = round(mean(weather_delay, na.rm = TRUE), 2),
+    AvgNASDelay = round(mean(nas_delay, na.rm = TRUE), 2),
+    AvgLateAircraftDelay = round(mean(lateaircraft_delay, na.rm = TRUE), 2),
+    CarrierDelay_ct = sum(carrier_delay > 0),
+    SecurityDelay_ct = sum(security_delay > 0),
+    WeatherDelay_ct = sum(weather_delay > 0),
+    NASDelay_ct = sum(nas_delay > 0),
+    LateAircraftDelay_ct = sum(lateaircraft_delay > 0)) %>%
+  mutate(
+    TotalFlightsCount = sprintf("%d (100%%)", TotalFlights),
+    CancelledFlightsCount = sprintf("%d (100%%)", CancelledFlights),
+    DivertedFlightsCount = sprintf("%d (100%%)", DivertedFlights),
+    CarrierDelayCount = sprintf("%d (100%%)", CarrierDelay_ct),
+    SecurityDelayCount = sprintf("%d (100%%)", SecurityDelay_ct),
+    WeatherDelayCount = sprintf("%d (100%%)", WeatherDelay_ct),
+    NASDelayCount = sprintf("%d (100%%)", NASDelay_ct),
+    LateAircraftDelayCount = sprintf("%d (100%%)", LateAircraftDelay_ct)
+  )
+
+Table1.2_combined <- bind_rows(Table1.2, Table1.2_total)
+
+
+
+library(lubridate)
+
+# Converting time HHMM.SS to HH:MM:SS
+
+convert_to_time <- function(time_val) {
+  rounded_time <- round(time_val, 2)
+  hours <- floor(rounded_time / 100)
+  minutes_with_secs <- (rounded_time %% 100)
+  minutes <- floor(minutes_with_secs)
+  seconds <- round((minutes_with_secs - minutes) * 60, 0)
+  time_formatted <- sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+  return(time_formatted)
+}
+
+#Apply time conversion, remove extra rows
+
+Table1.3_combined <- Table1.2_combined %>%
+  mutate(
+    AvgCRSDepTime = sapply(AvgCRSDepTime, convert_to_time),
+    AvgDepTime = sapply(AvgDepTime, convert_to_time),
+    AvgCRSArrTime = sapply(AvgCRSArrTime, convert_to_time),
+    AvgArrTime = sapply(AvgArrTime, convert_to_time),
+  ) %>%
+  mutate(across(-flight_period, as.character)
+  ) %>%
+  select(
+    flight_period,
+    TotalFlightsCount,
+    CancelledFlightsCount,
+    DivertedFlightsCount,
+    AvgCRSDepTime,
+    AvgDepTime,
+    AvgDepDelay,
+    AvgTaxiOut,
+    AvgTaxiIn,
+    AvgCRSArrTime,
+    AvgArrTime,
+    AvgArrDelay,
+    AvgAirTime,
+    CarrierDelayCount,
+    SecurityDelayCount,
+    WeatherDelayCount,
+    NASDelayCount,
+    LateAircraftDelayCount
+  )
+
+#Pivot table
+
+Table1.3_pivoted <- Table1.3_combined %>% 
+  pivot_longer(
+    cols = -flight_period,
+    names_to = "Statistic", 
+    values_to = "Value") %>% 
+  pivot_wider(
+    names_from = flight_period,
+    values_from = Value
+)
+
+#gt Table1
+
+Table1.3_pivoted %>%
+  gt() %>%
+  tab_header(
+    title = "Flight Delay Summary by Flight Period"
+  ) %>%
+  cols_label(
+    Statistic = "Flight Period",
+    Morning = "Morning",
+    Afternoon = "Afternoon",
+    Evening = "Evening",
+    Total = "Total"
+  ) %>%
+  tab_spanner(
+    label = "Flight Period",
+    columns = c(Morning, Afternoon, Evening, Total)
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white"), 
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_body(
+      columns = everything()
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_column_labels(
+      columns = everything()
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white", weight = "bold"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_title(
+      groups = c("title", "subtitle")
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(color = "white", weight = "bold"),
+      cell_fill(color = "rgba(0, 43, 54, 1)")
+    ),
+    locations = cells_column_spanners(
+      spanners = everything()
+    )
+  ) %>%
+  tab_source_note(
+    source_note = "Table 1: Summary includes morning, afternoon, and evening flight periods."
+  )
+
+```
+
+
+
+  The three flight periods are each comprised of 8-hour segments (i.e. Morning has flights with departure times from 4am to noon followed by afternoon and evening). The Afternoon period is comprised of the most flights (47.4%), followed closely by the Morning period (41.5%), and the Evening period trails the two (11%). The table also gives the means of the departure and arrival times, giving an indication of the density of the flights in the given period. The average departure and arrival delays show much better numbers for the Morning period (5.23, -0.77 minutes) with increasing delays for the Afternoon and Evening periods. The delay counts by type show That the Afternoon and Morning periods account for significantly more of the total delays, though that is without taking into account the smaller contribution of flights by the Evening period on the whole. 
+
+
+### Some Visualizations of the Dataset
+
+```{r}
+#| echo: false
+
+library(ggplot2)
+
+
+Delays %>%
+  pivot_longer(cols = c(DEP_DELAY, AIR_TIME, ARR_DELAY), 
+               names_to = "Variable", 
+               values_to = "Value") %>%
+  ggplot(aes(x = Value)) +
+  geom_histogram(bins = 25, fill = "blue", alpha = 0.5) +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(title = "Histograms of Air Time and Flight Delays",
+       x = "Time in Minutes",
+       y = "Square Root of Frequency") +
+  xlim(NA, 650)+
+  scale_y_sqrt()
+
+```
+
+   These histograms illustrate the frequencies of air time, arrival delays, and departure delays. The y-axis was transformed to make the visualizations more legible. All show a skew to the right. This makes sense for air times with a higher proportion of regional flights and the exclusion of international departures and arrivals. Shorter delays (for both arrivals and departures) being more frequent than longer delays is also to be expected. 
+
+```{r}
+#| echo: false
+carrier_summary_ci <- Delays1 %>%
+  group_by(airline_code) %>%
+  summarise(
+    carrier_name = first(airline),
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    n = n(),
+    sd_arr_delay = sd(arr_delay, na.rm = TRUE)
+  ) %>%
+  filter(n > 200000) %>% 
+  mutate(
+    lower_ci = avg_arr_delay - qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n),
+    upper_ci = avg_arr_delay + qt(0.975, df = n - 1) * sd_arr_delay / sqrt(n)
+  )
+total_mean_delay_filtered <- mean(carrier_summary_ci$avg_arr_delay, na.rm = TRUE)
+
+# Create the plot
+ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) + 
+  geom_hline(yintercept = total_mean_delay_filtered, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Average Arrival Delays by Carrier",
+    x = "Carrier",
+    y = "Average Arrival Delay (minutes)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+  This visualization shows the average arrival delay for the largest five airlines (filtered for carriers with over 200,000 flights in the given period). The standard deviations for these airlines are fairly small, indicating a low variability in the arrival delays for these airlines. 
+
+
+```{r}
+#| echo: false
+
+airport_loc <- read.csv("usa-airports.csv")
+
+library(maps)
+library(ggmap)
+
+delays_with_loc <- Delays1 %>%
+  group_by(origin) %>%
+  summarise(avg_arr_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  left_join(airport_loc, by = c("origin" = "iata")) %>%
+  na.omit()
+
+delays_with_loc$longitude <- as.numeric(delays_with_loc$longitude)
+delays_with_loc$latitude <- as.numeric(delays_with_loc$latitude)
+
+us_map <- map_data("state")
+alaska_map <- map_data("world", "USA:Alaska")
+
+combined_map <- rbind(us_map, alaska_map)
+
+lon_limits <- c(-180, -60)  
+lat_limits <- c(10, 80)
+
+library(plotly)
+
+plot_ly(data = delays_with_loc, 
+        lat = ~latitude, 
+        lon = ~longitude, 
+        type = 'scattergeo', 
+        mode = 'markers',
+        marker = list(size = 10, color = ~avg_arr_delay, colorscale = 'Viridis', colorbar = list(title = "Avg Arrival Delay (min)")),
+        text = ~paste("Airport Code: ", origin, "<br>",
+                      "Avg Arrival Delay: ", round(avg_arr_delay, 2), " min<br>",
+                      "Longitude: ", round(longitude, 2), "<br>",
+                      "Latitude: ", round(latitude, 2)),
+        hoverinfo = 'text') %>%
+  layout(title = 'Average Arrival Delays by Origin Airport',
+         geo = list(scope = 'usa',
+                    showland = TRUE,
+                    landcolor = 'lightgray',
+                    subunitcolor = 'white',
+                    countrycolor = 'white'))
+
+
+```
+
+  This heat map shows the average arrival delay for flights at their origin airport. This comes from the idea that if a flight is delayed at departure, then it may also be delayed on arrival at it's destination. 
+
+- Airport location information downloaded from <https://github.com/RandomFractals/geo-data-viewer/blob/master/data/csv/usa-airports.csv>
+
+```{r}
+#| echo: false
+
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(psych)
+library(Hmisc)
+
+set.seed(123)
+
+sample_size <- 100000  
+Delays_sample <- Delays %>% 
+  sample_n(sample_size) %>%
+  select(-FL_DATE)
+
+convert_to_hour <- function(time_column) {
+  hour_category <- (as.numeric(time_column) %/% 100) %% 24 + 1
+  return(ifelse(is.na(hour_category), NA, hour_category))
+}
+
+Delays_sample <- Delays_sample %>%
+  mutate(
+    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
+    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
+    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
+    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
+    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0),
+    CRS_DEP_HOUR = convert_to_hour(CRS_DEP_TIME), 
+    DEP_HOUR = convert_to_hour(DEP_TIME), 
+    WHEELS_OFF_HOUR = convert_to_hour(WHEELS_OFF),
+    WHEELS_ON_HOUR = convert_to_hour(WHEELS_ON),
+    CRS_ARR_HOUR = convert_to_hour(CRS_ARR_TIME),
+    ARR_HOUR = convert_to_hour(ARR_TIME),
+    CANCELLATION_CODE = ifelse(CANCELLATION_CODE == "", "Z", CANCELLATION_CODE),
+    FLIGHT_PERIOD = case_when(
+      CRS_DEP_TIME >= 400 & CRS_DEP_TIME < 1200 ~ "Morning",
+      CRS_DEP_TIME >= 1200 & CRS_DEP_TIME < 2000 ~ "Afternoon",
+      CRS_DEP_TIME >= 2000 | CRS_DEP_TIME < 400 ~ "Evening" )) %>%
+  filter(DIVERTED == 0, CANCELLED == 0 )
+
+continuous_vars <- Delays_sample %>%
+  select(
+    DEP_DELAY,
+    TAXI_OUT,
+    TAXI_IN, 
+    ARR_DELAY,
+    CRS_ELAPSED_TIME, 
+    ELAPSED_TIME,
+    AIR_TIME,
+    DISTANCE
+  )
+
+categorical_vars <- Delays_sample %>%
+  select(
+    AIRLINE_CODE,
+    ORIGIN,
+    DEST,
+    DELAY_DUE_CARRIER,
+    DELAY_DUE_WEATHER,
+    DELAY_DUE_NAS,
+    DELAY_DUE_SECURITY,
+    DELAY_DUE_LATE_AIRCRAFT,
+    CRS_DEP_HOUR, 
+    DEP_HOUR,
+    WHEELS_OFF_HOUR,
+    WHEELS_ON_HOUR,
+    CRS_ARR_HOUR,
+    ARR_HOUR,
+    FLIGHT_PERIOD
+  )
+
+cat("Correlation Matrix for Continuous Variables:\n")
+cor_matrix <- cor(continuous_vars, use = "pairwise.complete.obs")
+print(cor_matrix)
+
+corrplot(cor_matrix, method = "color", type = "lower", tl.col = "black", tl.srt = 45)
+
+
+```
+
+
+
+```{r}
+#| echo: false
+
+library(reshape2)
+library(ggplot2)
+
+p_value_results <- matrix(NA, nrow = ncol(categorical_vars), ncol = ncol(continuous_vars),
+                           dimnames = list(colnames(categorical_vars), colnames(continuous_vars)))
+
+
+for(cat_var in colnames(categorical_vars)) {
+  for(cont_var in colnames(continuous_vars)) {
+    cat("Testing between", cat_var, "and", cont_var, ":\n")
+    if(length(unique(categorical_vars[[cat_var]])) == 2) {
+      t_test <- t.test(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      p_value_results[cat_var, cont_var] <- t_test$p.value
+    } else {
+      anova_test <- aov(continuous_vars[[cont_var]] ~ categorical_vars[[cat_var]], data = Delays_sample)
+      p_value_results[cat_var, cont_var] <- summary(anova_test)[[1]][["Pr(>F)"]][1] 
+    }
+    cat("\n")
+  }
+}
+
+p_value_long <- melt(p_value_results, na.rm = TRUE)  # Remove NAs
+
+ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "blue", high = "red", na.value = "gray90", name = "p-value") +
+  labs(x = "Categorical Variable", y = "Continuous Variable", title = "Heatmap of p-values for Categorical vs Continuous Variables") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
