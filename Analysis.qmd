@@ -264,7 +264,12 @@ model_stan <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
                         family = gaussian(),
                         chains = 4,
                         iter = 2000,
-                        warmup = 1000)
+                        seed = 123)
+
+mcmc_trace(model_stan, size = 0.1)
+
+mcmc_dens_overlay(model_stan)
+
 
 summary(model_stan)
 
@@ -395,7 +400,7 @@ summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
 
 
 $$
-\beta_{1} \sim N(0.02, 0.01)
+\beta_{1} \sim N(0.02, 0.01^2)
 $$
 
 ### $\sigma$ informs the regression standard deviation
@@ -415,6 +420,19 @@ l  &= \frac{1}{50} =  0.02\\\\
 \sigma &\sim \text{Exp}(0.02)
 \end{align*}
 $$
+
+### The Updated Model
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(2, 36^2)\\
+\beta_1 &\sim N(0.02, 0.01^2)\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+
 
 
 ```{}
