@@ -1,13 +1,22 @@
 ---
-title: "Present a great story for data science projects"
-subtitle: "This is a Slide Template"
-author: "Students names (Advisor: Dr. Cohen)"
-date: '`r Sys.Date()`'
+title: "Bayesian Linear Regression"
+subtitle: "Analysis of Flight Delay Data"
+author: "Sara Parrish, Heather Anderson (Advisor: Dr. Seals)"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+date-format: "MMM D, YYYY"
 format:
-  revealjs
+  revealjs:
+    css: custom.css
+    theme: dark
+    embed-resources: true
+    slide-number: false
+    width: 1600
+    height: 900
+    df-print: paged
+    html-math-method: katex
 course: Capstone Projects in Data Science
-bibliography: references.bib # file contains bibtex for references
-#always_allow_html: true # this allows to get PDF with HTML features
+bibliography: references.bib
+csl: ieee.csl
 self-contained: true
 execute: 
   warning: false
@@ -15,7 +24,10 @@ execute:
 editor: 
   markdown: 
     wrap: 72
+pdf-separate-fragments: true
+fig-align: center
 ---
+
 
 ::: callout-important
 **Remember:** Your goal is to make your audience understand and care
@@ -29,6 +41,19 @@ More information about `revealjs`:
 <https://quarto.org/docs/reference/formats/presentations/revealjs.html>
 :::
 
+
+## Introduction to Bayesian Linear Regression
+
+- Regression under the *frequentist* framework
+    - Independent variables are used to predict dependent variables
+    - Linear regression finds best-fitting line to observed data to make further predictions
+      - Regression parameters ($\beta$) are assumed to be fixed
+    - Only collected data is used for approximation
+- Regression under the *Bayesian* framework
+    - Independent variables are used to predict dependent variables
+    - Regression parameters ($\beta$) *are not* assumed to be fixed
+    - Collected data is used alongside prior knowledge for approximation
+
 ## Introduction  {.smaller}
 
 -   Develop a storyline that captures attention and maintains interest.
@@ -41,18 +66,187 @@ More information about `revealjs`:
 
 -   Provide an overview of your approach.
 
-In kernel estimator, weight function is known as kernel function
-[@efr2008]. Cite this paper [@bro2014principal]. The GEE [@wang2014].
-The PCA [@daffertshofer2004pca]\*
+# Methods
 
-## Methods
+## Frequentist vs. Bayesian Approach
 
--   Detail the models or algorithms used.
+- The **Frequentist** Approach
+  - Typical linear model 
+  
+$$
+Y = \beta_0 + \beta_1X + \varepsilon
+$$
 
--   Justify your choices based on the problem and data.
+  - $Y$ : Dependent variable, the outcome
+  - $\beta_0$ : y intercept
+  - $\beta_1$ : The regression coefficient 
+  - $X$ : Independent variable
+  - $\varepsilon$ : Random error [@xiaogang]
+- $\hat\beta$ provides a point estimate
 
 
+## Frequentist vs. Bayesian Approach
 
+- The **Bayesian** Approach
+  - A regression is constructed using probability distributions, not point estimates as in the frequentist approach
+  - Bayes Rule (2) is used to inform the model [@xiaogang]
+
+$$
+p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)}
+$$
+
+- Bayes Rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
+- $p(B|A) \text{ and } p(A|B)$ are conditional probabilities
+- $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
+
+
+## Frequentist vs. Bayesian Approach
+
+- The **Bayesian** Approach
+    - Bayesian Inference can be written simply [@Koehrsen2018]
+    
+$$
+Posterior = \frac{Likelihood \times Prior}{Normalization}
+$$
+
+- The $Prior$ is model of prior knowledge on the subject
+- The $Likelihood$ is the probability of the data given the prior
+- The $Normalization$ is a constant that ensures the posterior distribution is a valid density function whose integration is equal to 1
+- The $Posterior$ is the probability model that expresses an updated view of the model parameters
+  - From the initial parameters of the prior
+  - Updated with new data expressed in the likelihood function
+
+
+## Frequentist vs. Bayesian Approach
+
+- The **Bayesian** Approach
+  - A more formal expression of Bayes Rule applied for continous parameters
+  
+$$
+\begin{align*}
+p(\theta|y) =& \frac{ L(\theta|y)p(\theta) }{p(y)}\\
+\\
+p(\theta|y) \propto &   \text{ }L(\theta|y)p(\theta)
+\end{align*}
+$$
+
+- The normalization constant ($p(y)$ above) ensures the posterior distribution is a valid distribution
+  - The posterior density function can be written without this constant
+- The resulting prediction is not a point estimate, but a distribution [@Bayes1991]
+
+## The Bayesian Approach
+
+- The Bayesian Linear Regression Model
+  - changes based on:
+      - distribution chosen for regression
+      - distribution and hyperparameters chosen for priors
+  - Our test case models a continuous outcome by a continuous predictor, so we use a Normal model with conjugate normal priors
+
+
+## Role of prior knowledge in shaping predictions
+
+- Priors can be subjective or objective
+    - objective is preferred
+- Noninformative priors can be used when there is not adequate prior
+    knowledge
+- Discounted priors are the result of adjusting a known prior to
+    better reflect the current data[@lesaffre]
+
+![Figure from [@lesaffre]](images/priorposterior.png)
+
+## Understanding the Bayesian Framework
+
+::: {layout-ncol=2}
+
+- Bayes’ theorem is used to update prior beliefs about model
+    parameters with new data
+    - This results in a posterior distribution [@Bayes1991]
+- Posterior distribution vs. point estimates
+    - measures the uncertainty in predictions
+    - richer picture for predictions
+    - better uncertainty quantification [@Koehrsen2018]
+
+
+![Figure from [@lesaffre]](images/priorposterior.png){fig-align="right" width="50%"}
+
+:::
+
+## Interpreting the Posterior
+
+- The marginal posterior density function (output) may not be available
+- Makov Chain Monte Carlo is commonly used
+  - Markov chain sequence establishes a sample space from the posterior
+  - Integration of samples generated through Monte Carlo techniques from the sample space
+- Some popular MCMC algorithms:
+  - Gibbs sampler
+  - Metropolis-Hastings (MH) [@lesaffre]
+
+## The Model
+
+$$
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i
+\end{align*}
+$$
+Where:
+- $Y_i$ is the arrival delay for the i-th flight
+- $X_i$ is the departure delay for the i-th flight
+- $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
+- $\sigma^2$ is the variance of the errors
+- $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
+
+## Prior Selection
+
+- Regression parameters
+  - Intercept: $\beta_0 \sim N(m_0, s^2_0)$ 
+  - Slope: $\beta_1 \sim N(m_1, s^2_1)$ 
+  - Error: $\sigma \sim \text{Exp}(l)$
+
+## The Bayesian Linear Regression Model
+
+  The model can be written as
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(m_0, s_0^2)\\
+\beta_1 &\sim N(m_1, s_1^2)\\
+\sigma &\sim \text{Exp}(l)
+\end{align*}
+$$
+
+## Tuning Hyperparameters
+
+$$
+\begin{align*}
+\beta_{0c} &\sim N(2, 36^2)\\
+\beta_{1} &\sim N(0.02, 0.01^2)\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+## The Updated Model
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(2, 36^2)\\
+\beta_1 &\sim N(0.02, 0.01^2)\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+## Statistical Programming
+
+- Data was analyzed in R [@R] , imported via CSV.
+  - Data sourced from the [Bureau of Transportation Statistics](https://www.kaggle.com/datasets/patrickzel/flight-delay-and-cancellation-dataset-2019-2023?resource=download) via Kaggle @dataset.
+- Libraries
+  - rstanarm @rstanarm
+    - stan_glm() function - simulation of model
+    - posterior_predict() function - simulation of posterior
+  - bayesrules @bayesrules
+    - prediction_summary() function - evaluation of posterior
+  
 ## Data Exploration and Visualization
 
 -   Describe your data sources and collection process.
@@ -115,3 +309,6 @@ ggplot1 = murders %>% ggplot(mapping = aes(x=population/10^6, y=total))
 -   Discuss the implications of your results.
 
 ## References
+
+::: {#refs}
+:::
