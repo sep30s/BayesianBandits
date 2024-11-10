@@ -1,4 +1,4 @@
----
+-- ---
 title: "Bayesian Linear Regression"
 subtitle: "Analysis of Flight Delay Data"
 author: "Sara Parrish (Advisor: Dr. Seals)"
@@ -21,8 +21,7 @@ editor:
 theme: solar
 ---
 
-Slides: [slides.html](slides.html){target="_blank"} ( Go to `slides.qmd`
-to edit)
+Slides: [slides.html](slides.html){target="_blank"}
 
 ## 1 Introduction
 
@@ -46,14 +45,12 @@ Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and th
 
 ## 2 Methods
 
-### 2.1 Mathematical Foundations
-
-#### 2.1.1 The Frequentist Framework
+### 2.1 The Frequentist Framework
 
   Linear regression can be achieved using a variety of methods, two of interest are frequentist and Bayesian. The frequentist approach to linear regression is the more familiar approach. It estimates the effects of independent variables(predictors) on dependent variables(the outcome). The regression coefficient is a point estimate, assumed to be a fixed value. Following is the frequentist linear model
 
 $$
-Y = \beta_0 + \beta_1X + \varepsilon \tag{1}
+Y = \beta_0 + \beta_1X + \varepsilon
 $$
 
   - $Y$ : Dependent variable, the outcome
@@ -63,7 +60,7 @@ $$
   - $\varepsilon$ : Random error [@xiaogang]
 - $\hat\beta$ provides a point estimate
 
-#### 2.1.2 The Bayesian Framework
+### 2.2 The Bayesian Framework
 
   The Bayesian approach estimates the relationship between predictors and an outcome in a similar way, however it's regression coefficient is not a point estimate, but a distribution. That is, the regression coefficient is not assumed to be a fixed value. The Bayesian approach also goes a step further then frequentist regression in it's inclusion of prior data. The Bayesian approach is so named because it is based on Bayes' rule which is written as follows:
 
@@ -80,7 +77,7 @@ $$
   In terms of calculating probability, Bayes' rule can be written as
 
 $$
-p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)} \tag{2}
+p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)}
 $$
 
   - Bayes' rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
@@ -101,10 +98,10 @@ $$
   The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data $p(\theta|y)$, is proportional to the likelihood of $\theta$ given $y$, $L(\theta|y)$, and the prior density of $\theta$, $p(\theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\theta$[@xiaogang]. 
 
 $$
-f(\theta|D) \propto L(\theta|D)f(\theta) \tag{1}
+f(\theta|D) \propto L(\theta|D)f(\theta)
 $$
 
-#### 2.1.3 The Model
+### 2.3 The Model
 
   To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include a the mean specific to our predictor, departure time, $\mu_i$. The model is:
   
@@ -120,10 +117,11 @@ Where:
 - $\sigma^2$ is the variance of the errors
 -  $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
 
-#### 2.1.4 Prior Selection
+### 2.4 Prior Selection
   
-  Since we are only using two data variables, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
+  Since we are only using two continuous variables for the first model, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
   As intercept and slope regression parameters can take any real value, we will use normal prior models [@bayesrulesbook]. 
+  
 $$
 \begin{align*}
 \beta_0 &\sim N(m_0, s^2_0)\\
@@ -146,7 +144,8 @@ $$
 E(\sigma) = \frac{1}{l} && \text{and} && SD(\sigma) = \frac{1}{l}
 \end{align*}
 $$
-#### 2.1.5 Tuning of Priors 
+
+### 2.5 Tuning of Priors 
 
 ::: {.callout-tip}
 
@@ -154,9 +153,9 @@ Flat vs default vs tuned priors
 
 :::
 
-#### 2.1.6 The Bayesian Linear Regression Model
+### 2.6 The Bayesian Linear Regression Model
 
-  The model can be written as
+  The Normal-normal regression model with a continuous predictor can be written as
 
 $$  
 \begin{align*}
@@ -167,7 +166,7 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 \end{align*}
 $$
   
-### 2.2 Assumptions ***
+### 2.7 Assumptions
 
 ::: {.callout-tip}
 
@@ -184,7 +183,7 @@ The appropriateness of the Bayesian Normal regression model (9.3) depends upon t
   
 :::
 
-### 2.3 Statistical Programming
+### 2.8 Statistical Programming
 
   Data was collected by the Bureau of Transportation Statistics (BTS) and accessed through a dataset compiled by Patrick Zelazko [@dataset]. The data was imported into R [@R] via CSV. 
   This is a large time-series dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
@@ -197,8 +196,6 @@ The appropriateness of the Bayesian Normal regression model (9.3) depends upon t
 *Possibly k-fold cross validation, model averaging*
 
 :::
-
-
 
 ```{r readin_sample}
 #| echo: false
@@ -215,7 +212,7 @@ library(tidyr)
 library(BAS)
 library(gt)
 
-Delays <- read.csv("Kaggle_flights.csv")
+Delays <- read.csv("kaggle_flights.csv")
 
 set.seed(123)
 
@@ -260,15 +257,11 @@ Delays_sample <- Delays_sample %>%
 
 ```
 
-## 3 Analysis and Results
+## 3 Analysis
 
 ### 3.1 The Dataset
 
-  This is a large dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. 
-
-### 3.2 Exploratory Data Analysis
-
-#### Following are the definitions of the given variables in this dataset. 
+  This is a large dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. Following are the definitions of the given variables in this dataset. 
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;margin:0px auto;}
@@ -422,6 +415,7 @@ Delays_sample <- Delays_sample %>%
   </tr>
 </tbody></table></div>
 
+  Table 1 shows the flights distinguished by a new variable, Flight Period, where each time period is comprised of an 8-hour segment (i.e. Morning has flights with departure times from 4am to noon followed by afternoon and evening). The Afternoon period is comprised of the most flights (47.4%), followed closely by the Morning period (41.5%), and the Evening period trails the two (11%). The table also gives the means of the departure and arrival times, giving an indication of the density of the flights in the given period. The average departure and arrival delays show much better numbers for the Morning period (5.23, -0.77 minutes) with increasing delays for the Afternoon and Evening periods. The delay counts by type show That the Afternoon and Morning periods account for significantly more of the total delays, though that is without taking into account the smaller contribution of flights by the Evening period on the whole. 
 
 ```{r table1}
 #| echo: false
@@ -500,8 +494,9 @@ Table1.2 <- Table1.2 %>%
   )
 ```
 
-
 ```{r table1.2total}
+#| echo: false
+
 Table1.2_total <- Delays1 %>%
   summarise(
     .by = NULL,
@@ -609,7 +604,7 @@ Table1.3_pivoted <- Table1.3_combined %>%
 Table1.3_pivoted %>%
   gt() %>%
   tab_header(
-    title = "Flight Delay Summary by Flight Period"
+    title = "Table 1: Flight Delay Summary by Flight Period"
   ) %>%
   cols_label(
     Statistic = "Flight Period",
@@ -659,7 +654,7 @@ Table1.3_pivoted %>%
     )
   ) %>%
   tab_source_note(
-    source_note = "Table 1: Summary includes morning, afternoon, and evening flight periods."
+    source_note = "Summary includes morning, afternoon, and evening flight periods."
   ) %>%
   tab_style(
     style = list(
@@ -671,18 +666,14 @@ Table1.3_pivoted %>%
 
 ```
 
+### 3.2 Exploratory Data Analysis
 
-
-  The three flight periods are each comprised of 8-hour segments (i.e. Morning has flights with departure times from 4am to noon followed by afternoon and evening). The Afternoon period is comprised of the most flights (47.4%), followed closely by the Morning period (41.5%), and the Evening period trails the two (11%). The table also gives the means of the departure and arrival times, giving an indication of the density of the flights in the given period. The average departure and arrival delays show much better numbers for the Morning period (5.23, -0.77 minutes) with increasing delays for the Afternoon and Evening periods. The delay counts by type show That the Afternoon and Morning periods account for significantly more of the total delays, though that is without taking into account the smaller contribution of flights by the Evening period on the whole. 
-
-
-#### Some Visualizations of the Dataset
-
+   The histograms in Figure 1 illustrate the frequencies of air time, arrival delays, and departure delays. The y-axis was transformed to make the visualizations more legible. All show a skew to the right. This makes sense for air times with a higher proportion of regional flights and the exclusion of international departures and arrivals. Shorter delays (for both arrivals and departures) being more frequent than longer delays is also to be expected. 
+   
 ```{r}
 #| echo: false
 
 library(ggplot2)
-
 
 Delays %>%
   pivot_longer(cols = c(DEP_DELAY, AIR_TIME, ARR_DELAY), 
@@ -691,18 +682,23 @@ Delays %>%
   ggplot(aes(x = Value)) +
   geom_histogram(bins = 25, fill = "blue", alpha = 0.5) +
   facet_wrap(~ Variable, scales = "free") +
-  labs(title = "Histograms of Air Time and Flight Delays",
-       x = "Time in Minutes",
-       y = "Square Root of Frequency") +
+  labs(x = "Time in Minutes",
+       y = "Square Root of Frequency",
+       caption = "Histograms of Air Time and Flight Delays",
+       tag = "Figure 1") +
   xlim(NA, 650)+
-  scale_y_sqrt()
+  scale_y_sqrt() +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 
 ```
 
-   These histograms illustrate the frequencies of air time, arrival delays, and departure delays. The y-axis was transformed to make the visualizations more legible. All show a skew to the right. This makes sense for air times with a higher proportion of regional flights and the exclusion of international departures and arrivals. Shorter delays (for both arrivals and departures) being more frequent than longer delays is also to be expected. 
+  Figure 2 shows the average arrival delay for the largest five airlines (filtered for carriers with over 200,000 flights in the given period). The standard deviations for these airlines are fairly small, indicating a low variability in the arrival delays for these airlines. 
 
 ```{r}
 #| echo: false
+
 carrier_summary_ci <- Delays1 %>%
   group_by(airline_code) %>%
   summarise(
@@ -724,16 +720,18 @@ ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
   geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) + 
   geom_hline(yintercept = total_mean_delay_filtered, linetype = "dashed", color = "red") + 
   labs(
-    title = "Average Arrival Delays by Carrier",
+    caption = "Average arrival delays by carrier.",
     x = "Carrier",
-    y = "Average Arrival Delay (minutes)"
-  ) +
+    y = "Delay (minutes)",
+    tag = "Figure 2") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 ```
 
-  This visualization shows the average arrival delay for the largest five airlines (filtered for carriers with over 200,000 flights in the given period). The standard deviations for these airlines are fairly small, indicating a low variability in the arrival delays for these airlines. 
-
+  Figure 3 displays the average arrival delay for flights at their origin airport using "plotly" [@plotly] and "ggmap" packages[@ggmap]. This comes from the idea that a flight's arrival delay is collinear with it's departure delay which may be influenced by it's origin airport. Airport location information sourced from Random Fractals Inc[@RandomFractals].
 
 ```{r}
 #| echo: false
@@ -762,7 +760,7 @@ lat_limits <- c(10, 80)
 
 library(plotly)
 
-plot_ly(data = delays_with_loc, 
+fig <- plot_ly(data = delays_with_loc, 
         lat = ~latitude, 
         lon = ~longitude, 
         type = 'scattergeo', 
@@ -773,19 +771,41 @@ plot_ly(data = delays_with_loc,
                       "Longitude: ", round(longitude, 2), "<br>",
                       "Latitude: ", round(latitude, 2)),
         hoverinfo = 'text') %>%
-  layout(title = 'Average Arrival Delays by Origin Airport',
-         geo = list(scope = 'usa',
+  layout(geo = list(scope = 'usa',
                     showland = TRUE,
                     landcolor = 'lightgray',
                     subunitcolor = 'white',
                     countrycolor = 'white'))
 
+fig <- fig %>%
+  layout(
+    annotations = list(
+      list(
+        x = 0.05,  
+        y = 1.05,  
+        xref = "paper",
+        yref = "paper",
+        text = "Figure 3", 
+        showarrow = FALSE,
+        font = list(size = 14)
+      ),
+      list(
+        x = 0.5,  
+        y = -0.15,  
+        xref = "paper",
+        yref = "paper",
+        text = "Average arrival delays by origin airport.",
+        showarrow = FALSE,
+        font = list(size = 12)
+      )
+    )
+  )
+
+fig
 
 ```
 
-  This heat map shows the average arrival delay for flights at their origin airport. This comes from the idea that if a flight is delayed at departure, then it may also be delayed on arrival at it's destination. 
-
-- Airport location information downloaded from <https://github.com/RandomFractals/geo-data-viewer/blob/master/data/csv/usa-airports.csv>
+Figures 4 and 5 show the correlation of the continuous variables and the correlation of the categorical and continuous variables respectively using the "corrplot" package[@corrplot]. Figure 4 doesn't provide any particularly valuable insight. Arrival delay has an expected positive correlation coefficient with departure delay. There appears to be a slight positive correlation between taxi times and arrival delay and elapsed time which is also expected. 
 
 ```{r Delays_sample}
 #| echo: false
@@ -827,7 +847,6 @@ Delays_sample <- Delays_sample %>%
       CRS_DEP_TIME >= 2000 | CRS_DEP_TIME < 400 ~ "Evening" )) %>%
   filter(DIVERTED == 0, CANCELLED == 0 )
 
-
 set.seed(123)
 sample_size <- 10000
 Delays_sample1 <- Delays %>% 
@@ -867,7 +886,12 @@ continuous_vars <- Delays_sample1 %>%
     CRS_ELAPSED_TIME, 
     ELAPSED_TIME,
     AIR_TIME,
-    DISTANCE
+    DISTANCE,
+    DELAY_DUE_CARRIER,
+    DELAY_DUE_WEATHER,
+    DELAY_DUE_NAS,
+    DELAY_DUE_SECURITY,
+    DELAY_DUE_LATE_AIRCRAFT
   )
 
 categorical_vars <- Delays_sample1 %>%
@@ -875,11 +899,6 @@ categorical_vars <- Delays_sample1 %>%
     AIRLINE_CODE,
     ORIGIN,
     DEST,
-    DELAY_DUE_CARRIER,
-    DELAY_DUE_WEATHER,
-    DELAY_DUE_NAS,
-    DELAY_DUE_SECURITY,
-    DELAY_DUE_LATE_AIRCRAFT,
     CRS_DEP_HOUR, 
     DEP_HOUR,
     WHEELS_OFF_HOUR,
@@ -889,15 +908,16 @@ categorical_vars <- Delays_sample1 %>%
     FLIGHT_PERIOD
   )
 
-
 cor_matrix <- cor(continuous_vars, use = "pairwise.complete.obs")
 
+par(mar = c(4, 4, 4, 2) + 0.1, oma = c(2, 0, 2, 0))
 corrplot(cor_matrix, method = "color", type = "lower", tl.col = "black", tl.srt = 45)
-mtext("Correlation Matrix for Continuous Variables", side = 1, line = 4, cex = 1)
+mtext("Correlation matrix for continuous variables.", side = 1, line = 4, cex = 1)
+mtext("Figure 4", side = 3, line = -1, adj = 0, cex = 1.2)
 
 ```
 
-
+Figure 5 shows the correlation of the continuous and categorical variables using the p-values from the t-tests and ANOVAs of each relation. Relationships with at least one significant p-value are shown in dark blue. This heatmap is of limited value as there appears to be many significant correlations, but without further inspection it is not known which value(s) of the categorical variables have a significant p-value. 
 
 ```{r}
 #| echo: false
@@ -908,7 +928,6 @@ library(ggplot2)
 
 p_value_results <- matrix(NA, nrow = ncol(categorical_vars), ncol = ncol(continuous_vars),
                            dimnames = list(colnames(categorical_vars), colnames(continuous_vars)))
-
 
 for(cat_var in colnames(categorical_vars)) {
   for(cont_var in colnames(continuous_vars)) {
@@ -926,7 +945,6 @@ for(cat_var in colnames(categorical_vars)) {
 
 ```
 
-
 ```{r}
 
 p_value_long <- melt(p_value_results, na.rm = TRUE)  # Remove NAs
@@ -934,18 +952,22 @@ p_value_long <- melt(p_value_results, na.rm = TRUE)  # Remove NAs
 ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
   geom_tile(color = "white") +
   scale_fill_gradient(low = "blue", high = "red", na.value = "gray90", name = "p-value") +
-  labs(x = "Categorical Variable", y = "Continuous Variable", title = "Heatmap of p-values for Categorical vs Continuous Variables") +
+  labs(x = "Categorical Variable",
+       y = "Continuous Variable",
+       caption = "Heatmap of p-values for categorical vs continuous variables.", 
+       tag = "Figure 5") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 
 ```
 
-## 4 Modeling
+### 3.3 Data Preprocessing
 
-### 4.1 Data Preprocessing
-
-  - Removal of Cancelled and Diverted Flights
-  - Departure Time HHMM -> Minutes past Midnight (function() from)
+  To prepare the data for analysis, a few changes were made. Diverted and cancelled flights were removed as they both have arrival delays set to "NA" due to them not arriving as scheduled. Including cancelled and diverted flights would introduce complexity and could lead to bias in the model. The goal of the model is to understand typical arrival delays, so the inclusion of cancelled and diverted flights is unnecessary. The dataset is also quite large with three million observations, so the dataset was sampled to account for computational efficiency. 
+  For the first model, the departure time variable was converted from an "HHMM" format to a "minutes past midnight" format for use by the stan_glm() function. 
 
 ::: {.panel-tabset}
 
@@ -954,10 +976,14 @@ ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
 
 ggplot(Delays_sample, aes(x = DEP_TIME)) +
   geom_histogram(binwidth = 10, fill = "blue", color = "black") +
-  labs(caption="Distribution of Departure Time",
+  labs(caption="Distribution of departure time.",
        x = "Departure Time (time HHMM)",
-       y = "Frequency") +
-  xlim(NA, 2400)
+       y = "Frequency",
+       tag = "Figure 6") +
+  xlim(NA, 2400) +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 
 convert_to_minutes <- function(time) {
   hour <- time %/% 100
@@ -975,17 +1001,23 @@ Delays_sample <- Delays_sample %>%
 
 ggplot(Delays_sample, aes(x = DEP_TIME_MINS)) +
   geom_histogram(binwidth = 10, fill = "blue", color = "black") +
-  labs(caption = "Distribution of Departure Time",
+  labs(caption = "Distribution of adjusted departure time.",
         x = "Departure Time (mins past midnight)",
-        y = "Frequency") +
-  xlim(NA, 1440)
+        y = "Frequency",
+       tag = "Figure 7") +
+  xlim(NA, 1440) +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 
 ```
 :::
 
-  - FL_DATE -> Day of Week with lubridate [@lubridate]
-
+  For the second model, "Day of the Week" was the chosen predictor variable which was created using the "lubridate" library[@lubridate].
+  
 ::: {.panel-tabset}
+
+
 
 ## Format: Date YYYY-MM-DD
 ```{r wday_predictor}
@@ -996,11 +1028,14 @@ Delays_sample1 <- Delays_sample %>%
 ggplot(Delays_sample1, aes(x = FL_DATE)) +
   geom_histogram(binwidth = 30, fill = "skyblue", color = "black") +
   labs(
-    caption = "Flight Counts by Date",
+    caption = "Flight counts by date.",
     x = "Flight Date",
-    y = "Count"
-  ) +
-  theme_minimal()
+    y = "Count",
+    tag = "Figure 8") +
+  theme_minimal() +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 
 library(lubridate)
 
@@ -1011,8 +1046,8 @@ Delays_sample <- Delays_sample %>%
 mean_delay_by_day <- Delays_sample %>%
   group_by(DAY_OF_WEEK) %>%
   summarise(mean_arr_delay = mean(ARR_DELAY),
-            sd_arr_delay = sd(ARR_DELAY)
-  )
+            sd_arr_delay = sd(ARR_DELAY))
+
 ```
 
 ## Format: Day of the Week
@@ -1023,17 +1058,22 @@ ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
   geom_point(data = mean_delay_by_day, aes(x = DAY_OF_WEEK, y = mean_arr_delay), 
              color = "red4", size =3, shape = 8) +
   labs(
-    caption = "Arrival Delay by Day of the Week",
+    caption = "Arrival delay by the day of the week.",
     x = "Day of the Week",
-    y = "Arrival Delay (minutes)"
-  ) +
+    y = "Arrival Delay (minutes)",
+    tag = "Figure 9"  ) +
   theme_minimal()+
-  ylim(-45,45)
+  ylim(-45,45) +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft")
 
 ```
 :::
 
-### 4.2 The Normal Data Model: Departure Time Predictor
+### 3.4 Modeling 
+
+#### The Normal Data Model: Departure Time Predictor
 
   For the continuous predictor, Departure Time, three normal models with different priors are sampled:
     - Flat Priors
@@ -1049,7 +1089,7 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 \end{align*}
 $$
 
-#### 4.2.1 Flat Continuous Model
+##### Flat Continuous Model
 
 ::: {.panel-tabset}
 
@@ -1077,21 +1117,14 @@ set.seed(123)
 shortcut_prediction1 <- 
   posterior_predict(flat_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-# 95% posterior credible interval
-posterior_interval(shortcut_prediction1, prob = 0.95)
-
 mcmc_dens(shortcut_prediction1) + 
   xlab("Predicted Arrival Delays for a Departure Time of Noon, Flat Priors")
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- flat_model_dt
-
 mcmc_trace(model, size = 0.1)
 ```
 
@@ -1106,8 +1139,7 @@ mcmc_acf(model)
 ```
 :::
 
-
-#### 4.2.2 Default Continuous Model
+##### Default Continuous Model
 
 ::: {.panel-tabset}
 
@@ -1131,21 +1163,14 @@ set.seed(123)
 shortcut_prediction2 <- 
   posterior_predict(default_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-# 95% posterior credible interval
-posterior_interval(shortcut_prediction2, prob = 0.95)
-
 mcmc_dens(shortcut_prediction2) + 
   xlab("Predicted Arrival Delays for a Departure Time of Noon, Default Priors")
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- default_model_dt
-
 mcmc_trace(model, size = 0.1)
 ```
 
@@ -1160,13 +1185,12 @@ mcmc_acf(model)
 ```
 :::
 
-
-
-#### 4.2.3 Tuned Continuous Model
+##### Tuned Continuous Model
 
 ###### $\beta_0$ informs the model intercept  
 
 ```{r tuning_priors_rstanarm_B_0}
+#| output: false
 
 summary(Delays_sample$DEP_TIME_MINS) #mean departure time is 809.3 minutes (~ 1:30pm)
 
@@ -1176,17 +1200,17 @@ mean(Delays_sample_filtered_B0$ARR_DELAY) #m_0c = 2
 sd(Delays_sample_filtered_B0$ARR_DELAY)  #s_0c = 36
 
 ```
+
   $\beta_{0c}$ reflects the typical arrival delay at a typical departure time. With a mean departure time at  $\sim$ 1:30pm, the average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 36 minutes. 
 
 $$
 \beta_{0c} \sim N(2, 36^2)
 $$
 
-
 ###### $\beta_1$ informs the model slope
   
-
 ```{r tuning_priors_rstanarm_B_1}
+#| output: false
 
 lm_model <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
 
@@ -1199,7 +1223,6 @@ summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
 
   The slope of the linear model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
 
-
 $$
 \beta_{1} \sim N(0.02, 0.01^2)
 $$
@@ -1207,6 +1230,7 @@ $$
 ###### $\sigma$ informs the regression standard deviation
 
 ```{r tuning_priors_rstanarm_s}
+#| output: false
 
 summary(lm_model)$sigma
 
@@ -1222,7 +1246,6 @@ l  &= \frac{1}{50} =  0.02\\\\
 \end{align*}
 $$
 
-
 $$  
 \begin{align*}
 Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
@@ -1231,8 +1254,6 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 \sigma &\sim \text{Exp}(0.02)
 \end{align*}
 $$
-
-
 
 ::: {.panel-tabset}
 
@@ -1251,16 +1272,6 @@ tuned_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
                         refresh = 0
                         )
 
-# Effective sample size ratio and Rhat
-neff_ratio(tuned_model_dt)
-rhat(tuned_model_dt)
-
-# Trace plots of parallel chains
-mcmc_trace(tuned_model_dt, size = 0.1)
-
-# Density plots of parallel chains
-mcmc_dens_overlay(tuned_model_dt)
-
 library(broom.mixed)
 
 tmdt <- tidy(tuned_model_dt, effects = c("fixed", "aux"),
@@ -1269,27 +1280,19 @@ tmdt <- tidy(tuned_model_dt, effects = c("fixed", "aux"),
 # Store the 4 chains for each parameter in 1 data frame
 model_tuned_df <- as.data.frame(tuned_model_dt)
 
-
 ##TUNED
 # Simulate a set of predictions
 set.seed(123)
 shortcut_prediction <- 
   posterior_predict(tuned_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-# Construct a 95% posterior credible interval
-posterior_interval(shortcut_prediction, prob = 0.95)
-
 mcmc_dens(shortcut_prediction) + 
   xlab("Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- tuned_model_dt
-
 mcmc_trace(model, size = 0.1)
 ```
 
@@ -1304,10 +1307,13 @@ mcmc_acf(model)
 ```
 :::
 
+#### The Normal Data Model: Week Day Predictor
 
-### 4.3 The Normal Data Model: Week Day Predictor
-
- For arrival delays by the  day of the week, the mean arrival delays are between 1 and 7 minutes while the median arrival delays are all in the negative, indicating a skew towards larger delays. 
+  The categorical predictor, Day of the Week, is given a similar treatment to the continuous predictor with the sampling of three normal models with different priors:
+    - Flat Priors
+    - Rstanarm's Default Priors
+    - Tuned Priors
+  Tuesday is set to be the reference as it has the lowest mean delay. 
 
 $$  
 \begin{align*}
@@ -1318,7 +1324,9 @@ Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, 
 \end{align*}
 $$
 
-#### 4.3.1 Flat Categorical Model
+The general formula is adjusted for the inclusion of regression coefficients for each day of the week $\beta_1, \beta_2, ..., \beta_6$, where the intercept coefficient $\beta_0$ reflects Tuesday's arrival delay.  
+
+##### Flat Categorical Model
 
 ::: {.panel-tabset}
 
@@ -1386,13 +1394,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
   theme_minimal()
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- flat_model_dow
-
 mcmc_trace(model, size = 0.1)
 ```
 
@@ -1407,7 +1411,7 @@ mcmc_acf(model)
 ```
 :::
 
-#### 4.3.2 Default Categorical Model
+##### Default Categorical Model
 
 ::: {.panel-tabset}
 
@@ -1421,7 +1425,6 @@ default_model_dow <- stan_glm(
   chains = 4, iter = 2000, seed = 123,
   refresh = 0
 )
-
 
 model <- default_model_dow
 
@@ -1463,13 +1466,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- default_model_dow
-
 mcmc_trace(model, size = 0.1)
 ```
 
@@ -1484,13 +1483,14 @@ mcmc_acf(model)
 ```
 :::
 
+##### Tuned Categorical Model
 
-#### 4.3.3 Tuned Categorical Model
+ For arrival delays by the  day of the week, the Figure 9 shows mean arrival delays are between 1 and 7 minutes while the median arrival delays are all in the negative, indicating a skew towards larger delays. 
 
 ###### $\beta_0$ informs the model intercept  
 
 ```{r tuning_priors_cat_B0}
-#| echo: false
+#| output: false
 
 mean_delay_by_day
 
@@ -1501,7 +1501,6 @@ mean_delay_by_day
 $$
 \beta_{0} \sim N(2, 46^2)
 $$
-
 
 ###### $\beta_j$ informs the model slopes
 
@@ -1514,6 +1513,7 @@ $$
 ###### $\sigma$ informs the regression standard deviation
 
 ```{r tuning_priors_cat_s}
+#| output: false
 
 lm_model <- lm(ARR_DELAY ~ DAY_OF_WEEK, data = Delays_sample)
 
@@ -1558,7 +1558,6 @@ tuned_model_dow <- stan_glm(
   refresh = 0
 )
 
-
 model <- tuned_model_dow
 
 tmdow <- tidy(model, effects = c("fixed", "aux"),
@@ -1599,13 +1598,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- tuned_model_dow
-
 mcmc_trace(model, size = 0.1)
 ```
 
@@ -1619,7 +1614,6 @@ mcmc_dens_overlay(model)
 mcmc_acf(model)
 ```
 :::
-
 
 ```{r tidytibble}
 #| include: false
@@ -1645,24 +1639,28 @@ all_models
   font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
 .tg .tg-6txe{background-color:#002B36;border-color:#ffffff;color:#FFF;text-align:center;vertical-align:top}
 .tg .tg-pruk{background-color:#002B36;border-color:#ffffff;text-align:left;vertical-align:top}
+.tg .tg-k9oj{background-color:#002b36;color:#ffffff;text-align:left;vertical-align:top}
 .tg .tg-n3e9{background-color:#002B36;border-color:#002b36;color:#FFF;text-align:center;vertical-align:top}
 </style>
-<table class="tg" style="undefined;table-layout: fixed; width: 645px"><colgroup>
-<col style="width: 151px">
-<col style="width: 151px">
-<col style="width: 101px">
-<col style="width: 101px">
-<col style="width: 141px">
+<table class="tg" style="undefined;table-layout: fixed; width: 683px"><colgroup>
+<col style="width: 160px">
+<col style="width: 160px">
+<col style="width: 107px">
+<col style="width: 107px">
+<col style="width: 149px">
 </colgroup>
 <thead>
   <tr>
-    <th class="tg-pruk"></th>
-    <th class="tg-pruk"></th>
-    <th class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Mean</span></th>
-    <th class="tg-6txe"><span style="color:#FFF;background-color:#002B36">SD</span></th>
-    <th class="tg-6txe"><span style="color:#FFF;background-color:#002B36">95% CI</span></th>
+    <th class="tg-k9oj" colspan="5"> <span style="font-weight:bold">Table 2.</span><br>                                 Estimations of the Posterior Distributions' Regression Coefficients</th>
   </tr></thead>
 <tbody>
+  <tr>
+    <td class="tg-pruk"></td>
+    <td class="tg-pruk"></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Mean</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">SD</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">95% CI</span></td>
+  </tr>
   <tr>
     <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Continuous</span></td>
     <td class="tg-pruk"></td>
@@ -1672,7 +1670,7 @@ all_models
   </tr>
   <tr>
     <td class="tg-6txe" rowspan="3"><br><br>Flat Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-10.92</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-11.85; 0.02)</span></td>
@@ -1691,7 +1689,7 @@ all_models
   </tr>
   <tr>
     <td class="tg-6txe" rowspan="3"><br><br>Default Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀&nbsp;&nbsp;Intercept</span></td>
+    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀&nbsp;&nbsp;intercept</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-10.94</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-11.86; 0.02)</span></td>
@@ -1710,7 +1708,7 @@ all_models
   </tr>
   <tr>
     <td class="tg-6txe" rowspan="3"><br><br>Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-11.66</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.17</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-12.02; 0.02)</span></td>
@@ -1736,7 +1734,7 @@ all_models
   </tr>
   <tr>
     <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Flat Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.57</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.69; 3.72)</span></td>
@@ -1785,7 +1783,7 @@ all_models
   </tr>
   <tr>
     <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Default Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.40</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.73; 3.21)</span></td>
@@ -1834,7 +1832,7 @@ all_models
   </tr>
   <tr>
     <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
     <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.66; 3.76)</span></td>
@@ -1883,15 +1881,214 @@ all_models
   </tr>
 </tbody></table>
 
+### 4 Discussion
+
+#### 4.1 Comparison of the Models
+
+ Cross validation was done to provide an estimation of model performance. The provided posterior predictive summary is comprised of the median absolute error (MAE) which measures the typical difference between observed and posterior predictive means, the scaled MAE (scaled_MAE) which scales MAE by standard deviations, and the proportion of observations that fall within the $50\%$ and $95\%$ posterior prediction intervals. The cross validation assessment (prediction_summary_cv()) was chosen over the posterior prediction summary assessment (prediction_summary()), both from the "bayesrules" package[@bayesrules], as the cross validation procedure provides a more conservative estimate of model performance. Cross validation can also be more computationally efficient with a lower number of folds and the use of a smaller dataset. 
+ 
+```{r model1comparison}
+#| output: false
+
+library(bayesrules)
+
+# #Posterior Predictive Summary
+# 
+# set.seed(123)
+# ps_fmdt <- prediction_summary(flat_model_dt, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_dmdt <- prediction_summary(default_model_dt, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_tmdt <- prediction_summary(tuned_model_dt, data = Delays_sample)
+# 
+# ps_fmdt <- ps_fmdt %>% 
+#   mutate(Model = "fmdt")
+# ps_dmdt <- ps_dmdt %>% 
+#   mutate(Model = "dmdt")
+# ps_tmdt <- ps_tmdt %>% 
+#   mutate(Model = "tmdt")
+# 
+# ps_results <- bind_rows(ps_fmdt, ps_dmdt, ps_tmdt)
+# 
+# print(ps_results)
+
+#K-fold Cross Validation with k=5, data n=1000
+
+set.seed(123)
+sample_size <- 1000
+Delays_sample2 <- Delays_sample %>% 
+  sample_n(sample_size)
+
+set.seed(123)
+cv_fmdt <- prediction_summary_cv(
+  model = flat_model_dt, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_dmdt <- prediction_summary_cv(
+  model = default_model_dt, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_tmdt <- prediction_summary_cv(
+  model = tuned_model_dt, data = Delays_sample2, k = 5)
+
+cv_fmdt <- cv_fmdt$cv %>% 
+  mutate(Model = "fmdt")
+cv_dmdt <- cv_dmdt$cv %>% 
+  mutate(Model = "dmdt")
+cv_tmdt <- cv_tmdt$cv %>% 
+  mutate(Model = "tmdt")
+
+cv_results <- bind_rows(cv_fmdt, cv_dmdt, cv_tmdt)
+
+print(cv_results)
+
+```
+
+```{r model2comparison}
+#| output: false
+
+#Posterior Predictive Summary
+# 
+# set.seed(123)
+# ps_fmdow <- prediction_summary(flat_model_dow, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_dmdow <- prediction_summary(default_model_dow, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_tmdow <- prediction_summary(tuned_model_dow, data = Delays_sample)
+# 
+# ps_fmdow <- ps_fmdow %>% 
+#   mutate(Model = "fmdow")
+# ps_dmdow <- ps_dmdow %>% 
+#   mutate(Model = "dmdow")
+# ps_tmdow <- ps_tmdow %>% 
+#   mutate(Model = "tmdow")
+# 
+# ps_results2 <- bind_rows(ps_fmdow, ps_dmdow, ps_tmdow)
+# 
+# print(ps_results2)
+
+#K-fold Cross Validation with k=5, data n=1000
+
+set.seed(123)
+sample_size <- 1000
+Delays_sample2 <- Delays_sample %>% 
+  sample_n(sample_size)
+
+set.seed(123)
+cv_fmdow <- prediction_summary_cv(
+  model = flat_model_dow, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_dmdow <- prediction_summary_cv(
+  model = default_model_dow, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_tmdow <- prediction_summary_cv(
+  model = tuned_model_dow, data = Delays_sample2, k = 5)
+
+cv_fmdow <- cv_fmdow$cv %>% 
+  mutate(Model = "fmdow")
+cv_dmdow <- cv_dmdow$cv %>% 
+  mutate(Model = "dmdow")
+cv_tmdow <- cv_tmdow$cv %>% 
+  mutate(Model = "tmdow")
+
+cv_results2 <- bind_rows(cv_fmdow, cv_dmdow, cv_tmdow)
+
+print(cv_results2)
+```
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-6txe{background-color:#002B36;border-color:#ffffff;color:#FFF;text-align:center;vertical-align:top}
+.tg .tg-pruk{background-color:#002B36;border-color:#ffffff;text-align:left;vertical-align:top}
+.tg .tg-ciwg{background-color:#002B36;border-color:#ffffff;color:#FFF;text-align:left;vertical-align:top}
+.tg .tg-yi02{background-color:#002B36;border-color:#ffffff;color:#FFF;text-align:center;vertical-align:middle}
+</style>
+<table class="tg"><thead>
+  <tr>
+    <th class="tg-ciwg" colspan="6"><span style="color:#FFF;background-color:#002B36">Table 3.</span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-pruk"></td>
+    <td class="tg-pruk"></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">MAE</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">MAE Scaled</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Within 50% </span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Within 95% </span></td>
+  </tr>
+  <tr>
+    <td class="tg-yi02" rowspan="3">Continuous Predictor</td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Flat Model</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">15.730</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.313</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.841</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Default Tuned Model</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">15.779</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.314</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.840</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Tuned Model</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">15.668</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.312</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.849</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-yi02" rowspan="3">Categorical Predictor</td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Flat Model</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">17.110</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.338</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.866</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.965</span></td>
+  </tr>
+  <tr>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Default Tuned Model</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">17.080</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.338</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.866</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Tuned Model</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">17.118</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.339</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.867</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-ciwg" colspan="6"><span style="color:#FFF;background-color:#002B36">Posterior predictive results from cross validation. </span></td>
+  </tr>
+</tbody></table>
 
 
--   Present your key findings in a clear and concise manner.
+```{r}
+pp_check(flat_model_dt, nreps = 50) + ggtitle("Posterior Predictive Check: fmdt")
+pp_check(default_model_dt, nreps = 50) + ggtitle("Posterior Predictive Check: dmdt")
+pp_check(tuned_model_dt, nreps = 50) + ggtitle("Posterior Predictive Check: tmdt")
+```
 
--   Use visuals to support your claims.
+```{r}
+pp_check(flat_model_dow, nreps = 50) + ggtitle("Posterior Predictive Check: fmdow")
+pp_check(default_model_dow, nreps = 50) + ggtitle("Posterior Predictive Check: dmdow")
+pp_check(tuned_model_dow, nreps = 50) + ggtitle("Posterior Predictive Check: tmdow")
+```
 
--   **Tell a story about what the data reveals.**
-
-### 4.4 Evaluation of the Model
+#### 4.2 Evaluation of the Models
 
 :::{.callout-tip}
 
@@ -1899,11 +2096,11 @@ All notes past this point are for future reference
 
 :::
 
-#### Consideration the Dataset
+##### Consideration the Dataset
 
 - how was data collected, by who and for what purpose, whaty impact might the results have, what biases are baked in to the analyses (scope of the data)
 
-#### Checking Model Assumptions
+##### Checking Model Assumptions
 
 "Normal regression assumptions
 
@@ -1928,7 +2125,7 @@ pp_check(bike_model, nreps = 50) +
 ```
 
 
-#### Accuracy of Posterior Predictive Models
+##### Accuracy of Posterior Predictive Models
 
 ```
 

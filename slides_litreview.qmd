@@ -41,9 +41,10 @@ fig-align: center
     - Regression parameters ($\beta$) *are not* assumed to be fixed
     - Collected data is used alongside prior knowledge for approximation
 
-## Frequentist vs. Bayesian Approach
+#Methods
+### Frequentist vs. Bayesian Approach
 
-- **Frequentist** Approach
+- The **Frequentist** Approach
   - Typical linear model 
   
 $$
@@ -58,9 +59,9 @@ $$
 - $\hat\beta$ provides a point estimate
 
 
-## Frequentist vs. Bayesian Approach
+### Frequentist vs. Bayesian Approach
 
-- **Bayesian** Approach
+- The **Bayesian** Approach
   - A regression is constructed using probability distributions, not point estimates as in the frequentist approach
   - Bayes Rule (2) is used to inform the model [@xiaogang]
 
@@ -73,9 +74,9 @@ $$
 - $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
 
 
-## Frequentist vs. Bayesian Approach
+### Frequentist vs. Bayesian Approach
 
-- **Bayesian** Approach
+- The **Bayesian** Approach
     - Bayesian Inference can be written simply [@Koehrsen2018]
     
 $$
@@ -92,7 +93,7 @@ $$
 
 ## Frequentist vs. Bayesian Approach
 
-- **Bayesian** Approach
+- The **Bayesian** Approach
   - A more formal expression of Bayes Rule applied for continous parameters
   
 $$
@@ -109,17 +110,10 @@ $$
 
 ## Frequentist vs. Bayesian Approach
 
-:::{.callout-note}
-trying to include formulas for actual BLR :(
-:::
-
 - The Bayesian Linear Regression Model
-
-- The Likelihood 
-
-- The Posterior 
-
-- The Prior
+  - changes based on:
+      - distribution chosen for regression
+      - distribution and hyperparameters chosen for priors
 
 
 ## Role of prior knowledge in shaping predictions
