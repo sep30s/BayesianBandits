@@ -1,4 +1,4 @@
--- ---
+---
 title: "Bayesian Linear Regression"
 subtitle: "Analysis of Flight Delay Data"
 author: "Sara Parrish (Advisor: Dr. Seals)"
