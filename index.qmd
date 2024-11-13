@@ -2146,6 +2146,46 @@ pp_check(default_model_dow, nreps = 50) + ggtitle("Posterior Predictive Check: d
 pp_check(tuned_model_dow, nreps = 50) + ggtitle("Posterior Predictive Check: tmdow")
 ```
 
+
+```{r neff}
+
+fmdt_neff <- neff_ratio(flat_model_dt)
+dmdt_neff <- neff_ratio(default_model_dt)
+tmdt_neff <- neff_ratio(tuned_model_dt)
+fmdow_neff <- neff_ratio(flat_model_dow)
+dmdow_neff <- neff_ratio(default_model_dow)
+tmdow_neff <- neff_ratio(tuned_model_dow)
+
+neff_results_m1 <- bind_rows(fmdt_neff, dmdt_neff, tmdt_neff) 
+
+neff_results_m2 <- bind_rows(fmdow_neff, dmdow_neff,tmdow_neff) 
+
+neff_results_m1
+neff_results_m2
+
+```
+
+```{r rhat}
+
+fmdt_rhat <- rhat(flat_model_dt)
+dmdt_rhat <- rhat(default_model_dt)
+tmdt_rhat <- rhat(tuned_model_dt)
+fmdow_rhat <- rhat(flat_model_dow)
+dmdow_rhat <- rhat(default_model_dow)
+tmdow_rhat <- rhat(tuned_model_dow)
+
+rhat_results_m1 <- bind_rows(fmdt_rhat, dmdt_rhat, tmdt_rhat) 
+
+rhat_results_m2 <- bind_rows(fmdow_rhat, dmdow_rhat,tmdow_rhat) 
+
+rhat_results_m1
+rhat_results_m2
+
+```
+
+
+
+
 #### 4.2 Evaluation of the Models
 
 :::{.callout-tip}
