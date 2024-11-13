@@ -35,13 +35,7 @@ Slides: [slides.html](slides.html){target="_blank"}
   
   There are a variety of ways to summarize the posterior in order to derive conclusions about the parameter. Its location and variability can be specified by finding the mode, mean, and median of the distribution. Its range can be defined with the equal tail credible interval (not to be confused with the confidence interval in the frequentist approach) or with the high posterior density (HDP) interval. Future predictions for the parameter can be made through posterior predictive distributions (PPD) which factor out $\theta$ with the assumption that past data will not influence future data, hierarchical independence[@lesaffre].
 
-  It is not uncommon for the marginal posterior density function of a parameter to be unavailable, requiring an alternate approach to extract insight. It is safe to assert that sampling techniques are used in nearly all Bayesian analyses[@xiaogang]. General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. Monte Carlo integration can be combined with the Markov property given by [@lesaffre] in the following equation
-
-$$
-p(\Theta^{(k+1)}| \Theta^k , \Theta^{(k-1)} , . . . , y) = p(\Theta^{(k+1)} | \Theta^k, y)\tag{2}
-$$
-
-Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm[@lesaffre].
+  It is not uncommon for the marginal posterior density function of a parameter to be unavailable, requiring an alternate approach to extract insight. It is safe to assert that sampling techniques are used in nearly all Bayesian analyses[@xiaogang]. General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm[@lesaffre].
 
 ## 2 Methods
 
@@ -84,7 +78,7 @@ $$
     - $p(B|A) \text{ and } p(A|B)$ are conditional probabilities
     - $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
 
- For continuous parameters, Bayes rule can be written as 
+ For calculating the probability of continuous parameters, Bayes rule can be applied as 
 
 $$
 \begin{align*}
@@ -101,16 +95,18 @@ $$
 f(\theta|D) \propto L(\theta|D)f(\theta)
 $$
 
-### 2.3 The Model
+### 2.3 The Models
 
-  To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include a the mean specific to our predictor, departure time, $\mu_i$. The model is:
+  To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include the mean specific to our predictor, departure time, $\mu_i$. The model is
   
 $$
 \begin{align*}
 Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i
 \end{align*}
 $$
+
 Where:
+
 - $Y_i$ is the arrival delay for the i-th flight
 - $X_i$ is the departure delay for the i-th flight
 - $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
@@ -1093,11 +1089,12 @@ $$
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r flat_model_cont}
 
 library(broom.mixed)
 library(rstanarm)
+library(ggpubr)
 
 flat_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
                        data = Delays_sample,
@@ -1117,33 +1114,45 @@ set.seed(123)
 shortcut_prediction1 <- 
   posterior_predict(flat_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-mcmc_dens(shortcut_prediction1) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Flat Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction1) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 10 (a) Predicted Arrival Delays for a Departure Time of Noon, Flat Priors")
+)
 
 ```
 
 ## MCMC Trace
 ```{r}
 model <- flat_model_dt
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 10 (b) MCMC Trace") +ylab("pi"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 10 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 10 (d) Autocorrelation"))
+
 ```
 :::
+
+The posterior median relationship for the first model with flat priors is 
+
+$$
+-10.92 + 0.02X.
+$$
+
+That is, at $0 \text{ minutes}$ (i.e. Midnight), the expected delay is $-10.92$. For every minute past midnight, the delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$).  
 
 ##### Default Continuous Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r default_model_cont}
 
 library(rstanarm)
@@ -1163,27 +1172,38 @@ set.seed(123)
 shortcut_prediction2 <- 
   posterior_predict(default_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-mcmc_dens(shortcut_prediction2) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Default Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction2) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 11 (a) Predicted Arrival Delays for a Departure Time of Noon, Default Priors")
+)
 
 ```
 
 ## MCMC Trace
 ```{r}
 model <- default_model_dt
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 11 (b) MCMC Trace") +ylab("pi"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 11 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 11 (d) Autocorrelation"))
 ```
 :::
+
+The posterior median relationship for the first model with default priors (tuned via rstanarm package) 
+
+$$
+-10.94 + 0.02X.
+$$
+
+This version of the model only had a small decrease in the intercept.
 
 ##### Tuned Continuous Model
 
@@ -1257,7 +1277,7 @@ $$
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r tuned_model_cont}
 
 library(rstanarm)
@@ -1286,26 +1306,37 @@ set.seed(123)
 shortcut_prediction <- 
   posterior_predict(tuned_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-mcmc_dens(shortcut_prediction) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 12 (a) Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+)
 ```
 
 ## MCMC Trace
 ```{r}
 model <- tuned_model_dt
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 12 (b) MCMC Trace") +ylab("pi"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 12 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 12 (d) Autocorrelation"))
 ```
 :::
+
+The posterior median relationship for the first model with manually tuned priors is 
+
+$$
+-11.66 + 0.02X.
+$$
+
+This version of the model had a larger decrease in the intercept (just over 43 seconds), but there was no large change in the slope. 
 
 #### The Normal Data Model: Week Day Predictor
 
@@ -1324,13 +1355,13 @@ Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, 
 \end{align*}
 $$
 
-The general formula is adjusted for the inclusion of regression coefficients for each day of the week $\beta_1, \beta_2, ..., \beta_6$, where the intercept coefficient $\beta_0$ reflects Tuesday's arrival delay.  
+The general formula is adjusted for the inclusion of regression coefficients for each day of the week $\beta_1, \beta_2, ..., \beta_6$, where the intercept coefficient $\beta_0$ reflects Tuesday's arrival delay. Only one prior for the predictor must be specified as the stan_glm() function handles categorical variables in a similar way to the glm() function, through dummy coding.
 
 ##### Flat Categorical Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r flat_model_categorical}
 #| fig-cap: "Flat Categorical Model"
 #| layout-ncol: 1
@@ -1385,9 +1416,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 13 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Flat Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
@@ -1397,25 +1428,34 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- flat_model_dow
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 13 (b) MCMC Trace") +ylab("pi"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 13 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 13 (d) Autocorrelation"))
 ```
 :::
+
+The posterior median relationship for the second model with flat priors is 
+
+$$
+1.57 + 4.92X_1 + 2.66X_2 + 1.86X_3 + 3.43X_4 + 4.36X_5 + 2.93X_6.
+$$
+
+That is, on Tuesday one can expect a delay of $1.57$ minutes ($1$ minute and $34$ seconds). One can expect the longest delay on Wednesday at $6$ minutes and $29$ seconds.
+
 
 ##### Default Categorical Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r auto_model_categorical}
 
 default_model_dow <- stan_glm(
@@ -1456,9 +1496,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 14 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Default Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
@@ -1469,19 +1509,27 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- default_model_dow
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 14 (b) MCMC Trace") +ylab("pi"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 14 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 14 (d) Autocorrelation"))
 ```
 :::
+
+The posterior median relationship for the second model with default priors is 
+
+$$
+1.54 + 4.40X_1 + 2.69X_2 + 2.97X_3 + 4.96X_4 + 3.48X_5 + 1.89X_6.
+$$
+
+This version of the second model showed little change for the expectations of Tuesday through Thursday, but the rest of the week had shifts of more than a minute for all day except Sunday with a change of $53$ seconds.
 
 ##### Tuned Categorical Model
 
@@ -1544,7 +1592,7 @@ $$
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r tuned_model_categorical}
 
 tuned_model_dow <- stan_glm(
@@ -1588,9 +1636,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 15 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Tuned Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
@@ -1601,30 +1649,39 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- tuned_model_dow
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 15 (b) MCMC Trace") + ylab("pi"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 15 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 15 (d) Autocorrelation"))
 ```
 :::
+
+The posterior median relationship for the second model with manually tuned priors is 
+
+$$
+1.54 + 4.96X_1 + 2.70X_2 + 1.91X_3 + 3.50X_4 + 4.41X_5 + 2.99X_6.
+$$
+
+The tuned version of the second model showed coefficients more similar to that of the flat model. 
+
 
 ```{r tidytibble}
 #| include: false
 
 all_models <- bind_rows(
-  tmdt %>% mutate(model = "tmdt"),
-  fmdt %>% mutate(model = "fmdt"),
-  dmdt %>% mutate(model = "dmdt"),
-  tmdow %>% mutate(model = "tmdow"),
-  fmdow %>% mutate(model = "fmdow"),
-  dmdow %>% mutate(model = "dmdow")
+  tmdt %>% mutate(Model = "Tuned"),
+  fmdt %>% mutate(Model = "Flat"),
+  dmdt %>% mutate(Model = "Default"),
+  tmdow %>% mutate(Model = "Tuned"),
+  fmdow %>% mutate(Model = "Flat"),
+  dmdow %>% mutate(Model = "Default")
 )
 
 all_models
@@ -1946,6 +2003,7 @@ print(cv_results)
 
 ```
 
+
 ```{r model2comparison}
 #| output: false
 
@@ -2127,28 +2185,10 @@ pp_check(bike_model, nreps = 50) +
 
 ##### Accuracy of Posterior Predictive Models
 
-```
+  - discussion on MCMC simulations -> trace, overlay, acf
+  
+  - Neff > (0.1)*N  neff_ratio()
 
-
-set.seed(84735)
-predictions <- posterior_predict(bike_model, newdata = bikes)
-dim(predictions)
-
-
-library(bayesplot)
-
-#ppc_intervals() function in the bayesplot package provides a quick visual summary of the 500 approximate posterior predictive models stored in predictions
-ppc_intervals(bikes$rides, yrep = predictions, x = bikes$temp_feel, 
-              prob = 0.5, prob_outer = 0.95)
-
-
-library(bayesrules)
-
-# Posterior predictive summaries
-set.seed(84735)
-prediction_summary(bike_model, data = bikes) # get MAE, MAE scaled, obs values that fall within 50 and 95 % posterior prediction interval   
-
-```
 
 ## 5 Conclusion
 
