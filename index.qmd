@@ -143,11 +143,7 @@ $$
 
 ### 2.5 Tuning of Priors 
 
-::: {.callout-tip}
-
-Flat vs default vs tuned priors
-
-:::
+This analysis will explore the effect of different priors on two models. Traditionally, priors are tuned by selecting values for the aforementioned hyperparameters based on prior knowledge about the data being modeled. These hyperparameters are specific to the distributions of the priors. In the case of this study, the mean and standard deviation are estimated from the data in order to tune the normal priors. In addition to the model with manually tuned priors, two other versions of each of the models will be constructed. One version will involve the use of priors tuned by the function used for modeling, "Default Tuned Priors", and the other version will utilize flat priors. 
 
 ### 2.6 The Bayesian Linear Regression Model
 
@@ -185,13 +181,8 @@ The appropriateness of the Bayesian Normal regression model (9.3) depends upon t
   This is a large time-series dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
   The function stan_glm() was used for simulation of the Normal Bayesian linear regression model from the "rstanarm" library[@rstanarm]. This function runs the Markov Chain Monte Carlo simulation as well with specified chains, iterations, and the ability to set a seed. These were set to 4 chains, 2000 iterations, and the seed was set to 123. 
   Simulation of the posterior was done with the posterior_predict() function, also from the "rstanarm" library[@rstanarm].
-  Evaluation of the model was done by considering the data and it's source, the assumptions of the model, and the accuracy of the prediction. The posterior predictions were evaluated with the prediction_summary() function from the "bayesrules"library [@bayesrules]. This provided median absolute error (MAE) scaled MAE, and the proportion of values that fall within 50% and 95% confidence intervals. 
+  Evaluation of the model was done by considering the data and it's source, the assumptions of the model, and the accuracy of the prediction. The posterior predictions were evaluated via k-fold cross validation with the prediction_summary_cv() function from the "bayesrules"library [@bayesrules]. This provided median absolute error (MAE) scaled MAE, and the proportion of values that fall within 50% and 95% confidence intervals. Effective sample size ($N_\text{eff}$) and R-hat($\hat{R}$) are also calculated using the "bayesplot" package[@bayesplot]. 
 
-::: {.callout-tip}
-
-*Possibly k-fold cross validation, model averaging*
-
-:::
 
 ```{r readin_sample}
 #| echo: false
@@ -1069,7 +1060,7 @@ ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
 
 ### 3.4 Modeling 
 
-#### The Normal Data Model: Departure Time Predictor
+#### 3.4.1 The Normal Data Model: Departure Time Predictor
 
   For the continuous predictor, Departure Time, three normal models with different priors are sampled:
     - Flat Priors
@@ -1125,7 +1116,19 @@ ggarrange(
 ## MCMC Trace
 ```{r}
 model <- flat_model_dt
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 10 (b) MCMC Trace") +ylab("pi"))
+
+plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 10 (b) MCMC Trace", 
+    subtitle =  "Intercept")
+plotBeta <- mcmc_trace(model, pars = "DEP_TIME_MINS") + 
+  labs(
+    subtitle = "Departure Time (mins)")
+plotSig <- mcmc_trace(model, pars = "sigma") + 
+  labs(
+    subtitle = "Sigma")
+
+ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4))
 ```
 
 ## MCMC Overlay
@@ -1183,7 +1186,19 @@ ggarrange(
 ## MCMC Trace
 ```{r}
 model <- default_model_dt
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 11 (b) MCMC Trace") +ylab("pi"))
+
+plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 11 (b) MCMC Trace", 
+    subtitle =  "Intercept")
+plotBeta <- mcmc_trace(model, pars = "DEP_TIME_MINS") + 
+  labs(
+    subtitle = "Departure Time (mins)")
+plotSig <- mcmc_trace(model, pars = "sigma") + 
+  labs(
+    subtitle = "Sigma")
+
+ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4))
 ```
 
 ## MCMC Overlay
@@ -1316,7 +1331,19 @@ ggarrange(
 ## MCMC Trace
 ```{r}
 model <- tuned_model_dt
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 12 (b) MCMC Trace") +ylab("pi"))
+
+plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 12 (b) MCMC Trace", 
+    subtitle =  "Intercept")
+plotBeta <- mcmc_trace(model, pars = "DEP_TIME_MINS") + 
+  labs(
+    subtitle = "Departure Time (mins)")
+plotSig <- mcmc_trace(model, pars = "sigma") + 
+  labs(
+    subtitle = "Sigma")
+
+ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4))
 ```
 
 ## MCMC Overlay
@@ -1338,7 +1365,7 @@ $$
 
 This version of the model had a larger decrease in the intercept (just over 43 seconds), but there was no large change in the slope. 
 
-#### The Normal Data Model: Week Day Predictor
+#### 3.4.2 The Normal Data Model: Week Day Predictor
 
   The categorical predictor, Day of the Week, is given a similar treatment to the continuous predictor with the sampling of three normal models with different priors:
     - Flat Priors
@@ -1429,6 +1456,26 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ```{r}
 model <- flat_model_dow
 ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 13 (b) MCMC Trace") +ylab("pi"))
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 13 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+
 ```
 
 ## MCMC Overlay
@@ -1509,7 +1556,27 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- default_model_dow
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 14 (b) MCMC Trace") +ylab("pi"))
+#ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 14 (b) MCMC Trace") +ylab("pi"))
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 14 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+
 ```
 
 ## MCMC Overlay
@@ -1649,7 +1716,26 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- tuned_model_dow
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 15 (b) MCMC Trace") + ylab("pi"))
+#ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 15 (b) MCMC Trace") + ylab("pi"))
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 15 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
 ```
 
 ## MCMC Overlay
