@@ -1254,7 +1254,7 @@ $$
 -10.92 + 0.02X.
 $$
 
-That is, at $0 \text{ minutes}$ (i.e. Midnight), the expected delay is $-10.92$. For every minute past midnight, the delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$).  
+That is, at $0 \text{ minutes}$ (i.e. Midnight), the expected delay is $-10.92$. For every minute past midnight, the delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$).  
 
 ##### Default Continuous Model
 
@@ -1574,7 +1574,7 @@ $$
 1.54 + 4.40X_1 + 2.69X_2 + 2.97X_3 + 4.96X_4 + 3.48X_5 + 1.89X_6.
 $$
 
-This version of the second model showed little change for the expectations of Tuesday through Thursday, but the rest of the week had shifts of more than a minute for all day except Sunday with a change of $53$ seconds.
+This version of the second model showed little change for the expectations of Tuesday through Thursday, but the rest of the week had shifts of more than a minute for all days except Sunday with a shift of $53$ seconds.
 
 ##### Tuned Categorical Model
 
@@ -2473,7 +2473,7 @@ rhat_table_m2
 
 ### 3.9 Posterior Predictive Checks
 
-The posterior predictive checks for the two models ($y_\text{rep}$) do not accurately capture the  observed values ($y$). The mean and variability of the predictions appear tp be higher than the observed values in both models.
+The posterior predictive checks for the two models ($y_\text{rep}$) do not accurately capture the observed values ($y$). The mean and variability of the predictions appear to be higher than the observed values in both models.
 
 #### Model 1
 
@@ -2557,12 +2557,13 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 
 ### 3.10 OLS vs. Bayesian Regression
 
-The results from ordinary least squares regression are not identical to the results from the Bayesian regression, but there is remarkable similarity. 
+The results from ordinary least squares regression are not identical to the results from the Bayesian regression, but there is remarkable similarity. The linear models were constructed using the lm() function from the stats package[@stats]. 
 
 ```{r}
 #| output: false
 
 library(tibble)
+
 
 ols_model1 <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
 om1t <- as_tibble(summary(ols_model1)$coefficients)
@@ -2785,51 +2786,33 @@ om2t
 
 ## 4 Discussion
 
+This project investigated the use of different types of priors with Bayesian linear regression to understand the influence of different predictors on arrival delays for U.S. flights. Flight data was chosen as it could provide an interesting real-world application to examine the use of Bayesian regression.   
+
 #### 4.1 Modeling Results
+
+Model 1 examined the effect of departure time on arrival delays. All three versions of the model estimated the regression coefficient $\beta_1$ to be $0.02$.  That is, for every minute past midnight on any given day, arrival delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$). The flat, default, and tuned models found intercepts, $\beta_0$, to be $-10.92, -10.94, \text{ and } -11.66$ respectively. The difference shown in the intercept of the tuned model (just over 43 seconds), shows a small effect from the adjusted prior. There are no remarkable differences in the estimated standard deviations, $\sigma$, for Model 1. There are no large differences in standard error for any of the estimates. 
+
+Model 2 examined the effect of the day of the week as a categorical variable on arrival delays. Tuesday was set to the reference as it had the lowest average delay. The estimated intercepts, $\beta_0$, for the three versions of the model are all fairly similar as are the estimated standard deviations. The flat and tuned models have similar estimates for the coefficients of the day variables, though the model with default tuned priors has higher weights associated with the Friday and Saturday coefficients and lower weights for the Sunday, Monday and Wednesday coefficients. There are no large differences in standard error for any of the estimates. 
+
+The lack of any large differences between the models is likely due to the large amount of data, 100,000 observations, put into the models. This indicated a limited effect of the priors on the models in light of a large amount of data.  
 
 #### 4.2 Evaluation of the Models
 
-- K-Fold CV and implications
-- Neff and implications
-- R-hat and implications
-- PP checks and implications
-- OLS Comparison and implications
+The 5-fold cross validation provides median absolute errors of $\sim 15.7$ for Model 1 and $\sim 17.1$ for Model 2. This indicated a typical error of 15.7 and 17.1 minutes, or standard deviations of $\sim 0.31$ and $\sim 0.31$, for the models respectively. The cross validation does also estimate that $\sim 96.6\%$ of the observations fall within their $95\%$ prediction interval. This assessment provides reassurance that the models do provide accurate predictions. 
 
-#### 4.3 Consideration the Dataset
+The results from analysis of effective sample size and R-hat metrics also provide  positive indicators for model accuracy. Effective sample sizes ($N_{\text{eff}}$) for all iterations of each model are all well above $0.1$ indicating that sample is of an appropriate volume for the Markov chain. 
 
-- how was data collected, by who and for what purpose, what impact might the results have, what biases are baked in to the analyses (scope of the data)
+Other MCMC diagnostics, including the trace plots, density plots of individual chains and autocorrelations, indicated solid convergence of the Markov chains for all versions of both models. The trace plots showed noise that was higher than desirable, but the chains were well mixed with no visible pi trends. The density plots were fairly consistent across chains for all models, no bimodality was observed. Autocorrelation plots showed rapid decay and weak dependence which mirrors the results from the effective sample size ratios. 
 
-##### Checking Model Assumptions
+The $\hat{R}$ values for both models fall within an acceptable range such that $\hat{R} \approx 1$, indicating stability across parallel Markov chains. 
 
-"Normal regression assumptions
+The posterior predictive checks for each prior version of the two models are all fairly similar, so they will be considered as a group, and they are concerning. The posterior predictive checks for the two models ($y_\text{rep}$) do not accurately capture the observed values ($y$). With wider distributions with an upward shift, the mean and variability of the predictions appear to be higher than the observed values in both models. Based on the appearance of the distribution of the y values, it may be appropriate to use a log transformation on the data model, i.e.
+$\log(Y_i) \mid \beta_0, \beta_1, \sigma \overset{\text{ind}}{\sim} N(\mu_i, \sigma^2) \quad \text{with} \quad \mu_i = \beta_0 + \beta_1 X_i$. 
 
-The appropriateness of the Bayesian Normal regression model (9.3) depends upon the following assumptions.
+As the differences between the model version with differing priors was slight, linear models were constructed via ordinary least squares(OLS) for comparison. The OLS models were compared to the Bayesian models with default priors. Model 1 was found to have similar parameter estimates  to the OLS model to include the standard errors for those parameter estimates. The residual standard error from the OLS model was also similar to the standard deviation of the Bayesian model. Model 2 had similar intercept and standard deviation estimates to the OLS model, though there were differences in the other parameter estimates.
 
-- Structure of the data
-  - Accounting for predictor $X$, the observed data $Y_i$ on case $i$ is independent of the observed data on any other case $j$.
-- Structure of the relationship
-  - The typical $Y$ outcome can be written as a linear function of predictor X, $μ = β_0 + β_1X$.
-- Structure of the variability
-  - At any value of predictor $X$, the observed values of $Y$ will vary normally around their average $μ$  with consistent standard deviation $σ$."
-  
-Assumption 1: <https://www.bayesrulesbook.com/chapter-10#:~:text=Though%20formal%20hypothesis%20tests%20for%20assumption%201%20do%20exist%2C%20we%20can%20typically%20evaluate%20its%20appropriateness%20by%20the%20data%20collection%20context>
+In checking the model assumptions, it is relevant to examine the context of the data. The data was assembled by the Department of Transportation and includes all national flights, within the U.S., from January of 2019 through August of 2023. Each observation in the data set is an individual flight with it's associated times, locations, and attributed causes for delay. The first observation requires that each observation be independent. While we assumed this to generally be true, a fault in this logic may occur due to a domino effect of late flights. This domino effect could likely be the cause of the slight increase in delays throughout the day. Assumptions two and three which require linearity and both normal and homoscedastic variance can be assessed through the posterior predictive check. The posterior predictive checks of the models demonstrated that assumptions two and three were violated as the predictions did not reliably capture the observations which were not Gaussian in nature. 
 
-Assumption 2 & 3: scatterplot of raw data, pp_check
-
-
-```
-# Examine 50 of the 20000 simulated samples
-pp_check(bike_model, nreps = 50) + 
-  xlab("rides")
-```
-
-
-##### Accuracy of Posterior Predictive Models
-
-  - discussion on MCMC simulations -> trace, overlay, acf
-  
-  - Neff > (0.1)*N  neff_ratio()
-  
 
 
 ## 5 Conclusion
