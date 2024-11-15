@@ -189,6 +189,7 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 \end{align*}
 $$
 Where:
+
 - $Y_i$ is the arrival delay for the i-th flight
 - $X_i$ is the departure delay for the i-th flight
 - $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
@@ -1004,7 +1005,7 @@ mcmc_acf(model)
     <td class="tg-pruk"></td>
     <td class="tg-pruk"></td>
     <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Mean</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">SD</span></td>
+    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">SE</span></td>
     <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">95% CI</span></td>
   </tr>
   <tr>
@@ -1882,7 +1883,7 @@ ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4
 
 ## MCMC Overlay
 ```{r}
-ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 10 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 10 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
@@ -1944,7 +1945,7 @@ ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4
 
 ## MCMC Overlay
 ```{r}
-ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 11 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 11 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
@@ -2081,7 +2082,7 @@ ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4
 
 ## MCMC Overlay
 ```{r}
-ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 12 (c) MCMC Overlay") + ylab("density") + xlab("pi"))
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 12 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
@@ -2166,7 +2167,6 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- flat_model_dow
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 13 (b) MCMC Trace") +ylab("pi"))
 
 mcmc_trace(model, pars = "(Intercept)") + 
   labs(
@@ -2258,7 +2258,6 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- default_model_dow
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 14 (b) MCMC Trace") +ylab("pi"))
 
 mcmc_trace(model, pars = "(Intercept)") + 
   labs(
@@ -2411,7 +2410,6 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 ## MCMC Trace
 ```{r}
 model <- tuned_model_dow
-ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 15 (b) MCMC Trace") + ylab("pi"))
 
 mcmc_trace(model, pars = "(Intercept)") + 
   labs(
