@@ -31,15 +31,41 @@ Slides: [slides.html](slides.html){target="_blank"}
 
   In opposition to the Bayesian approach is the frequentist approach. The frequentist approach considers the parameter of interest fixed and inference on the parameter is based on the result of repeated sampling. In the Bayesian approach, the parameter of interest is not fixed but stochastic, and inference on the parameter is based on observed data and prior knowledge [@lesaffre].
 
-  A benefit of the Bayesian approach lies in the ability to include prior knowledge through the selection of a prior. Priors can be subjective or objective. Subjective priors incorporate opinions, of an individual or of a group, which can negatively impact the perceived integrity of the findings. Objective priors are preferred which follow formal rules for determining noninformative priors [@lesaffre].
+  A benefit of the Bayesian approach lies in the ability to include prior knowledge through the selection of a prior. Priors can be subjective or objective. Subjective priors incorporate opinions, of an individual or of a group, which can negatively impact the perceived integrity of the findings. Objective priors are preferred which follow formal rules for determining uninformative priors [@lesaffre].
 
-  When prior knowledge is lackluster, has little information, or is otherwise not sufficient, a *noninformative* prior may be used. 	A common choice for a noninformative prior, in cases with binomial likelihood, is a uniform distribution, also known as a *flat prior*. In cases with a Gaussian likelihood, the noninformative prior would be a normal prior with $\sigma^2 \to \infty$ which functions similarly to the flat prior. For cases with a Poisson likelihood, a Gamma($\alpha_0$, $\beta_0$) prior is used where the sum of the counts are $(\alpha_0 - 1)$ and the experiment size is $\beta_0$ [@lesaffre]. For normal linear regression models, conjugate normal-gamma priors can be used to provide a resulting posterior that is of the same family[@xiaogang]. 
+  When prior knowledge is lackluster, has little information, or is otherwise not sufficient, a *uninformative* prior may be used. 	A common choice for a uninformative prior, in cases with binomial likelihood, is a uniform distribution, also known as a *flat prior*. In cases with a Gaussian likelihood, the uninformative prior would be a normal prior with $\sigma^2 \to \infty$ which functions similarly to the flat prior. For cases with a Poisson likelihood, a Gamma($\alpha_0$, $\beta_0$) prior is used where the sum of the counts are $(\alpha_0 - 1)$ and the experiment size is $\beta_0$ [@lesaffre]. For normal linear regression models, conjugate normal-gamma priors can be used to provide a resulting posterior that is of the same family[@xiaogang]. 
   
   There are a variety of ways to summarize the posterior in order to derive conclusions about the parameter. Its location and variability can be specified by finding the mode, mean, and median of the distribution. Its range can be defined with the equal tail credible interval (not to be confused with the confidence interval in the frequentist approach) or with the high posterior density (HDP) interval. Future predictions for the parameter can be made through posterior predictive distributions (PPD) which factor out $\theta$ with the assumption that past data will not influence future data, hierarchical independence[@lesaffre].
 
   It is not uncommon for the marginal posterior density function of a parameter to be unavailable, requiring an alternate approach to extract insight. It is safe to assert that sampling techniques are used in nearly all Bayesian analyses[@xiaogang]. General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm[@lesaffre].
 
+### 1.1 Applications  
 
+
+Kong et al. (2020) explored the use of BLR for surface roughness prediction in the milling process of wood. Input was taken from the time-domain of 3 different vibration signals to quantify surface roughness, tool wear monitoring was also taken into account. 
+
+Modifications to the standard BLR model were utilized to compare the accuracy of results in 4 different regressions:
+
+![BLR models used[@surfacerough]](BLRx4_Kong.png)
+
+Standard_BLR was found to be the superior of the four and to outperform even partial least squares (PLS) artificial neural networks (ANN) and support vector machines (SVM). BLR is also beneficial as it produces a CI which is advantageous for quality control[@surfacerough].
+
+Fraza et al. (2021) propose a warped BLR model that would solve the issue of non-Gaussian distributions using a “likelihood warping technique”. Gaussian process regression is used historically in the analysis of neuroimaging but is problematic because the method assumes a Gaussian distribution which is not the best fit for each modality being assessed. Gaussian process regression is also insufficient to handle emerging big data. 
+The study acquired imaging data from the UK Biobank imaging dataset, using specifically image-derived phenotypes (IDPs) for their prevalence and diffusion tensor imaging (DTI) data for their likelihood to have non-gaussian and non-linear trends. 
+The warped BLR model was found to outperform both standard and Gaussian process regression models in terms of fit and scalability for the larger data sets[@warped]. 
+
+Zhang et al. (2022) used k-means clustering and standard BLR to create a performance indicator to monitor the health of a bridge. Data was acquired from weigh-in-motion (WIM) and structural health monitoring (SHM) systems from a concrete box girder bridge; these two systems are typically used independently but were both integrated into the model. 
+The study identifies the slope of the regression, deemed the model slope indicator (MSI),  for vehicle load (from the WIM system) and vehicle induced strain (from the SHM system) as a performance indicator for the bridge where a change in the regression would indicate a performance or structural issue.
+Metropolis-Hastings (M-H) sampling was the chosen sampling method to help solve problems in the data with noise, abnormal signals, and missing and omitted data. Three BLR models were made based on three different classes of vehicle weight and associated bridge strain that were determined through k-means clustering. 
+
+The threshold for change in MSI was set to 5$\%$ and hypothesis testing was used to verify its significance. The model would not trigger a warning when the change of MSI was lower than 5% as this was an acceptable damage level for the concrete bridge used in this study[@bridge].
+
+Li et al. (2023) proposed the use of BLR with Cauchy prior (BLRC) for the analysis of multiple-input multiple-output (MIMO) radar systems with improved resolution by sparse array (SPA) designs. The researchers compared BLRC to the more traditional approaches Cauchy-Gaussian(CG) and sparse Bayesian learning (SBL).  The frameworks for the traditional approaches were found to be insufficient. CG uses the maximum a posteriori (MAP) framework which is inefficient as optimal hyperparameters can only be found via trial and error. SBL was superior to CG but was found to have room for improvement in cases where input was from SPA. 
+BLRC was found to be superior to SBL in a few ways. BLRC uses a long-tailed Cauchy distribution resulting in the need for only two hyperparameters. SBL has many hyperparameters. BLRC also outperforms SBL with higher resolution radar images, better handling of noise, and flexibility of the system[@cauchyprior]. 
+
+Yang et al. (2019) aimed to improve the prediction of storm wind speed forecasts with the use of gridded Bayesian linear regression (GBLR). Historical storm data, a database of 92 storms in the Northeast US, was used to adjust predictions for the National Center for Atmospheric Research (NCAR) real-time dynamic ensemble prediction system (EPS). 
+The GBLR approach involved inverse distance weighting to interpolate regression coefficients, transitioning from station locations to a model grid, and a novel “implicit” method wherein the BLR optimizes regression coefficients for the ensemble members collectively.
+GBLR was found to reduce bias in wind speed forecasts and improved $R^2$ and RMSE values when compared to the ensemble mean for global and event-based metrics. Similar improvements were seen in seasonal analyses. However, GBLR struggles with extreme values and in areas of the grid with sparse observations[@stormwind].
 
 ## 2 Methods
 
@@ -117,7 +143,13 @@ Where:
 - $\sigma^2$ is the variance of the errors
 -  $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
 
-  The Normal-normal regression model with a continuous predictor can be written as
+The continuous predictor, Departure Time, is modeled with three different priors:
+  
+  - Flat Priors
+  - Rstanarm's Default Priors
+  - Tuned Priors
+
+  The Normal-Normal regression model with a continuous predictor can be written as
 
 $$  
 \begin{align*}
@@ -128,12 +160,7 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 \end{align*}
 $$
 
-  The categorical predictor, Day of the Week, is given a similar treatment to the continuous predictor with the sampling of three normal models with different priors:
-  
-    - Flat Priors
-    - Rstanarm's Default Priors
-    - Tuned Priors
-    
+  The categorical predictor, Day of the Week, is given a similar treatment to the continuous predictor with the sampling of three Normal models with different priors. 
   Tuesday is set to be the reference as it has the lowest mean delay. 
 
 $$  
@@ -150,7 +177,7 @@ The general formula is adjusted for the inclusion of regression coefficients for
 ### 2.4 Prior Selection
   
   Since we are only using two continuous variables for the first model, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
-  As intercept and slope regression parameters can take any real value, we will use normal prior models [@bayesrulesbook]. 
+  As intercept and slope regression parameters can take any real value, we will use Normal prior models [@bayesrulesbook]. 
   
 $$
 \begin{align*}
@@ -177,7 +204,7 @@ $$
 
 ### 2.5 Tuning of Priors 
 
-This analysis will explore the effect of different priors on two models. Traditionally, priors are tuned by selecting values for the aforementioned hyperparameters based on prior knowledge about the data being modeled. These hyperparameters are specific to the distributions of the priors. In the case of this study, the mean and standard deviation are estimated from the data in order to tune the normal priors. In addition to the model with manually tuned priors, two other versions of each of the models will be constructed. One version will involve the use of priors tuned by the function used for modeling, "Default Tuned Priors", and the other version will utilize flat priors. 
+This analysis will explore the effect of different priors on two models. Traditionally, priors are tuned by selecting values for the aforementioned hyperparameters based on prior knowledge about the data being modeled. These hyperparameters are specific to the distributions of the priors. In the case of this study, the mean and standard deviation are estimated from the data in order to tune the Normal priors. In addition to the model with manually tuned priors, two other versions of each of the models will be constructed. One version will involve the use of priors tuned by the function used for modeling, "Default Tuned Priors", and the other version will utilize flat priors. 
 
 ```{r readin_sample}
 #| echo: false
@@ -387,8 +414,8 @@ The Bayesian Normal regression model relies on three assumptions that are not di
 
 ### 2.7 Statistical Programming
 
-  Data was collected by the Bureau of Transportation Statistics (BTS) and accessed through a dataset compiled by Patrick Zelazko [@dataset]. The data was imported into R [@R] via CSV. 
-  This is a large time-series dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
+  Data was collected by the Bureau of Transportation Statistics (BTS) and accessed through a data set compiled by Patrick Zelazko [@dataset]. The data was imported into R [@R] via CSV. 
+  This is a large time-series data set with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
   The function stan_glm() was used for simulation of the Normal Bayesian linear regression model from the "rstanarm" library[@rstanarm]. This function runs the Markov Chain Monte Carlo simulation as well with specified chains, iterations, and the ability to set a seed. These were set to 4 chains, 2000 iterations, and the seed was set to 123. 
   Simulation of the posterior was done with the posterior_predict() function, also from the "rstanarm" library[@rstanarm].
   Evaluation of the model was done by considering the data and it's source, the assumptions of the model, and the accuracy of the prediction. The posterior predictions were evaluated via k-fold cross validation with the prediction_summary_cv() function from the "bayesrules"library [@bayesrules]. This provided median absolute error (MAE) scaled MAE, and the proportion of values that fall within 50% and 95% confidence intervals. Effective sample size ($N_\text{eff}$) and R-hat($\hat{R}$) are also calculated using the "bayesplot" package[@bayesplot]. 
@@ -399,7 +426,7 @@ The Bayesian Normal regression model relies on three assumptions that are not di
 
 ### 3.1 The Dataset
 
-  This is a large dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. Following are the definitions of the given variables in this dataset. 
+  This is a large data set with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. Following are the definitions of the given variables in this data set. 
 ```{=html}
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;margin:0px auto;}
@@ -1043,7 +1070,7 @@ mtext("Figure 4. Correlation matrix for continuous variables", side = 3, line = 
 
 ```
 
-Figure 5 shows the correlation of the continuous and categorical variables using the p-values from the t-tests and ANOVAs of each relation. Relationships with at least one significant p-value are shown in dark blue. This heatmap is of limited value as there appears to be many significant correlations, but without further inspection it is not known which value(s) of the categorical variables have a significant p-value. 
+Figure 5 shows the correlation of the continuous and categorical variables using the p-values from the t-tests and ANOVA's of each relation. Relationships with at least one significant p-value are shown in dark blue. This heatmap is of limited value as there appears to be many significant correlations, but without further inspection it is not known which value(s) of the categorical variables have a significant p-value. 
 
 ```{r}
 #| echo: false
@@ -1090,7 +1117,7 @@ ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
 
 ### 3.3 Data Preprocessing
 
-  To prepare the data for analysis, a few changes were made. Diverted and cancelled flights were removed as they both have arrival delays set to "NA" due to them not arriving as scheduled. Including cancelled and diverted flights would introduce complexity and could lead to bias in the model. The goal of the model is to understand typical arrival delays, so the inclusion of cancelled and diverted flights is unnecessary. The dataset is also quite large with three million observations, so the dataset was sampled to account for computational efficiency. 
+  To prepare the data for analysis, a few changes were made. Diverted and cancelled flights were removed as they both have arrival delays set to "NA" due to them not arriving as scheduled. Including cancelled and diverted flights would introduce complexity and could lead to bias in the model. The goal of the model is to understand typical arrival delays, so the inclusion of cancelled and diverted flights is unnecessary. The data set is also quite large with three million observations, so the data set was sampled to account for computational efficiency. 
   For the first model, the departure time variable was converted from an "HHMM" format to a "minutes past midnight" format for use by the stan_glm() function. 
 
 ::: {.panel-tabset}
@@ -1115,6 +1142,7 @@ convert_to_minutes <- function(time) {
 
 Delays_sample <- Delays_sample %>%
   mutate("DEP_TIME_MINS" = sapply(DEP_TIME, convert_to_minutes))
+
 ```
 
 ## Format: Minutes Past Midnight
@@ -1127,7 +1155,6 @@ ggplot(Delays_sample, aes(x = DEP_TIME_MINS)) +
         y = "Frequency") +
   xlim(NA, 1440) +
   theme_minimal()
-
 
 ```
 :::
@@ -1174,6 +1201,7 @@ ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
     y = "Arrival Delay (minutes)") +
   theme_minimal()+
   ylim(-45,45)
+
 ```
 :::
 
@@ -1255,6 +1283,8 @@ $$
 $$
 
 That is, at $0 \text{ minutes}$ (i.e. Midnight), the expected delay is $-10.92$. For every minute past midnight, the delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$).  
+
+It is important to note that the uniform prior distribution used are noted as "*not* non-informative" by the documentation as they provide a uniform distribution that gives the same probability to *all values*, whether they are plausible or not. 
 
 ##### Default Continuous Model
 
@@ -1938,7 +1968,7 @@ There is more variability apparent in the summary of Model 2, though the interce
 
 ### 3.6 K-Fold Cross Validation
 
- Cross validation was done to provide an estimation of model performance. The provided posterior predictive summary is comprised of the median absolute error (MAE) which measures the typical difference between observed and posterior predictive means, the scaled MAE (scaled_MAE) which scales MAE by standard deviations, and the proportion of observations that fall within the $50\%$ and $95\%$ posterior prediction intervals. The cross validation assessment (prediction_summary_cv()) was chosen over the posterior prediction summary assessment (prediction_summary()), both from the "bayesrules" package[@bayesrules], as the cross validation procedure provides a more conservative estimate of model performance. Cross validation can also be more computationally efficient with a lower number of folds and the use of a smaller dataset. 
+ Cross validation was done to provide an estimation of model performance. The provided posterior predictive summary is comprised of the median absolute error (MAE) which measures the typical difference between observed and posterior predictive means, the scaled MAE (scaled_MAE) which scales MAE by standard deviations, and the proportion of observations that fall within the $50\%$ and $95\%$ posterior prediction intervals. The cross validation assessment (prediction_summary_cv()) was chosen over the posterior prediction summary assessment (prediction_summary()), both from the "bayesrules" package[@bayesrules], as the cross validation procedure provides a more conservative estimate of model performance. Cross validation can also be more computationally efficient with a lower number of folds and the use of a smaller data set. 
  
 ```{r model1comparison}
 #| output: false
@@ -2079,7 +2109,7 @@ print(cv_results2)
 </colgroup>
 <thead>
   <tr>
-    <th class="tg-rte4" colspan="5"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 3</span><span style="font-style:normal;color:#FFF">. Posterior predictive results from cross validation. </span></th>
+    <th class="tg-rte4" colspan="5"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 3</span><span style="font-style:normal;color:#FFF">. Posterior predictive results from k-fold cross validation. </span></th>
   </tr></thead>
 <tbody>
   <tr>
@@ -2783,6 +2813,126 @@ om2t
 ```
 
 
+::: {.panel-tabset}
+
+## Regression Comparison
+```{r}
+
+dep_time_seq <- seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 100)
+
+prediction_data <- data.frame(DEP_TIME_MINS = dep_time_seq)
+
+prediction_data <- prediction_data %>%
+  mutate(
+   ppfmdt  = predict(flat_model_dt, newdata = prediction_data, type = "response"),
+   ppdmdt  = predict(default_model_dt, newdata = prediction_data, type = "response"),
+    pptmdt = predict(tuned_model_dt, newdata = prediction_data, type = "response"),
+    OLSmdt = predict(ols_model1, newdata = prediction_data)
+  )
+
+plot_data <- prediction_data %>%
+  pivot_longer(cols = -DEP_TIME_MINS, names_to = "Model", values_to = "Predicted_ARR_DELAY")
+
+time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
+time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
+
+ggplot(plot_data,
+       aes(
+         x = DEP_TIME_MINS, 
+         y = Predicted_ARR_DELAY, 
+         color = Model)
+       ) +
+  geom_line(size = 1) +
+  labs(
+    title = "Figure 18 (a) Comparison of Regression Lines",
+    x = "Departure Time (Minutes Past Midnight)",
+    y = "Predicted Arrival Delay (Minutes)"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels)+
+  scale_color_discrete(
+    labels =  c(
+    "ppfmdt" = "Flat",
+    "ppdmdt" = "Default",
+    "pptmdt" = "Tuned",
+    "OLSmdt" = "OLS"
+  )
+)
+```
+
+## Zoomed
+```{r}
+time_breaks <- c(600, 660, 720, 780, 840)
+time_labels <- c("10 AM", "11 AM", "12 PM", "1 PM", "2 PM")
+
+ggplot(
+  plot_data, 
+  aes(
+    x = DEP_TIME_MINS, 
+    y = Predicted_ARR_DELAY, 
+    color = Model)
+  ) +
+  geom_line(size = 1) +
+  labs(
+    title = "Figure 18 (b) Comparison of Regression Lines",
+    x = "Departure Time",
+    y = "Predicted Arrival Delay (Minutes)"
+  ) +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels,
+    limits = c(600, 840)) +
+  theme_minimal() +
+  ylim(0,6) +
+  scale_color_discrete(
+    labels =  c(
+    "ppfmdt" = "Flat",
+    "ppdmdt" = "Default",
+    "pptmdt" = "Tuned",
+    "OLSmdt" = "OLS"
+  )
+)
+```
+
+## Scatter Overlay
+```{r}
+time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
+time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
+ggplot() +
+  geom_jitter(
+    data = Delays_sample, 
+    aes(x = DEP_TIME_MINS, y = ARR_DELAY),
+    color = "darkgray", alpha = 0.3, size = 1,
+    width = 5, height = 0.5
+  ) +
+  geom_line(
+    data = plot_data, 
+    aes(x = DEP_TIME_MINS, y = Predicted_ARR_DELAY, color = Model),
+    size = 1
+  ) +
+  labs(
+    title = "Figure 18 (c) Comparison of Regression Lines",
+    x = "Departure Time",
+    y = "Arrival Delay (Minutes)"
+  ) +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels) +
+  theme_minimal() +
+  ylim(NA, 2000) +
+  scale_color_discrete(
+    labels = c(
+      "ppfmdt" = "Flat",
+      "ppdmdt" = "Default",
+      "pptmdt" = "Tuned",
+      "OLSmdt" = "OLS"
+    )
+  )
+```
+
+:::
 
 ## 4 Discussion
 
@@ -2790,7 +2940,7 @@ This project investigated the use of different types of priors with Bayesian lin
 
 #### 4.1 Modeling Results
 
-Model 1 examined the effect of departure time on arrival delays. All three versions of the model estimated the regression coefficient $\beta_1$ to be $0.02$.  That is, for every minute past midnight on any given day, arrival delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$). The flat, default, and tuned models found intercepts, $\beta_0$, to be $-10.92, -10.94, \text{ and } -11.66$ respectively. The difference shown in the intercept of the tuned model (just over 43 seconds), shows a small effect from the adjusted prior. There are no remarkable differences in the estimated standard deviations, $\sigma$, for Model 1. There are no large differences in standard error for any of the estimates. 
+Model 1 examined the effect of departure time on arrival delays. All three versions of the model estimated the regression coefficient $\beta_1$ to be $0.02$.  That is, for every minute past midnight on any given day, arrival delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes),}$ the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$). The flat, default, and tuned models found intercepts, $\beta_0$, to be $-10.92, -10.94, \text{ and } -11.66$ respectively. The difference shown in the intercept of the tuned model (just over 43 seconds), shows a small effect from the adjusted prior. There are no remarkable differences in the estimated standard deviations, $\sigma$, for Model 1. There are no large differences in standard error for any of the estimates. 
 
 Model 2 examined the effect of the day of the week as a categorical variable on arrival delays. Tuesday was set to the reference as it had the lowest average delay. The estimated intercepts, $\beta_0$, for the three versions of the model are all fairly similar as are the estimated standard deviations. The flat and tuned models have similar estimates for the coefficients of the day variables, though the model with default tuned priors has higher weights associated with the Friday and Saturday coefficients and lower weights for the Sunday, Monday and Wednesday coefficients. There are no large differences in standard error for any of the estimates. 
 
@@ -2798,7 +2948,7 @@ The lack of any large differences between the models is likely due to the large 
 
 #### 4.2 Evaluation of the Models
 
-The 5-fold cross validation provides median absolute errors of $\sim 15.7$ for Model 1 and $\sim 17.1$ for Model 2. This indicated a typical error of 15.7 and 17.1 minutes, or standard deviations of $\sim 0.31$ and $\sim 0.31$, for the models respectively. The cross validation does also estimate that $\sim 96.6\%$ of the observations fall within their $95\%$ prediction interval. This assessment provides reassurance that the models do provide accurate predictions. 
+The 5-fold cross validation provides median absolute errors of $\sim 15.7$ for Model 1 and $\sim 17.1$ for Model 2. This indicated a typical error of $15.7$ and $17.1 \text{ minutes}$, or standard deviations of $\sim 0.31$ and $\sim 0.31$, for the models respectively. The cross validation does also estimate that $\sim 96.6\%$ of the observations fall within their $95\%$ prediction interval. This assessment provides reassurance that the models do provide accurate predictions. 
 
 The results from analysis of effective sample size and R-hat metrics also provide  positive indicators for model accuracy. Effective sample sizes ($N_{\text{eff}}$) for all iterations of each model are all well above $0.1$ indicating that sample is of an appropriate volume for the Markov chain. 
 
@@ -2811,18 +2961,126 @@ $\log(Y_i) \mid \beta_0, \beta_1, \sigma \overset{\text{ind}}{\sim} N(\mu_i, \si
 
 As the differences between the model version with differing priors was slight, linear models were constructed via ordinary least squares(OLS) for comparison. The OLS models were compared to the Bayesian models with default priors. Model 1 was found to have similar parameter estimates  to the OLS model to include the standard errors for those parameter estimates. The residual standard error from the OLS model was also similar to the standard deviation of the Bayesian model. Model 2 had similar intercept and standard deviation estimates to the OLS model, though there were differences in the other parameter estimates.
 
-In checking the model assumptions, it is relevant to examine the context of the data. The data was assembled by the Department of Transportation and includes all national flights, within the U.S., from January of 2019 through August of 2023. Each observation in the data set is an individual flight with it's associated times, locations, and attributed causes for delay. The first observation requires that each observation be independent. While we assumed this to generally be true, a fault in this logic may occur due to a domino effect of late flights. This domino effect could likely be the cause of the slight increase in delays throughout the day. Assumptions two and three which require linearity and both normal and homoscedastic variance can be assessed through the posterior predictive check. The posterior predictive checks of the models demonstrated that assumptions two and three were violated as the predictions did not reliably capture the observations which were not Gaussian in nature. 
-
-
+In checking the model assumptions, it is relevant to examine the context of the data. The data was assembled by the Department of Transportation and includes all national flights, within the U.S., from January of 2019 through August of 2023. Each observation in the data set is an individual flight with it's associated times, locations, and attributed causes for delay. The first observation requires that each observation be independent. While we assumed this to generally be true, a fault in this logic may occur due to a domino effect of late flights. This domino effect could likely be the cause of the slight increase in delays throughout the day. Assumptions two and three which require linearity and both Normal and homoscedastic variance can be assessed through the posterior predictive check. The posterior predictive checks of the models demonstrated that assumptions two and three were violated as the predictions did not reliably capture the observations which were not Gaussian in nature. 
 
 ## 5 Conclusion
 
--   Summarize your key findings.
+This analysis highlighted the diminished effect priors have on posterior distributions in light of large amounts of data. Model 1 resulted in the coefficient $\beta_1= 0.02 \text{ minutes}$, indicating 1.2 second increase in arrival delay per each minute past midnight, predicting, for example, a 3 and a half minute arrival delay at noon. Model 2 indicated that delays varied by the day of the week, but with no clear trend. Comparison of Model 1 with an OLS model showed little differences, further supporting the diminished effect of priors with large data sets. There were some differences with the categorical OLS model and the categorical coefficients of Model 2, but nothing greater than the differences provided by the three different iterations the Bayesian model.
 
--   Discuss the implications of your results.
+Diagnostics provided support of the MCMC sampling with effective sample sizes all larger than 0.1, $\hat{R} \approx 1$ and desirable trace plots, density plots and autocorrelations. Although the Markov Chain Monte Carlo provided good results, the posterior predictive check indicated issues with the model, indicating a non-normal posterior would be a better fit. A log transformation of the outcome variable may be of benefit.
+
+The posterior predictive check also indicated a potential violation of assumptions. It may be of interest in future research to account for the domino effect that results from late flights - one of the potential issues with the first model.  
 
 ##  References
 
 ::: {#refs}
 :::
 
+##  Index
+
+### MCMC Trace of Categorical Model With Flat Priors
+
+```{r}
+model <- flat_model_dow
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 13 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+
+```
+
+### MCMC Trace of Categorical Model With Default Tuned Priors
+
+```{r}
+model <- default_model_dow
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 14 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+
+```
+
+### MCMC Trace of Categorical Model With Default Tuned Priors
+
+```{r}
+model <- tuned_model_dow
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 15 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+```
+
+
+### **Prior Summary: Model 1** 
+
+#### **Default Priors**
+
+```{r}
+prior_summary(default_model_dt)
+```
+
+#### **Flat Priors**
+
+```{r}
+prior_summary(flat_model_dt)
+```
+
+
+### **Prior Summary: Model 2** 
+
+#### **Default Priors**
+
+```{r}
+prior_summary(default_model_dow)
+```
+
+#### **Flat Priors**
+
+```{r}
+prior_summary(flat_model_dt)
+```
