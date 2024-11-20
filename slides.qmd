@@ -6,10 +6,11 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 date-format: "MMM D, YYYY"
 format:
   revealjs:
+    transition: slide
     css: custom.css
     theme: dark
     embed-resources: true
-    slide-number: false
+    slide-number: true
     width: 1600
     height: 900
     df-print: paged
@@ -166,7 +167,7 @@ $$
   - $\beta_1$ : The regression coefficient 
   - $X$ : Independent variable
   - $\varepsilon$ : Random error [@xiaogang]
-- $\hat\beta$ provides a point estimate ofr the regression coefficient in the frequentist framework
+- $\hat\beta$ provides a point estimate for the regression coefficient in the frequentist framework
 
 
 
@@ -174,7 +175,7 @@ $$
 
 - The **Bayesian** Approach
   - A regression is constructed using probability distributions, not point estimates as in the frequentist approach
-  - Bayes Rule (2) is used to inform the model [@xiaogang]
+  - Bayes Rule is used to inform the model [@xiaogang]
 
 $$
 p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)}
@@ -188,6 +189,10 @@ $$
 
 ## The Bayesian Approach{.smaller}
 
+:::: {layout="[ 60, 40 ]" layout-valign="center"}
+
+::: {#first-column}
+
    Bayesian Inference can be written simply [@Koehrsen2018]
     
 $$
@@ -200,12 +205,17 @@ $$
 - The $Posterior$ is the probability model that expresses an updated view of the model parameters
   - From the initial parameters of the prior
   - Updated with new data expressed in the likelihood function
+:::
 
+::: {#second-column}
+![](tb.gif){fig-align="center"}
 
+:::
+::::
 
 ## The Bayesian Approach
 
-  - A more formal expression of Bayes Rule applied for continous parameters
+  - A more formal expression of Bayes Rule applied for continuous parameters
   
 $$
 \begin{align*}
@@ -223,13 +233,41 @@ $$
 ## The Bayesian Approach
 
 - The Bayesian Linear Regression Model
-  - changes based on:
+  - Changes based on:
       - distribution chosen for regression
       - distribution and hyperparameters chosen for priors
-  - Our test case models a continuous outcome by a continuous predictor, so we use a Normal model with conjugate normal priors
+  - Our test cases models a continuous outcome so we use a Normal model with conjugate normal priors
+
+```{r}
+#| fig-width: 12
+#| fig-height: 4
+#| layout-ncol: 1
+#| fig-align: center
+
+library(ggplot2)
+library(patchwork)
+library(bayesrules)
+
+a <- plot_gamma_poisson(shape = 8, rate = 2, sum_y = 10, n = 4) +
+  ggtitle("Gamma-Poisson Conjugate Model") +
+  theme(legend.position = "none")
+
+b <-plot_normal_normal(mean = 6, sd = 1, sigma = 0.5, y_bar = 5, n = 2) +
+  ggtitle("Normal-Normal Conjugate Model")+
+  theme(legend.position = "none")
+
+c <-plot_beta_binomial(alpha = 4, beta = 6, y = 14, n = 20) +
+  ggtitle("Beta-Binomial Conjugate Model") +
+  theme(legend.position = "none")
+
+plot <- a + b + c + 
+  plot_layout(ncol = 3)
 
 
-## Role of prior knowledge in shaping predictions
+plot
+```
+
+## Role of Prior Knowledge in Shaping Predictions
 
 - Priors can be subjective or objective
     - objective is preferred
@@ -266,15 +304,55 @@ plot_beta_binomial(alpha = 45, beta = 55, y = 30, n = 50)
 ::::
 
 
-## Interpreting the Posterior
+## Interpreting the Posterior with Markov Chain Monte Carlo (MCMC) {.smaller}
 
-- The marginal posterior density function (PDF) may not be available
-- Markov Chain Monte Carlo approximation is commonly used
-  - Markov chain sequence establishes a sample space from the posterior
-  - Integration of samples generated through Monte Carlo techniques from the sample space
+:::: {layout="[ 50, 50 ]"}
+
+::: {#first-column}
+
+*What is MCMC?*
+
+- A computational method to approximate posterior distributions.
+- Samples parameter values using prior and observed data.
+
+*How Does It Work?*
+
+- Generates a sequence of dependent samples (Markov Chain).
+- Approximates posterior features like means and credible intervals.
+- Multiple chains and diagnostics ensure reliable results.
+:::
+
+::: {#second-column}
+![Figure from [@MCMC]](MCMC.png){fig-align="center"}
+:::
+
+::::
+
+
+## Interpreting the Posterior with Markov Chain Monte Carlo (MCMC)
+
+:::: {layout="[ 40, 60 ]"}
+
+::: {#first-column}
+
+- Importance:
+  - Estimates complex posteriors.
+  - Quantifies uncertainty with credible intervals.
+  - Simulates predictions for future outcomes.
+
 - Some popular MCMC algorithms:
   - Gibbs sampler
   - Metropolis-Hastings [@lesaffre]
+  - Hamiltonian [@rstan]
+
+:::
+
+::: {#second-column}
+![](mountain.jpg)
+:::
+
+::::
+
 
 
 ## Sara's Prior Selection & Model Specification
@@ -289,7 +367,7 @@ Where:
 
 - $Y_i$ is the arrival delay for the i-th flight
 - $X_i$ is the departure delay for the i-th flight
-- $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
+- $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, specific to the departure time 
 - $\sigma^2$ is the variance of the errors
 - $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
 
@@ -419,7 +497,9 @@ $$
 $$
 
 
-## The Updated Model 1
+## The Updated Models
+
+Model 1
 
 $$  
 \begin{align*}
@@ -431,8 +511,7 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 $$
 
 
-
-## The Updated Model 2
+Model 2
 
 $$  
 \begin{align*}
@@ -445,7 +524,7 @@ $$
 
 ## Statistical Programming
 
-- Data was analyzed in R [@R] , imported via CSV.
+- Data was analyzed with R [@R] in RStudio [@RStudio], imported via CSV.
   - Data sourced from the [Bureau of Transportation Statistics](https://www.kaggle.com/datasets/patrickzel/flight-delay-and-cancellation-dataset-2019-2023?resource=download) via Kaggle @dataset.
 - Libraries
   - rstanarm [@rstanarm]
@@ -1167,258 +1246,448 @@ mcmc_acf(model)
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
 .tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
-  font-family:Arial, sans-serif;font-size:20px;overflow:hidden;padding:10px 5px;word-break:normal;}
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
 .tg th{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
-  font-family:Arial, sans-serif;font-size:20px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg .tg-6txe{background-color:#002B36;border-color:#ffffff;color:#FFF;text-align:center;vertical-align:top}
-.tg .tg-pruk{background-color:#002B36;border-color:#ffffff;text-align:left;vertical-align:top}
-.tg .tg-k9oj{background-color:#002b36;color:#ffffff;text-align:left;vertical-align:top}
-.tg .tg-n3e9{background-color:#002B36;border-color:#002b36;color:#FFF;text-align:center;vertical-align:top}
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-ltn0{background-color:#002B36;border-color:inherit;color:#FFF;text-align:center;vertical-align:bottom}
+.tg .tg-huj6{background-color:#002B36;border-color:inherit;text-align:left;vertical-align:bottom}
+.tg .tg-4c4n{background-color:#002B36;border-color:inherit;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-w8br{background-color:#002B36;border-color:inherit;color:#FFF;font-weight:bold;text-align:left;vertical-align:middle}
+.tg .tg-09od{background-color:#002B36;border-color:inherit;color:#FFF;text-align:right;vertical-align:middle}
 </style>
 <table class="tg"style="width: 80%;font-size: 20px; table-layout: fixed; border-spacing: 0; margin: auto;"><colgroup>
-<col style="width: 160px">
-<col style="width: 160px">
-<col style="width: 107px">
-<col style="width: 107px">
-<col style="width: 149px">
+<col style="width: 171.333333px">
+<col style="width: 148.333333px">
+<col style="width: 148.333333px">
+<col style="width: 148.333333px">
+<col style="width: 148.333333px">
 </colgroup>
 <thead>
   <tr>
-    <th class="tg-k9oj" colspan="5"> <span style="font-weight:bold";font-size: 26px;>Table 2.</span><br>                                 Estimations of the Posterior Distributions' Regression Coefficients</th>
+    <th class="tg-4c4n" colspan="5"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 2</span><span style="font-style:normal;color:#FFF">. Estimations of the Posterior Distributions’ Regression Coefficients.</span></th>
   </tr></thead>
 <tbody>
   <tr>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36;font-size: 20px;">Mean</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36;font-size: 20px;">SE</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36;font-size: 20px;">95% CI</span></td>
+    <td class="tg-huj6"></td>
+    <td class="tg-huj6"></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">Mean</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">SE</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">95% CI</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36;font-size: 20px;">Continuous</span></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
+    <td class="tg-w8br" colspan="5"><span style="font-weight:bold;color:#FFF;background-color:#002B36">Model 1: Continuous Predictor</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="3"><br><br>Flat Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-10.92</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-11.85; 0.02)</span></td>
+    <td class="tg-09od" rowspan="3">Flat Priors</td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">-10.92</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(-11.85; -10.00)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.02; 50.86)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.02; 0.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(50.86; -11.86)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(50.86; 51.33)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="3"><br><br>Default Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀&nbsp;&nbsp;intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-10.94</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-11.86; 0.02)</span></td>
+    <td class="tg-09od" rowspan="3">Default Tuned Priors</td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">-10.94</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(-11.86; -10.01)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.02; 50.86)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.02; 0.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(50.86; -12.02)</span></td>
+    <td class="tg-ltn0"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(50.86; 51.32)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="3"><br><br>Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-11.66</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.17</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-12.02; 0.02)</span></td>
+    <td class="tg-09od" rowspan="3">Tuned Priors</td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">-11.66</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.17</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(-12.02; -11.32)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.02; 50.87)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.02; 0.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.10</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(50.87; 0.00)</span></td>
+    <td class="tg-ltn0"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">51.10</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(50.87; 51.33)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Categorical</span></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
+    <td class="tg-w8br" colspan="5"><span style="font-weight:bold;color:#FFF;background-color:#002B36">Model 2: Categorical Predictor</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Flat Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.57</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.69; 3.72)</span></td>
+    <td class="tg-09od" rowspan="8">Flat Priors</td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">1.57</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.69; 2.43)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.92</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.72; 1.47)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">4.36</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(3.21; 5.56)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.66</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.47; 0.69)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">2.93</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(1.72; 4.21)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.86</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.69; 2.25)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">4.92</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(3.72; 6.13)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">3.43</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(2.25; 3.21)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">2.66</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(1.47; 3.88)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.36</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.21; 1.72)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">1.86</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.69; 3.05)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.93</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.72; 51.16)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">3.43</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(2.25; 4.66)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(51.16; 0.73)</span></td>
+    <td class="tg-ltn0"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(51.16; 51.62)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Default Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.40</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.73; 3.21)</span></td>
+    <td class="tg-09od" rowspan="8">Default Tuned Priors</td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.40</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.73; 2.43)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.40</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.21; 1.48)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">3.48</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.58</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(2.31; 4.70)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.69</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.48; 1.75)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">1.89</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.74; 3.04)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.97</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.75; 3.77)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">4.40</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(3.21; 5.58)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.59</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.77; 2.31)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">2.69</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(1.48; 3.82)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">3.48</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.58</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(2.31; 0.74)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">2.97</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(1.75; 4.18)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.89</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.74; 51.17)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.59</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(3.77; 6.13)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.40</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(51.17; 0.66)</span></td>
+    <td class="tg-ltn0"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">51.40</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(51.17; 51.62)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.66; 3.76)</span></td>
+    <td class="tg-09od" rowspan="8">Tuned Priors</td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.66; 2.43)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.76; 1.48)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">4.41</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(3.23; 5.66)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.70</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.48; 0.71)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">2.99</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(1.73; 4.25)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.91</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.71; 2.28)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(3.76; 6.18)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">3.50</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.63</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(2.28; 3.23)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">2.70</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(1.48; 3.89)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.41</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.23; 1.73)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">1.91</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(0.71; 3.15)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.99</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.73; 51.17)</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">3.50</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.63</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(2.28; 4.73)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(51.17; 0.00)</span></td>
+    <td class="tg-ltn0"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-ltn0"><span style="color:#FFF;background-color:#002B36">(51.17; 51.62)</span></td>
   </tr>
 </tbody></table>
 ```
 
+## Results{.center}
+
+```{r}
+library(broom.mixed)
+library(rstanarm)
+library(ggpubr)
+library(ggplot2)
+
+Delays_sample <- Delays_sample %>%
+  mutate(DAY_OF_WEEK = relevel(as.factor(DAY_OF_WEEK), ref = "Tue"))
+
+Delays_sample$DAY_OF_WEEK <- factor(
+  Delays_sample$DAY_OF_WEEK, 
+  ordered = FALSE)
+
+flat_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+                       data = Delays_sample,
+                       family = gaussian(),
+                       prior = NULL,
+                       prior_intercept = NULL,
+                       prior_aux = NULL,
+                       chains = 4, iter = 2000, seed = 123,
+                       refresh = 0
+                       )
+
+fmdt <- tidy(flat_model_dt, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+default_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+                       data = Delays_sample,
+                       family = gaussian(),
+                       chains = 4, iter = 2000, seed = 123,
+                       refresh = 0
+                       )
+
+dmdt <- tidy(default_model_dt, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+tmdt <- tidy(tuned_model_dt, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+flat_model_dow <- stan_glm(
+  ARR_DELAY ~ DAY_OF_WEEK, 
+  data = Delays_sample, 
+  family = gaussian(),
+  prior = NULL, 
+  prior_intercept = NULL, 
+  prior_aux = NULL,
+  chains = 4, iter = 2000, seed = 123,
+  refresh = 0
+)
+
+model <- flat_model_dow
+
+fmdow <- tidy(model, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+default_model_dow <- stan_glm(
+  ARR_DELAY ~ DAY_OF_WEEK, 
+  data = Delays_sample, 
+  family = gaussian(),
+  chains = 4, iter = 2000, seed = 123,
+  refresh = 0
+)
+
+model <- default_model_dow
+
+dmdow <- tidy(model, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+model <- tuned_model_dow
+
+tmdow <- tidy(model, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+all_models <- bind_rows(
+  tmdt %>% mutate(Model = "Tuned1"),
+  fmdt %>% mutate(Model = "Flat1"),
+  dmdt %>% mutate(Model = "Default1"),
+  tmdow %>% mutate(Model = "Tuned2"),
+  fmdow %>% mutate(Model = "Flat2"),
+  dmdow %>% mutate(Model = "Default2")
+)
 
 
+library(dplyr)
 
-## Comparison of the Models {.scrollable}
+model1_results <- all_models %>% 
+  filter(Model %in% c("Tuned1", "Flat1", "Default1"), 
+         term != "sigma") %>%
+  mutate(
+    Model = factor(
+      Model, 
+      levels = c("Tuned1", "Flat1", "Default1"),
+      labels = c("Tuned", "Flat", "Default"))) %>%
+  mutate(
+    term = factor(
+      term,
+      levels = c("(Intercept)", 
+                 "DEP_TIME_MINS", 
+                 "mean_PPD"),
+      labels = c("Intercept", 
+                 "Departure Time Coefficient", 
+                 "Mean PPD"))
+    )
+
+
+model2_results <- all_models %>% 
+  filter(Model %in% c("Tuned2", "Flat2", "Default2"), 
+         term != "sigma") %>%
+  mutate(
+    term = factor(
+      term,
+      levels = c("(Intercept)", 
+                 "DAY_OF_WEEKWed", 
+                 "DAY_OF_WEEKThu", 
+                 "DAY_OF_WEEKFri", 
+                 "DAY_OF_WEEKSat", 
+                 "DAY_OF_WEEKSun", 
+                 "DAY_OF_WEEKMon",
+                 "mean_PPD"),
+      labels = c("Intercept (Tues)", 
+                 "Wednesday", 
+                 "Thursday", 
+                 "Friday", 
+                 "Saturday", 
+                 "Sunday", 
+                 "Monday",
+                 "Mean PPD"))) %>%
+  mutate(
+    Model = factor(
+      Model, 
+      levels = c("Tuned2",
+                 "Flat2",
+                 "Default2"),
+      labels = c("Tuned",
+                 "Flat",
+                 "Default"))
+    )
+
+
+ggplot(model1_results, aes(x = term, y = estimate, color = Model)) +
+  geom_point(
+    size = 2,
+    position = position_dodge(width = 0.5)
+  ) +
+  geom_errorbar(
+    aes(ymin = conf.low, ymax = conf.high),
+    width = 0.2,
+    position = position_dodge(width = 0.5)
+  ) +
+  labs(
+    title = "Model 1: Continuous Predictor",
+    x = "Coefficient",
+    y = "Mean Estimate"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "#002B36", color = NA),  
+    plot.background = element_rect(fill = "#002B36", color = NA),  
+    text = element_text(color = "white"),                    
+    axis.text = element_text(color = "white"),               
+    legend.background = element_rect(fill = "#002B36", color = NA),
+    legend.key = element_rect(fill = "#002B36", color = NA)  
+  )
+```
+
+## Results{.center}
+
+```{r}
+
+ggplot(model2_results, aes(x = term, y = estimate, color = Model)) +
+  geom_point(
+    size = 2,
+    position = position_dodge(width = 0.5) 
+  ) +
+  geom_errorbar(
+    aes(ymin = conf.low, ymax = conf.high),
+    width = 0.2,
+    position = position_dodge(width = 0.5)
+  ) +
+  coord_flip() + 
+  labs(
+    title = "Model 2: Categorical Predictor",
+    x = "Coefficient",
+    y = "Mean Estimate"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "#002B36", color = NA),
+    plot.background = element_rect(fill = "#002B36", color = NA), 
+    text = element_text(color = "white"),                    
+    axis.text = element_text(color = "white"),               
+    legend.background = element_rect(fill = "#002B36", color = NA),
+    legend.key = element_rect(fill = "#002B36", color = NA)
+  )
+
+```
+
+
+## Comparison of the Models 
 
 ```{=html}
 
@@ -1989,23 +2258,189 @@ summary(ols_model2)$coefficients
 </div>
 ```
 
-## Posterior Predictive Checks: Model 1
+## OLS Comparison
 
-::: {.panel-tabset}
+:::: {.panel-tabset}
+
+## Model 1
+::: {.center}
+```{r}
+
+dep_time_seq <- seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 100)
+
+prediction_data <- data.frame(DEP_TIME_MINS = dep_time_seq)
+
+prediction_data <- prediction_data %>%
+  mutate(
+   ppfmdt  = predict(flat_model_dt, newdata = prediction_data, type = "response"),
+   ppdmdt  = predict(default_model_dt, newdata = prediction_data, type = "response"),
+    pptmdt = predict(tuned_model_dt, newdata = prediction_data, type = "response"),
+    OLSmdt = predict(ols_model1, newdata = prediction_data)
+  )
+
+plot_data <- prediction_data %>%
+  pivot_longer(cols = -DEP_TIME_MINS, names_to = "Model", values_to = "Predicted_ARR_DELAY")
+
+time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
+time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
+
+ggplot(plot_data,
+       aes(
+         x = DEP_TIME_MINS, 
+         y = Predicted_ARR_DELAY, 
+         color = Model)
+       ) +
+  geom_line(size = 1) +
+  labs(
+    title = "Figure 18 (a) Comparison of Regression Lines for Model 1",
+    x = "Departure Time (Minutes Past Midnight)",
+    y = "Predicted Arrival Delay (Minutes)"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels)+
+  scale_color_discrete(
+    labels =  c(
+    "ppfmdt" = "Flat",
+    "ppdmdt" = "Default",
+    "pptmdt" = "Tuned",
+    "OLSmdt" = "OLS"
+  )
+)
+```
+:::
+
+## Model 1: Scatter Overlay
+::: {.center}
+```{r}
+time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
+time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
+ggplot() +
+  geom_jitter(
+    data = Delays_sample, 
+    aes(x = DEP_TIME_MINS, y = ARR_DELAY),
+    color = "darkgray", alpha = 0.3, size = 1,
+    width = 5, height = 0.5
+  ) +
+  geom_line(
+    data = plot_data, 
+    aes(x = DEP_TIME_MINS, y = Predicted_ARR_DELAY, color = Model),
+    size = 1
+  ) +
+  labs(
+    title = "Figure 18 (c) Comparison of Regression Lines for Model 1",
+    x = "Departure Time",
+    y = "Arrival Delay (Minutes)"
+  ) +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels) +
+  theme_minimal() +
+  ylim(NA, 2000) +
+  scale_color_discrete(
+    labels = c(
+      "ppfmdt" = "Flat",
+      "ppdmdt" = "Default",
+      "pptmdt" = "Tuned",
+      "OLSmdt" = "OLS"
+    )
+  )
+```
+:::
+
+## Model 2
+::: {.center}
+```{r}
+
+library(tibble)
+
+ols_model2 <- lm(ARR_DELAY ~ DAY_OF_WEEK, data = Delays_sample) 
+om2t <- as.data.frame(summary(ols_model2)$coefficients)
+
+om2 <- om2t %>%
+  rownames_to_column(var = "term") %>%
+  rename(
+    estimate = Estimate,
+    std.error = `Std. Error`
+  )
+
+df <- ols_model2$df.residual
+t_value <- qt(0.975, df)
+
+om2 <- om2 %>%
+  mutate(
+    conf.low = estimate - t_value * std.error,
+    conf.high = estimate + t_value * std.error
+  )
+
+om2 <- om2 %>%
+  mutate(
+    term = factor(
+      term,
+      levels = c("(Intercept)", 
+                 "DAY_OF_WEEKWed", 
+                 "DAY_OF_WEEKThu", 
+                 "DAY_OF_WEEKFri", 
+                 "DAY_OF_WEEKSat", 
+                 "DAY_OF_WEEKSun", 
+                 "DAY_OF_WEEKMon"),
+      labels = c("Intercept (Tues)", 
+                 "Wednesday", 
+                 "Thursday", 
+                 "Friday", 
+                 "Saturday", 
+                 "Sunday", 
+                 "Monday")
+    ),
+    Model = "OLS"
+  ) %>%
+  select(-`t value`, -`Pr(>|t|)`)
+
+
+model2_comb <- bind_rows(model2_results, om2)
+
+ggplot(model2_comb, aes(x = term, y = estimate, color = Model)) +
+  geom_point(
+    aes(shape = Model),
+    size = 3,
+    position = position_dodge(width = 0.5)
+  ) +
+  geom_errorbar(
+    aes(ymin = conf.low, ymax = conf.high),
+    width = 0.2,
+    position = position_dodge(width = 0.5)
+  ) +
+  coord_flip() +
+  labs(
+    title = "Comparison of OLS and Bayesian Models",
+    x = "Coefficient",
+    y = "Mean Estimate"
+  ) +
+  theme_minimal()+
+  theme(
+    panel.background = element_rect(fill = "#002B36", color = NA),  
+    plot.background = element_rect(fill = "#002B36", color = NA),  
+    text = element_text(color = "white"),                    
+    axis.text = element_text(color = "white"),               
+    legend.background = element_rect(fill = "#002B36", color = NA),
+    legend.key = element_rect(fill = "#002B36", color = NA)  
+  )
+
+```
+:::
+::::
+
+## Posterior Predictive Checks: Model 1{.center}
+
+:::: {.panel-tabset}
 ## Flat Continuous Model
+::: {.center}
 ```{r 18}
 library(bayesplot)
 library(rstanarm)
 
-flat_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
-                       data = Delays_sample,
-                       family = gaussian(),
-                       prior = NULL,
-                       prior_intercept = NULL,
-                       prior_aux = NULL,
-                       chains = 4, iter = 2000, seed = 123,
-                       refresh = 0
-                       )
+
 model <- flat_model_dt
 
 y <- Delays_sample$ARR_DELAY
@@ -2014,16 +2449,13 @@ yrep <- posterior_predict(model)
 pp_check(y, yrep[1:50,], ppc_dens_overlay) +
   ggtitle("Figure 16 (a) Posterior Predictive Check Model 1: Flat Priors  ") + xlim (NA, 350)
 ```
+:::
 
 ## Default Continuous Model
+::: {.center}
 ```{r 19}
 
-default_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
-                       data = Delays_sample,
-                       family = gaussian(),
-                       chains = 4, iter = 2000, seed = 123,
-                       refresh = 0
-                       )
+
 model <- default_model_dt
 
 yrep <- posterior_predict(model)
@@ -2031,8 +2463,10 @@ yrep <- posterior_predict(model)
 pp_check(y, yrep[1:50,], ppc_dens_overlay) +
   ggtitle("Figure 16 (b) Posterior Predictive Check Model 1: Default Priors  ") + xlim (NA, 350)
 ```
+:::
 
 ## Tuned Continuous Model
+::: {.center}
 ```{r 20}
 
 model <- tuned_model_dt
@@ -2044,11 +2478,13 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 
 ```
 :::
+::::
 
 ## Posterior Predictive Checks: Model 2
 
-::: {.panel-tabset}
+:::: {.panel-tabset}
 ## Flat Categorical Model
+::: {.center}
 ```{r 21}
 
 Delays_sample <- Delays_sample %>%
@@ -2058,16 +2494,6 @@ Delays_sample$DAY_OF_WEEK <- factor(
   Delays_sample$DAY_OF_WEEK, 
   ordered = FALSE)
 
-flat_model_dow <- stan_glm(
-  ARR_DELAY ~ DAY_OF_WEEK, 
-  data = Delays_sample, 
-  family = gaussian(),
-  prior = NULL, 
-  prior_intercept = NULL, 
-  prior_aux = NULL,
-  chains = 4, iter = 2000, seed = 123,
-  refresh = 0
-)
 
 model <- flat_model_dow
 
@@ -2077,17 +2503,11 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
   ggtitle("Figure 17 (a) Posterior Predictive Check Model 2: Flat Priors  ") + xlim (NA, 350)
 
 ```
+:::
 
 ## Default Categorical Model
+::: {.center}
 ```{r 22}
-
-default_model_dow <- stan_glm(
-  ARR_DELAY ~ DAY_OF_WEEK, 
-  data = Delays_sample, 
-  family = gaussian(),
-  chains = 4, iter = 2000, seed = 123,
-  refresh = 0
-)
 
 model <- default_model_dow
 
@@ -2098,19 +2518,11 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 
 
 ```
+:::
 
 ## Tuned Continuous Model 
+::: {.center}
 ```{r 23}
-tuned_model_dow <- stan_glm(
-  ARR_DELAY ~ DAY_OF_WEEK, 
-  data = Delays_sample, 
-  family = gaussian(),
-  prior = normal(2,2116), 
-  prior_intercept = normal(0,2500), 
-  prior_aux = exponential(0.02),
-  chains = 4, iter = 2000, seed = 123,
-  refresh = 0
-)
 
 model <- tuned_model_dow
 
@@ -2121,6 +2533,7 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 
 ```
 :::
+::::
 
 # **Heather's Analysis & Results**
 
