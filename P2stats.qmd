@@ -1,0 +1,301 @@
+---
+title: "Bayesian Linear Regression"
+subtitle: "Analysis of Flight Delay Data"
+author: "Sara Parrish, Heather Anderson (Advisor: Dr. Seals)"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+date-format: "MMM D, YYYY"
+format:
+  revealjs:
+    transition: slide
+    css: custom.css
+    theme: dark
+    embed-resources: true
+    slide-number: true
+    width: 1600
+    height: 900
+    df-print: paged
+    html-math-method: katex
+course: Capstone Projects in Data Science
+bibliography: references.bib
+csl: ieee.csl
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+pdf-separate-fragments: true
+fig-align: center
+---
+
+**Groups:**
+
+- *Chinstraps*: Heather Anderson(Blue), Maria Drury(Purple), Hailee Hawkins(Orange), Carolyn Herrera(Green), Liz Miller(Magenta(Dark Pink)), Sara Parrish(Red).
+						
+
+**Set Up:**
+
+- Let $\mu$ denote the typical flipper length (in mm) among the penguin species your group was assigned. To learn about $\mu$, we'll utilize flipper measurements $(Y_1, Y_2, ..., Y_n)$ on a sample of penguins.
+
+- The `penguins_bayes` data in the `bayesrules` package contains data on the flipper lengths for a sample of three different penguin species. For the species you were assigned, you will disseminate an analysis on penguin flipper length.
+
+
+```{r}
+
+library(bayesrules)
+library(tidyverse)
+library(tidymodels)
+
+data("penguins_bayes")
+
+# Filter the data for Chinstrap species and remove NA values
+chindata <- penguins %>%
+  filter(species == "Chinstrap") %>%
+  select(flipper_length_mm) %>%
+  drop_na()
+
+# Extract the numeric column from the data frame
+chinstrap_flipper <- chinstrap$flipper_length_mm
+
+# Check the first few rows of the numeric vector
+head(chinstrap_flipper)
+
+
+
+head(chindata)
+colnames(chindata)
+
+
+```
+
+**Deliverable 1:** a presentation on Monday, November 25. 
+
+- **Slide 1:** Introduce your penguin species and the measure(s) we are interested in estimating.
+
+### Chinstrap penguins are one of the most abundant penguin species in the Antarctic, with an estimated population of nearly eight million pairs. They are the most abundant penguin species breeding at the South Sandwich Islands. According to the study, the penguins take more than 10000 naps a day, with each one lasting only four seconds, totalling 11-12 hours per day. ###
+
+![](Chinstrap_Penguin_2.jpg){width="600"}
+
+### Today we will analyze flipper lengths for Chinstrap penguins ###
+
+- **Slide 2:** Explain which Bayesian model is appropriate for this analysis: Beta-Binomial, Gamma-Poisson, or Normal-Normal.
+
+### Since flipper lengths are generally well-distributed and approximately normal for penguins, the Normal-Normal Bayesian Model is the most appropriate for the analysis of Chinstrap penguin flipper lengths ###
+
+![](Histo_Penguin.png){width="600"}
+
+$$
+Y_i|\mu \sim N(\mu, \sigma^2)
+$$
+
+- **Slide 3:** Do some basic research to determine what the average flipper length for your species is.
+
+### Using prior studies we have determined the average flipper length of Chinstrap penguins is 193.37mm with a standard deviation of 6.12 [@Moreno1999]###
+
+
+- **Slide 4:** Specify (and justify) an appropriate prior model for $\mu$.
+
+```{r}
+mu_0 <- 193.37           # Prior mean
+sigma_0 <- 6.12          # Prior standard deviation
+prior_variance <- sigma_0^2
+```
+
+# Output the results
+cat("Prior mean:", mu_0, "\n")
+cat("Prior Standard deviation", sigma_0, "\n")
+cat("Prior variance:", prior_variance, "\n")
+
+$$
+\mu \sim N(193.7, {6.12}^2)
+$$
+
+```{r}
+plot_normal(193.37,6.12)
+``` 
+
+```{r}
+x <- seq(180, 210, length.out = 1000)
+prior_density <- dnorm(x, mean = mu_0, sd = sigma_0)
+```
+
+```{r}
+plot(x, prior_density, type = "l", lwd = 2, col = "blue",
+     xlab = "Flipper Length (mm)", ylab = "Density",
+     main = "Prior Distribution for Flipper Length (Normal)")
+abline(v = mu_0, col = "red", lty = 2)
+legend("topright", legend = c("Prior Mean (193 mm)"), col = "red", lty = 2)
+```
+
+![](Prior_Graph.jpg){width="600"}
+
+- **Slide 5:** Describe the sample data.
+
+    1. How many data points are there?
+    2. What is the sample mean and standard deviation of flipper length?
+    3. Construct a histogram of this species' flipper length.
+
+![](Histo_Penguin.png){width="600"}
+
+### There are 68 data points for the Chinstrap penguins. The sample mean is 195.8235mm with a standard deviation of 7.131894. 
+
+```{r}
+penguins_bayes <- bayesrules::penguins_bayes
+
+chindata <- penguins_bayes %>%
+  filter(species == "Chinstrap")
+count(chindata)
+mean(chindata$flipper_length_mm)
+sd(chindata$flipper_length_mm)
+```
+
+```{r}
+
+library(ggplot2)
+ggplot(data = chindata, aes(x=flipper_length_mm)) +
+  geom_histogram(binwidth = 2, fill = "skyblue", color = "black") +
+  labs(
+    title = "Histogram of Flipper Length for Chinstrap Penguins",
+    x = "Flipper Length (mm)",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+```
+I did a histogram with a density curve
+# Plot histogram with density curve
+ggplot(chinstrap, aes(x = flipper_length_mm)) +
+  geom_histogram(aes(y = ..density..), binwidth = 5, fill = "lightblue", color = "black") +
+  geom_density(color = "red", linewidth = 1) +
+  labs(
+    title = "Histogram and Density of Chinstrap Penguins' Flipper Lengths",
+    x = "Flipper Length (mm)",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+Since we have the histogram earlier in the slides as evidence for our normal-normal decision should we use the one with density on slide 5?
+
+- **Slide 6:** Specify the posterior model for $\mu$.
+
+$$
+\mu|(Y = 68) \sim N(?,?)
+$$
+
+```{r}
+plot_normal_normal(193.37, 6.12, sigma=7.13, y_bar=195.82, n=68)
+summarize_normal_normal(193.37, 6.12, sigma=7.13, y_bar=195.82, n=68)
+```
+$$
+\theta = 195.82 \\
+\sigma = 7.13 \\
+n = 68 \\
+\tau = 6.12 \\
+\bar{y} = 193.37
+$$
+
+
+$$
+\mu | \overset{\to}y \sim N\left( 195.82 \frac{7.13 ^2}{68*6.12^2 + 7.13^2} + 193.37\frac{68*6.12^2}{68*6.12^2 + 7.13^2}, \frac{6.12^2 7^2}{68*6.12^2 + 7.13^2} \right)\\
+$$
+
+$$
+\text{Simplified: N} \left( 195.82 * 0.01957 + 193.37 * 0.9804, 0.7329 \right)\\
+\text{N: } (193.42, 0.856^2)
+$$
+
+plot_normal_normal(mean =193.37, sd = 6.12, sigma = 7.13, y_bar = 195.82, n = 68)
+summarize_normal_normal(mean = 193.37, sd = 6.12, sigma = 7.13, y_bar = 195.82, n = 68)
+
+![](Slide_6_graph.jpg){width="600"}
+
+
+- **Slide 7:** Calculate and interpret a middle 95% posterior credible interval for $\mu$.
+```{r}
+qnorm(c(0.025, 0.975), 195.77, 0.86)
+```
+$$
+95\% \text{ CI} = [194.08, 197.46]
+$$
+
+# Compute the 95% credible interval
+credible_interval <- qnorm(c(0.025, 0.975), mean = 195.77, sd = 0.86)
+
+# Plot the posterior distribution
+hist(posterior_samples, breaks = 30, probability = TRUE,
+     main = "Posterior Distribution of mu",
+     xlab = "mu")
+abline(v = credible_interval, col = "blue", lwd = 2, lty = 2)  # Update CI to blue
+legend("topright", legend = c("95% CI"), col = "blue", lty = 2)
+
+
+- **Slide 8:** State the corresponding hypotheses using $H_0$, $H_1$, and $\mu$ . We suspect that there are more and more [extra large penguins], so we hypothesize that the average flipper length is somewhere between (note: this is a two-sided hypothesis test!):
+
+    - Chinstraps: 215 and 225 mm
+
+- Null Hypothesis $H_0$:
+$$
+H_0: \mu \in (215,225) 
+$$
+
+- Alternative Hypothesis $H_1$:
+$$
+H_1: \mu \notin (215,225)
+$$
+
+
+- **Slide 9:** Use the credible interval previously constructed to draw a conclusion about the hypotheses on the previous slide. 
+
+### The 95% credible interval for the posterior is [194.08, 197.46], which does not overlap with the range specified in the null hypothesis [215, 225]. This indicates the posterior belief supports values below 215mm, resulting in no evidence for the null hypothesis.
+
+
+- **Slide 10:** Calculate and interpret the posterior probability that your hypothesis is true. Do you still agree with the conclusion you drew in the previous slide?
+
+```{r}
+posterior_prob <- pnorm(225, 195.77,0.86)-pnorm(215,195.77,0.86)
+posterior_prob
+posterior_odds <- (posterior_prob/(1-posterior_prob))
+posterior_odds
+
+```
+$$
+P(215\le\mu\le225|Y=68)=0
+$$
+
+###This confirms the conclusion drawn previously.
+
+- **Slide 11:** Find the Bayes' Factor for these hypotheses. Explain how this supports your decision in the previous slides.
+
+
+```{r}
+prior_prob <- pnorm(225,193.37, 6.12)-pnorm(215,193.37,6.12)
+prior_prob
+prior_odds <-(prior_prob/(1-prior_prob))
+prior_odds
+
+bayes_factor <- posterior_odds/prior_odds
+bayes_factor
+
+
+```
+$$
+\text{Bayes Factor}=
+\frac{\text{Posterior Odds}}{\text{Prior Odds}}=
+\frac{0}{0.0002}=
+0
+$$
+
+
+#Since the Bayes Factor is less than 1, the chance of the average flipper length being between 215mm and 225mm decreased in light of the data. This along with the 95% credible interval confirms our belief that the average flipper length is not between 215mm and 225mm.
+
+|                 Hypotheses                 |  Prior Probability | Posterior Probability |
+|:------------------------------------------:|:------------------:|:---------------------:|
+| $H_0: \mu \in (215,225)$ | $P[H_0] =  0.9998$ | $P[H_0\|Y = 68] =  1$ |
+| $H_1:  \mu \notin (215,225)$               | $P[H_1] =  0.0002$ | $P[H_1\|Y = 68] =  0$ |
+
+
+- **Slide 12:** Summarize your findings: explain your conclusion about $\mu$ based on the evidence gathered / shown in previous slides.
+
+#The average posterior flipper length for Chinstrap penguins is 195.77 with a standard deviation of 0.86, while our average prior flipper length for Chinstrap penguins is 193.37 with a standard deviation of 6.12. We noted no extra large penguins in our sample. 
+
