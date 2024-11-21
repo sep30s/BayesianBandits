@@ -102,35 +102,6 @@ print(total_arrived_flights_corrected)
 
 ![](statsmemecat.jpg){fig-align="center"}
 
-## Introduction to Bayesian Linear Regression
-
--   Regression under the *frequentist* framework
-    -   Independent variables are used to predict dependent variables
-    -   Linear regression finds best-fitting line to observed data to
-        make further predictions
-        -   Regression parameters ($\beta$) are assumed to be fixed
-    -   Only collected data is used for approximation
--   Regression under the *Bayesian* framework
-    -   Independent variables are used to predict dependent variables
-    -   Regression parameters ($\beta$) *are not* assumed to be fixed
-    -   Collected data is used alongside prior knowledge for
-        approximation
-
-## Why Bayesian?
-
-**Advantages of Bayesian Linear Regression[@Zyphur2015]**
-
--   **Incorporation of Prior Knowledge**
-
--   **Uncertainty Quantification**
-
--   **Expanded Hypotheses**
-
--   **Automatic Meta-Analyses**
-
--   **Improved Handling of Small Samples**
-
--   **Complex Model Estimation**
 
 ## Steps in Bayesian Linear Regression
 
@@ -312,14 +283,14 @@ plot_beta_binomial(alpha = 45, beta = 55, y = 30, n = 50)
 
 *What is MCMC?*
 
-- A computational method to approximate posterior distributions.
-- Samples parameter values using prior and observed data.
+- A computational method to approximate posterior distributions
+- Samples parameter values using prior and observed data
 
 *How Does It Work?*
 
-- Generates a sequence of dependent samples (Markov Chain).
-- Approximates posterior features like means and credible intervals.
-- Multiple chains and diagnostics ensure reliable results.
+- Generates a sequence of dependent samples (Markov Chain)
+- Approximates posterior features like means and credible intervals
+- Multiple chains and diagnostics ensure reliable results
 :::
 
 ::: {#second-column}
@@ -336,14 +307,14 @@ plot_beta_binomial(alpha = 45, beta = 55, y = 30, n = 50)
 ::: {#first-column}
 
 - Importance:
-  - Estimates complex posteriors.
-  - Quantifies uncertainty with credible intervals.
-  - Simulates predictions for future outcomes.
+  - Estimates complex posteriors
+  - Quantifies uncertainty with credible intervals
+  - Simulates predictions for future outcomes
 
 - Some popular MCMC algorithms:
   - Gibbs sampler
-  - Metropolis-Hastings [@lesaffre]
   - Hamiltonian [@rstan]
+    - No-U-turn sampler (NUTS)[@brms]
 
 :::
 
@@ -404,7 +375,7 @@ $$
 
 Where
 
-  - $X_{i1}, X_{i2}, ..., X_{i6}$ are indicator variables for the day of the week.
+  - $X_{i1}, X_{i2}, ..., X_{i6}$ are indicator variables for the day of the week
 
 
 
@@ -530,6 +501,7 @@ $$
   - rstanarm [@rstanarm]
     - stan_glm() - simulation of model
     - posterior_predict() - simulation of posterior
+  - brms [@brms] - simulation of model
   - bayesrules [@bayesrules]
     - prediction_summary_cv() - evaluation of posterior
   - bayesplot [@bayesplot]
@@ -1076,10 +1048,11 @@ $$
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
-```{r 9tuned_model_cont}
-#| fig.align: "center"
+## Posterior Predictive Plot
+```{r tuned_model_cont}
+library(ggplot2)
 library(rstanarm)
+library(ggpubr)
 
 tuned_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS, 
                         data = Delays_sample,
@@ -1102,15 +1075,15 @@ set.seed(123)
 shortcut_prediction <- 
   posterior_predict(tuned_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-mcmc_dens(shortcut_prediction) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 12 (a) Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+)
 ```
 
 ## MCMC Trace
-```{r 10tmdtmcmctrace}
-#| fig.align: "center"
-library(ggpubr)
-
+```{r}
 model <- tuned_model_dt
 
 plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
@@ -1128,15 +1101,13 @@ ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4
 ```
 
 ## MCMC Overlay
-```{r 11}
-#| fig.align: "center"
-mcmc_dens_overlay(model)
+```{r}
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 12 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
-```{r 12}
-#| fig.align: "center"
-mcmc_acf(model)
+```{r}
+ggarrange(mcmc_acf(model) + ggtitle("Figure 12 (d) Autocorrelation"))
 ```
 :::
 
@@ -1158,7 +1129,7 @@ $$
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r 13tuned_model_categorical}
 #| fig.align: "center"
 
@@ -1210,9 +1181,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 15 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Tuned Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
@@ -1687,7 +1658,7 @@ ggplot(model2_results, aes(x = term, y = estimate, color = Model)) +
 ```
 
 
-## Comparison of the Models 
+## Comparison of the Models: K-Fold Cross Validation
 
 ```{=html}
 
@@ -1781,8 +1752,6 @@ ggplot(model2_results, aes(x = term, y = estimate, color = Model)) +
 </tbody></table>
 </div>
 ```
-
-
 
 
 ## Effective Sample Size
@@ -2265,6 +2234,8 @@ summary(ols_model2)$coefficients
 ## Model 1
 ::: {.center}
 ```{r}
+#| out.width: 80%
+#| fig.align: center
 
 dep_time_seq <- seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 100)
 
@@ -2314,6 +2285,9 @@ ggplot(plot_data,
 ## Model 1: Scatter Overlay
 ::: {.center}
 ```{r}
+#| out.width: 80%
+#| fig.align: center
+
 time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
 time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
 ggplot() +
@@ -2352,6 +2326,8 @@ ggplot() +
 ## Model 2
 ::: {.center}
 ```{r}
+#| out.width: 80%
+#| fig.align: center
 
 library(tibble)
 
@@ -2437,6 +2413,9 @@ ggplot(model2_comb, aes(x = term, y = estimate, color = Model)) +
 ## Flat Continuous Model
 ::: {.center}
 ```{r 18}
+#| out.width: 80%
+#| fig.align: center
+#| 
 library(bayesplot)
 library(rstanarm)
 
@@ -2454,7 +2433,8 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 ## Default Continuous Model
 ::: {.center}
 ```{r 19}
-
+#| out.width: 80%
+#| fig.align: center
 
 model <- default_model_dt
 
@@ -2468,6 +2448,8 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 ## Tuned Continuous Model
 ::: {.center}
 ```{r 20}
+#| out.width: 80%
+#| fig.align: center
 
 model <- tuned_model_dt
 
@@ -2486,6 +2468,8 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 ## Flat Categorical Model
 ::: {.center}
 ```{r 21}
+#| out.width: 80%
+#| fig.align: center
 
 Delays_sample <- Delays_sample %>%
   mutate(DAY_OF_WEEK = relevel(as.factor(DAY_OF_WEEK), ref = "Tue"))
@@ -2508,6 +2492,8 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 ## Default Categorical Model
 ::: {.center}
 ```{r 22}
+#| out.width: 80%
+#| fig.align: center
 
 model <- default_model_dow
 
@@ -2523,6 +2509,8 @@ pp_check(y, yrep[1:50,], ppc_dens_overlay) +
 ## Tuned Continuous Model 
 ::: {.center}
 ```{r 23}
+#| out.width: 80%
+#| fig.align: center
 
 model <- tuned_model_dow
 
@@ -2862,6 +2850,8 @@ $$
 - Autocorrelation
   - Weak correlation, rapid decay
 
+- Posterior Predictive Checks
+  - Violation of assumptions
 
 ## **Heather's Conclusions**
 #### Key Findings
@@ -2894,13 +2884,16 @@ $$
 
 ## Conclusion
 
--   **Key Insight**:
+-   **Key Insights**:
 
     -   Weather-related incidents, though infrequent, have a
         **disproportionately large impact** on delay times.
 
     -   Highlights the need for better **weather management and
         forecasting**.
+        
+    -   Bayesian regression can converge with similar OLS models in the light of large datasets which leads to a decreasing influence of priors. 
+        - There is no available test to estimate this tradeoff
 
 -   **Bayesian Approach**:
 
