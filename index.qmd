@@ -9,7 +9,7 @@ format:
     code-fold: true
     toc: true
 course: Capstone Projects in Data Science
-bibliography: references.bib # file contains bibtex for references
+bibliography: references1.bib # file contains bibtex for references
 #always_allow_html: true # this allows to get PDF with HTML features
 self-contained: true
 execute: 
@@ -21,8 +21,9 @@ editor:
 theme: solar
 ---
 
-Slides: [slides.html](slides.html){target="_blank"} ( Go to `slides.qmd`
-to edit)
+Slides: [slides.html](slides.html){target="_blank"}
+
+
 
 ## 1 Introduction
 
@@ -30,30 +31,50 @@ to edit)
 
   In opposition to the Bayesian approach is the frequentist approach. The frequentist approach considers the parameter of interest fixed and inference on the parameter is based on the result of repeated sampling. In the Bayesian approach, the parameter of interest is not fixed but stochastic, and inference on the parameter is based on observed data and prior knowledge [@lesaffre].
 
-  A benefit of the Bayesian approach lies in the ability to include prior knowledge through the selection of a prior. Priors can be subjective or objective. Subjective priors incorporate opinions, of an individual or of a group, which can negatively impact the perceived integrity of the findings. Objective priors are preferred which follow formal rules for determining noninformative priors [@lesaffre].
+  A benefit of the Bayesian approach lies in the ability to include prior knowledge through the selection of a prior. Priors can be subjective or objective. Subjective priors incorporate opinions, of an individual or of a group, which can negatively impact the perceived integrity of the findings. Objective priors are preferred which follow formal rules for determining uninformative priors [@lesaffre].
 
-  When prior knowledge is lackluster, has little information, or is otherwise not sufficient, a *noninformative* prior may be used. 	A common choice for a noninformative prior, in cases with binomial likelihood, is a uniform distribution, also known as a *flat prior*. In cases with a Gaussian likelihood, the noninformative prior would be a normal prior with $\sigma^2 \to \infty$ which functions similarly to the flat prior. For cases with a Poisson likelihood, a Gamma($\alpha_0$, $\beta_0$) prior is used where the sum of the counts are $(\alpha_0 - 1)$ and the experiment size is $\beta_0$ [@lesaffre]. For normal linear regression models, conjugate normal-gamma priors can be used to provide a resulting posterior that is of the same family[@xiaogang]. 
+  When prior knowledge is lackluster, has little information, or is otherwise not sufficient, a *uninformative* prior may be used. 	A common choice for a uninformative prior, in cases with binomial likelihood, is a uniform distribution, also known as a *flat prior*. In cases with a Gaussian likelihood, the uninformative prior would be a normal prior with $\sigma^2 \to \infty$ which functions similarly to the flat prior. For cases with a Poisson likelihood, a Gamma($\alpha_0$, $\beta_0$) prior is used where the sum of the counts are $(\alpha_0 - 1)$ and the experiment size is $\beta_0$ [@lesaffre]. For normal linear regression models, conjugate normal-gamma priors can be used to provide a resulting posterior that is of the same family[@xiaogang]. 
   
   There are a variety of ways to summarize the posterior in order to derive conclusions about the parameter. Its location and variability can be specified by finding the mode, mean, and median of the distribution. Its range can be defined with the equal tail credible interval (not to be confused with the confidence interval in the frequentist approach) or with the high posterior density (HDP) interval. Future predictions for the parameter can be made through posterior predictive distributions (PPD) which factor out $\theta$ with the assumption that past data will not influence future data, hierarchical independence[@lesaffre].
 
-  It is not uncommon for the marginal posterior density function of a parameter to be unavailable, requiring an alternate approach to extract insight. It is safe to assert that sampling techniques are used in nearly all Bayesian analyses[@xiaogang]. General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. Monte Carlo integration can be combined with the Markov property given by [@lesaffre] in the following equation
+  It is not uncommon for the marginal posterior density function of a parameter to be unavailable, requiring an alternate approach to extract insight. It is safe to assert that sampling techniques are used in nearly all Bayesian analyses[@xiaogang]. General purpose sampling algorithms available include the inverse ICDF method, the accept-reject algorithm, importance sampling, and the commonly used Monte Carlo integration. The Monte Carlo integration replaces the integral of the posterior with the average obtained from randomly sampled values to provide an expected value. Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm[@lesaffre].
 
-$$
-p(\Theta^{(k+1)}| \Theta^k , \Theta^{(k-1)} , . . . , y) = p(\Theta^{(k+1)} | \Theta^k, y)\tag{2}
-$$
+### 1.1 Applications  
 
-Two popular Markov chain Monte Carlo (MCMC) methods are the Gibbs sampler and the Metropolis-Hastings (MH) algorithm[@lesaffre].
+
+Kong et al. (2020) explored the use of BLR for surface roughness prediction in the milling process of wood. Input was taken from the time-domain of 3 different vibration signals to quantify surface roughness, tool wear monitoring was also taken into account. 
+
+Modifications to the standard BLR model were utilized to compare the accuracy of results in 4 different regressions:
+
+![BLR models used[@surfacerough]](BLRx4_Kong.png)
+
+Standard_BLR was found to be the superior of the four and to outperform even partial least squares (PLS) artificial neural networks (ANN) and support vector machines (SVM). BLR is also beneficial as it produces a CI which is advantageous for quality control[@surfacerough].
+
+Fraza et al. (2021) propose a warped BLR model that would solve the issue of non-Gaussian distributions using a “likelihood warping technique”. Gaussian process regression is used historically in the analysis of neuroimaging but is problematic because the method assumes a Gaussian distribution which is not the best fit for each modality being assessed. Gaussian process regression is also insufficient to handle emerging big data. 
+The study acquired imaging data from the UK Biobank imaging dataset, using specifically image-derived phenotypes (IDPs) for their prevalence and diffusion tensor imaging (DTI) data for their likelihood to have non-gaussian and non-linear trends. 
+The warped BLR model was found to outperform both standard and Gaussian process regression models in terms of fit and scalability for the larger data sets[@warped]. 
+
+Zhang et al. (2022) used k-means clustering and standard BLR to create a performance indicator to monitor the health of a bridge. Data was acquired from weigh-in-motion (WIM) and structural health monitoring (SHM) systems from a concrete box girder bridge; these two systems are typically used independently but were both integrated into the model. 
+The study identifies the slope of the regression, deemed the model slope indicator (MSI),  for vehicle load (from the WIM system) and vehicle induced strain (from the SHM system) as a performance indicator for the bridge where a change in the regression would indicate a performance or structural issue.
+Metropolis-Hastings (M-H) sampling was the chosen sampling method to help solve problems in the data with noise, abnormal signals, and missing and omitted data. Three BLR models were made based on three different classes of vehicle weight and associated bridge strain that were determined through k-means clustering. 
+
+The threshold for change in MSI was set to 5$\%$ and hypothesis testing was used to verify its significance. The model would not trigger a warning when the change of MSI was lower than 5% as this was an acceptable damage level for the concrete bridge used in this study[@bridge].
+
+Li et al. (2023) proposed the use of BLR with Cauchy prior (BLRC) for the analysis of multiple-input multiple-output (MIMO) radar systems with improved resolution by sparse array (SPA) designs. The researchers compared BLRC to the more traditional approaches Cauchy-Gaussian(CG) and sparse Bayesian learning (SBL).  The frameworks for the traditional approaches were found to be insufficient. CG uses the maximum a posteriori (MAP) framework which is inefficient as optimal hyperparameters can only be found via trial and error. SBL was superior to CG but was found to have room for improvement in cases where input was from SPA. 
+BLRC was found to be superior to SBL in a few ways. BLRC uses a long-tailed Cauchy distribution resulting in the need for only two hyperparameters. SBL has many hyperparameters. BLRC also outperforms SBL with higher resolution radar images, better handling of noise, and flexibility of the system[@cauchyprior]. 
+
+Yang et al. (2019) aimed to improve the prediction of storm wind speed forecasts with the use of gridded Bayesian linear regression (GBLR). Historical storm data, a database of 92 storms in the Northeast US, was used to adjust predictions for the National Center for Atmospheric Research (NCAR) real-time dynamic ensemble prediction system (EPS). 
+The GBLR approach involved inverse distance weighting to interpolate regression coefficients, transitioning from station locations to a model grid, and a novel “implicit” method wherein the BLR optimizes regression coefficients for the ensemble members collectively.
+GBLR was found to reduce bias in wind speed forecasts and improved $R^2$ and RMSE values when compared to the ensemble mean for global and event-based metrics. Similar improvements were seen in seasonal analyses. However, GBLR struggles with extreme values and in areas of the grid with sparse observations[@stormwind].
 
 ## 2 Methods
 
-### 2.1 Mathematical Foundations
-
-#### 2.1.1 The Frequentist Framework
+### 2.1 The Frequentist Framework
 
   Linear regression can be achieved using a variety of methods, two of interest are frequentist and Bayesian. The frequentist approach to linear regression is the more familiar approach. It estimates the effects of independent variables(predictors) on dependent variables(the outcome). The regression coefficient is a point estimate, assumed to be a fixed value. Following is the frequentist linear model
 
 $$
-Y = \beta_0 + \beta_1X + \varepsilon \tag{1}
+Y = \beta_0 + \beta_1X + \varepsilon
 $$
 
   - $Y$ : Dependent variable, the outcome
@@ -63,7 +84,7 @@ $$
   - $\varepsilon$ : Random error [@xiaogang]
 - $\hat\beta$ provides a point estimate
 
-#### 2.1.2 The Bayesian Framework
+### 2.2 The Bayesian Framework
 
   The Bayesian approach estimates the relationship between predictors and an outcome in a similar way, however it's regression coefficient is not a point estimate, but a distribution. That is, the regression coefficient is not assumed to be a fixed value. The Bayesian approach also goes a step further then frequentist regression in it's inclusion of prior data. The Bayesian approach is so named because it is based on Bayes' rule which is written as follows:
 
@@ -80,14 +101,14 @@ $$
   In terms of calculating probability, Bayes' rule can be written as
 
 $$
-p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)} \tag{2}
+p(B|A) = \frac{p(A|B)\cdot p(B)}{p(A)}
 $$
 
   - Bayes' rule allows for the calculation of inverse probability ($p(B|A) \text{ from } p(A|B)$)
     - $p(B|A) \text{ and } p(A|B)$ are conditional probabilities
     - $p(A) \text{ and } p(B)$ are marginal probabilities [@lesaffre]
 
- For continuous parameters, Bayes rule can be written as 
+ For calculating the probability of continuous parameters, Bayes rule can be applied as 
 
 $$
 \begin{align*}
@@ -101,29 +122,63 @@ $$
   The Bayesian approach is derived with Bayes’ theorem wherein the posterior distribution, the updated belief about the parameter given the data $p(\theta|y)$, is proportional to the likelihood of $\theta$ given $y$, $L(\theta|y)$, and the prior density of $\theta$, $p(\theta)$. The former is known as the likelihood function and would comprise the new data for analysis while the latter allows for the incorporation of prior knowledge regarding $\theta$[@xiaogang]. 
 
 $$
-f(\theta|D) \propto L(\theta|D)f(\theta) \tag{1}
+f(\theta|D) \propto L(\theta|D)f(\theta)
 $$
 
-#### 2.1.3 The Model
+### 2.3 The Models
 
-  To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include a the mean specific to our predictor, departure time, $\mu_i$. The model is:
+  To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include the mean specific to our predictor, departure time, $\mu_i$. The model is
   
 $$
 \begin{align*}
 Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i
 \end{align*}
 $$
+
 Where:
+
 - $Y_i$ is the arrival delay for the i-th flight
 - $X_i$ is the departure delay for the i-th flight
 - $\mu_i = \beta_0 + \beta_1X_i$ is the local mean arrival delay, ,  specific to the departure time 
 - $\sigma^2$ is the variance of the errors
 -  $\overset{\text{ind}}{\sim}$ indicates conditional independence of each arrival delay with the given parameters
 
-#### 2.1.4 Prior Selection
+The continuous predictor, Departure Time, is modeled with three different priors:
   
-  Since we are only using two data variables, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
-  As intercept and slope regression parameters can take any real value, we will use normal prior models [@bayesrulesbook]. 
+  - Flat Priors
+  - Rstanarm's Default Priors
+  - Tuned Priors
+
+  The Normal-Normal regression model with a continuous predictor can be written as
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(m_0, s_0^2)\\
+\beta_1 &\sim N(m_1, s_1^2)\\
+\sigma &\sim \text{Exp}(l)
+\end{align*}
+$$
+
+  The categorical predictor, Day of the Week, is given a similar treatment to the continuous predictor with the sampling of three Normal models with different priors. 
+  Tuesday is set to be the reference as it has the lowest mean delay. 
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + ... \beta_6X_{i6}  \\ 
+\beta_{0} &\sim N(m_0, s_0^2)\\
+\beta_1 &\sim N(m_1, s_1^2)\\
+\sigma &\sim \text{Exp}(l)
+\end{align*}
+$$
+
+The general formula is adjusted for the inclusion of regression coefficients for each day of the week $\beta_1, \beta_2, ..., \beta_6$, where the intercept coefficient $\beta_0$ reflects Tuesday's arrival delay. Only one prior for the predictor must be specified as the stan_glm() function handles categorical variables in a similar way to the glm() function, through dummy coding.
+
+### 2.4 Prior Selection
+  
+  Since we are only using two continuous variables for the first model, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
+  As intercept and slope regression parameters can take any real value, we will use Normal prior models [@bayesrulesbook]. 
+  
 $$
 \begin{align*}
 \beta_0 &\sim N(m_0, s^2_0)\\
@@ -146,59 +201,10 @@ $$
 E(\sigma) = \frac{1}{l} && \text{and} && SD(\sigma) = \frac{1}{l}
 \end{align*}
 $$
-#### 2.1.5 Tuning of Priors 
 
-::: {.callout-tip}
+### 2.5 Tuning of Priors 
 
-Flat vs default vs tuned priors
-
-:::
-
-#### 2.1.6 The Bayesian Linear Regression Model
-
-  The model can be written as
-
-$$  
-\begin{align*}
-Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
-\beta_{0} &\sim N(m_0, s_0^2)\\
-\beta_1 &\sim N(m_1, s_1^2)\\
-\sigma &\sim \text{Exp}(l)
-\end{align*}
-$$
-  
-### 2.2 Assumptions ***
-
-::: {.callout-tip}
-
-"Normal regression assumptions
-
-The appropriateness of the Bayesian Normal regression model (9.3) depends upon the following assumptions.
-
-- Structure of the data
-  - Accounting for predictor $X$, the observed data $Y_i$ on case $i$ is independent of the observed data on any other case $j$.
-- Structure of the relationship
-  - The typical $Y$ outcome can be written as a linear function of predictor X, $μ = β_0 + β_1X$.
-- Structure of the variability
-  - At any value of predictor $X$, the observed values of $Y$ will vary normally around their average $μ$  with consistent standard deviation $σ$."
-  
-:::
-
-### 2.3 Statistical Programming
-
-  Data was collected by the Bureau of Transportation Statistics (BTS) and accessed through a dataset compiled by Patrick Zelazko [@dataset]. The data was imported into R [@R] via CSV. 
-  This is a large time-series dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
-  The function stan_glm() was used for simulation of the Normal Bayesian linear regression model from the "rstanarm" library[@rstanarm]. This function runs the Markov Chain Monte Carlo simulation as well with specified chains, iterations, and the ability to set a seed. These were set to 4 chains, 2000 iterations, and the seed was set to 123. 
-  Simulation of the posterior was done with the posterior_predict() function, also from the "rstanarm" library[@rstanarm].
-  Evaluation of the model was done by considering the data and it's source, the assumptions of the model, and the accuracy of the prediction. The posterior predictions were evaluated with the prediction_summary() function from the "bayesrules"library [@bayesrules]. This provided median absolute error (MAE) scaled MAE, and the proportion of values that fall within 50% and 95% confidence intervals. 
-
-::: {.callout-tip}
-
-*Possibly k-fold cross validation, model averaging*
-
-:::
-
-
+This analysis will explore the effect of different priors on two models. Traditionally, priors are tuned by selecting values for the aforementioned hyperparameters based on prior knowledge about the data being modeled. These hyperparameters are specific to the distributions of the priors. In the case of this study, the mean and standard deviation are estimated from the data in order to tune the Normal priors. In addition to the model with manually tuned priors, two other versions of each of the models will be constructed. One version will involve the use of priors tuned by the function used for modeling, "Default Tuned Priors", and the other version will utilize flat priors. 
 
 ```{r readin_sample}
 #| echo: false
@@ -215,7 +221,7 @@ library(tidyr)
 library(BAS)
 library(gt)
 
-Delays <- read.csv("Kaggle_flights.csv")
+Delays <- read.csv("kaggle_flights.csv")
 
 set.seed(123)
 
@@ -260,16 +266,168 @@ Delays_sample <- Delays_sample %>%
 
 ```
 
-## 3 Analysis and Results
+##### Tuned Continuous Model
+
+###### $\beta_0$ informs the model intercept  
+
+```{r tuning_priors_rstanarm_B_0}
+#| output: false
+
+summary(Delays_sample$DEP_TIME_MINS) #mean departure time is 809.3 minutes (~ 1:30pm)
+
+Delays_sample_filtered_B0 <- subset(Delays_sample, DEP_TIME_MINS >= 800 & DEP_TIME_MINS <= 820)
+
+mean(Delays_sample_filtered_B0$ARR_DELAY) #m_0c = 2
+sd(Delays_sample_filtered_B0$ARR_DELAY)  #s_0c = 36
+
+```
+
+  $\beta_{0c}$ reflects the typical arrival delay at a typical departure time. With a mean departure time at  $\sim$ 1:30pm, the average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 36 minutes. 
+
+$$
+\beta_{0c} \sim N(2, 36^2)
+$$
+
+###### $\beta_1$ informs the model slope
+  
+```{r tuning_priors_rstanarm_B_1}
+#| output: false
+
+lm_model <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
+
+summary(lm_model)
+
+coef(lm_model)["DEP_TIME_MINS"] #m_1 = 0.01903
+summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
+
+```
+
+  The slope of the linear model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
+
+$$
+\beta_{1} \sim N(0.02, 0.01^2)
+$$
+
+###### $\sigma$ informs the regression standard deviation
+
+```{r tuning_priors_rstanarm_s}
+#| output: false
+
+summary(lm_model)$sigma
+
+```
+
+  To tune the exponential model, we set the expected value of the standard deviation, $E(\sigma)$, equal to the residual standard error, $\sim 50$. With this, we can find the rate parameter, $l$. 
+  
+$$
+\begin{align*}
+E(\sigma) &= \frac{1}{l} = 50\\\\
+l  &= \frac{1}{50} =  0.02\\\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+The tuned model for the first parameter is as follows. 
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
+\beta_{0} &\sim N(2, 36^2)\\
+\beta_1 &\sim N(0.02, 0.01^2)\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$  
+
+##### Tuned Categorical Model
+
+ For arrival delays by the  day of the week, mean arrival delays are between 1 and 7 minutes while the median arrival delays are all in the negative, indicating a skew towards larger delays. 
+
+###### $\beta_0$ informs the model intercept  
+
+```{r tuning_priors_cat_B0}
+#| output: false
+
+library(lubridate)
+
+Delays_sample <- Delays_sample %>%
+  mutate(DAY_OF_WEEK = wday(FL_DATE, label = TRUE, abbr = TRUE))
+
+mean_delay_by_day <- Delays_sample %>%
+  group_by(DAY_OF_WEEK) %>%
+  summarise(mean_arr_delay = mean(ARR_DELAY),
+            sd_arr_delay = sd(ARR_DELAY))
+
+mean_delay_by_day
+
+```
+
+  $\beta_{0}$ reflects the mean arrival delay on Tuesday, our reference. The average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 46 minutes. 
+
+$$
+\beta_{0} \sim N(2, 46^2)
+$$
+
+###### $\beta_j$ informs the model slopes
+
+  For a categorical predictor with the stan_glm() function, the tuned prior, $\beta_j$, is applied to to the estimation of each coefficient associated with the individual levels of the predictor ($\beta_1, \beta_2, ..., \beta_6 $). For this reason, we set the coefficient prior to be weakly informative. 
+  
+$$
+\beta_{j} \sim N(0, 50^2)
+$$
+
+###### $\sigma$ informs the regression standard deviation
+
+```{r tuning_priors_cat_s}
+#| output: false
+
+lm_model <- lm(ARR_DELAY ~ DAY_OF_WEEK, data = Delays_sample)
+
+summary(lm_model)$sigma
+
+```
+
+  To tune the exponential model, we set the expected value of the standard deviation, $E(\sigma)$, equal to the residual standard error which is the same as with the previous model, $\sim 50$.
+  
+$$
+\begin{align*}
+E(\sigma) &= \frac{1}{l} = 50\\\\
+l  &= \frac{1}{50} =  0.02\\\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+  The tuned model is as follows,
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + ... \beta_6X_{i6}  \\ 
+\beta_{0} &\sim N(2, 46^2)\\
+\beta_j &\sim N(0, 50^2)\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+ 
+### 2.6 Assumptions
+
+The Bayesian Normal regression model relies on three assumptions that are not dissimilar to those of  frequentist linear regression. Primarily, each observation should be independent of any other observation. The relationship between the outcome and predictor variables is expected to be linear. It is also assumed that the variability of observed data is normally distributed around its' mean with a consistent standard deviation across all levels of the predictor(homoscedasticity)[@bayesrulesbook].
+
+
+### 2.7 Statistical Programming
+
+  Data was collected by the Bureau of Transportation Statistics (BTS) and accessed through a data set compiled by Patrick Zelazko [@dataset]. The data was imported into R [@R] via CSV. 
+  This is a large time-series data set with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minutes and attributed reasons for delay. 
+  The function stan_glm() was used for simulation of the Normal Bayesian linear regression model from the "rstanarm" library[@rstanarm]. This function runs the Markov Chain Monte Carlo simulation as well with specified chains, iterations, and the ability to set a seed. These were set to 4 chains, 2000 iterations, and the seed was set to 123. 
+  Simulation of the posterior was done with the posterior_predict() function, also from the "rstanarm" library[@rstanarm].
+  Evaluation of the model was done by considering the data and it's source, the assumptions of the model, and the accuracy of the prediction. The posterior predictions were evaluated via k-fold cross validation with the prediction_summary_cv() function from the "bayesrules"library [@bayesrules]. This provided median absolute error (MAE) scaled MAE, and the proportion of values that fall within 50% and 95% confidence intervals. Effective sample size ($N_\text{eff}$) and R-hat($\hat{R}$) are also calculated using the "bayesplot" package[@bayesplot]. 
+
+
+
+## 3 Analysis
 
 ### 3.1 The Dataset
 
-  This is a large dataset with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. 
-
-### 3.2 Exploratory Data Analysis
-
-#### Following are the definitions of the given variables in this dataset. 
-
+  This is a large data set with with 3 million observations, each a specific flight, and 32 features. The data is from flights within the United States from 2019 through 2023. Diverted and cancelled flights are recorded, as are the time in minuted and attributed reasons for delay. Following are the definitions of the given variables in this data set. 
+```{=html}
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;margin:0px auto;}
 .tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
@@ -421,7 +579,9 @@ Delays_sample <- Delays_sample %>%
     <td class="tg-kr5n">Late Aircraft Delay, in Minutes</td>
   </tr>
 </tbody></table></div>
+```
 
+  Table 1 shows the flights distinguished by a new variable, Flight Period, where each time period is comprised of an 8-hour segment (i.e. Morning has flights with departure times from 4am to noon followed by afternoon and evening). The Afternoon period is comprised of the most flights (47.4%), followed closely by the Morning period (41.5%), and the Evening period trails the two (11%). The table also gives the means of the departure and arrival times, giving an indication of the density of the flights in the given period. The average departure and arrival delays show much better numbers for the Morning period (5.23, -0.77 minutes) with increasing delays for the Afternoon and Evening periods. The delay counts by type show That the Afternoon and Morning periods account for significantly more of the total delays, though that is without taking into account the smaller contribution of flights by the Evening period on the whole. 
 
 ```{r table1}
 #| echo: false
@@ -500,8 +660,9 @@ Table1.2 <- Table1.2 %>%
   )
 ```
 
-
 ```{r table1.2total}
+#| echo: false
+
 Table1.2_total <- Delays1 %>%
   summarise(
     .by = NULL,
@@ -609,7 +770,7 @@ Table1.3_pivoted <- Table1.3_combined %>%
 Table1.3_pivoted %>%
   gt() %>%
   tab_header(
-    title = "Flight Delay Summary by Flight Period"
+    title = "Table 1: Flight Delay Summary by Flight Period"
   ) %>%
   cols_label(
     Statistic = "Flight Period",
@@ -659,7 +820,7 @@ Table1.3_pivoted %>%
     )
   ) %>%
   tab_source_note(
-    source_note = "Table 1: Summary includes morning, afternoon, and evening flight periods."
+    source_note = "Summary includes morning, afternoon, and evening flight periods."
   ) %>%
   tab_style(
     style = list(
@@ -671,18 +832,14 @@ Table1.3_pivoted %>%
 
 ```
 
+### 3.2 Exploratory Data Analysis
 
-
-  The three flight periods are each comprised of 8-hour segments (i.e. Morning has flights with departure times from 4am to noon followed by afternoon and evening). The Afternoon period is comprised of the most flights (47.4%), followed closely by the Morning period (41.5%), and the Evening period trails the two (11%). The table also gives the means of the departure and arrival times, giving an indication of the density of the flights in the given period. The average departure and arrival delays show much better numbers for the Morning period (5.23, -0.77 minutes) with increasing delays for the Afternoon and Evening periods. The delay counts by type show That the Afternoon and Morning periods account for significantly more of the total delays, though that is without taking into account the smaller contribution of flights by the Evening period on the whole. 
-
-
-#### Some Visualizations of the Dataset
-
+   The histograms in Figure 1 illustrate the frequencies of air time, arrival delays, and departure delays. The y-axis was transformed to make the visualizations more legible. All show a skew to the right. This makes sense for air times with a higher proportion of regional flights and the exclusion of international departures and arrivals. Shorter delays (for both arrivals and departures) being more frequent than longer delays is also to be expected. 
+   
 ```{r}
 #| echo: false
 
 library(ggplot2)
-
 
 Delays %>%
   pivot_longer(cols = c(DEP_DELAY, AIR_TIME, ARR_DELAY), 
@@ -691,18 +848,23 @@ Delays %>%
   ggplot(aes(x = Value)) +
   geom_histogram(bins = 25, fill = "blue", alpha = 0.5) +
   facet_wrap(~ Variable, scales = "free") +
-  labs(title = "Histograms of Air Time and Flight Delays",
-       x = "Time in Minutes",
-       y = "Square Root of Frequency") +
+  labs(x = "Time in Minutes",
+       y = "Square Root of Frequency",
+       title = "Figure 1. Histograms of Air Time and Flight Delays") +
   xlim(NA, 650)+
-  scale_y_sqrt()
+  scale_y_sqrt() +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0), 
+        plot.tag.position = "topleft") +
+  theme_minimal()
 
 ```
 
-   These histograms illustrate the frequencies of air time, arrival delays, and departure delays. The y-axis was transformed to make the visualizations more legible. All show a skew to the right. This makes sense for air times with a higher proportion of regional flights and the exclusion of international departures and arrivals. Shorter delays (for both arrivals and departures) being more frequent than longer delays is also to be expected. 
+  Figure 2 shows the average arrival delay for the largest five airlines (filtered for carriers with over 200,000 flights in the given period). The standard deviations for these airlines are fairly small, indicating a low variability in the arrival delays for these airlines. 
 
 ```{r}
 #| echo: false
+
 carrier_summary_ci <- Delays1 %>%
   group_by(airline_code) %>%
   summarise(
@@ -724,16 +886,14 @@ ggplot(carrier_summary_ci, aes(x = carrier_name, y = avg_arr_delay)) +
   geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) + 
   geom_hline(yintercept = total_mean_delay_filtered, linetype = "dashed", color = "red") + 
   labs(
-    title = "Average Arrival Delays by Carrier",
     x = "Carrier",
-    y = "Average Arrival Delay (minutes)"
-  ) +
+    y = "Delay (minutes)",
+    title = "Figure 2. Average arrival delays by carrier") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-  This visualization shows the average arrival delay for the largest five airlines (filtered for carriers with over 200,000 flights in the given period). The standard deviations for these airlines are fairly small, indicating a low variability in the arrival delays for these airlines. 
-
+  Figure 3 displays the average arrival delay for flights at their origin airport using "plotly" [@plotly] and "ggmap" packages[@ggmap]. This comes from the idea that a flight's arrival delay is collinear with it's departure delay which may be influenced by it's origin airport. Airport location information sourced from Random Fractals Inc[@RandomFractals].
 
 ```{r}
 #| echo: false
@@ -762,7 +922,7 @@ lat_limits <- c(10, 80)
 
 library(plotly)
 
-plot_ly(data = delays_with_loc, 
+fig <- plot_ly(data = delays_with_loc, 
         lat = ~latitude, 
         lon = ~longitude, 
         type = 'scattergeo', 
@@ -773,19 +933,32 @@ plot_ly(data = delays_with_loc,
                       "Longitude: ", round(longitude, 2), "<br>",
                       "Latitude: ", round(latitude, 2)),
         hoverinfo = 'text') %>%
-  layout(title = 'Average Arrival Delays by Origin Airport',
-         geo = list(scope = 'usa',
+  layout(geo = list(scope = 'usa',
                     showland = TRUE,
                     landcolor = 'lightgray',
                     subunitcolor = 'white',
                     countrycolor = 'white'))
 
+fig <- fig %>%
+  layout(
+    annotations = list(
+      list(
+        x = 0.05,  
+        y = 1.05,  
+        xref = "paper",
+        yref = "paper",
+        text = "Figure 3. Average arrival delays by origin airport", 
+        showarrow = FALSE,
+        font = list(size = 14)
+      )
+    )
+  )
+
+fig
 
 ```
 
-  This heat map shows the average arrival delay for flights at their origin airport. This comes from the idea that if a flight is delayed at departure, then it may also be delayed on arrival at it's destination. 
-
-- Airport location information downloaded from <https://github.com/RandomFractals/geo-data-viewer/blob/master/data/csv/usa-airports.csv>
+Figures 4 and 5 show the correlation of the continuous variables and the correlation of the categorical and continuous variables respectively using the "corrplot" package[@corrplot]. Figure 4 doesn't provide any particularly valuable insight. Arrival delay has an expected positive correlation coefficient with departure delay. There appears to be a slight positive correlation between taxi times and arrival delay and elapsed time which is also expected. 
 
 ```{r Delays_sample}
 #| echo: false
@@ -827,7 +1000,6 @@ Delays_sample <- Delays_sample %>%
       CRS_DEP_TIME >= 2000 | CRS_DEP_TIME < 400 ~ "Evening" )) %>%
   filter(DIVERTED == 0, CANCELLED == 0 )
 
-
 set.seed(123)
 sample_size <- 10000
 Delays_sample1 <- Delays %>% 
@@ -864,10 +1036,16 @@ continuous_vars <- Delays_sample1 %>%
     TAXI_OUT,
     TAXI_IN, 
     ARR_DELAY,
+    DEP_TIME,
     CRS_ELAPSED_TIME, 
     ELAPSED_TIME,
     AIR_TIME,
-    DISTANCE
+    DISTANCE,
+    DELAY_DUE_CARRIER,
+    DELAY_DUE_WEATHER,
+    DELAY_DUE_NAS,
+    DELAY_DUE_SECURITY,
+    DELAY_DUE_LATE_AIRCRAFT
   )
 
 categorical_vars <- Delays_sample1 %>%
@@ -875,11 +1053,6 @@ categorical_vars <- Delays_sample1 %>%
     AIRLINE_CODE,
     ORIGIN,
     DEST,
-    DELAY_DUE_CARRIER,
-    DELAY_DUE_WEATHER,
-    DELAY_DUE_NAS,
-    DELAY_DUE_SECURITY,
-    DELAY_DUE_LATE_AIRCRAFT,
     CRS_DEP_HOUR, 
     DEP_HOUR,
     WHEELS_OFF_HOUR,
@@ -889,15 +1062,15 @@ categorical_vars <- Delays_sample1 %>%
     FLIGHT_PERIOD
   )
 
-
 cor_matrix <- cor(continuous_vars, use = "pairwise.complete.obs")
 
+par(mar = c(4, 4, 4, 2) + 0.1, oma = c(2, 0, 2, 0))
 corrplot(cor_matrix, method = "color", type = "lower", tl.col = "black", tl.srt = 45)
-mtext("Correlation Matrix for Continuous Variables", side = 1, line = 4, cex = 1)
+mtext("Figure 4. Correlation matrix for continuous variables", side = 3, line = 0, adj = 0, cex = 1.2)
 
 ```
 
-
+Figure 5 shows the correlation of the continuous and categorical variables using the p-values from the t-tests and ANOVA's of each relation. Relationships with at least one significant p-value are shown in dark blue. This heatmap is of limited value as there appears to be many significant correlations, but without further inspection it is not known which value(s) of the categorical variables have a significant p-value. 
 
 ```{r}
 #| echo: false
@@ -908,7 +1081,6 @@ library(ggplot2)
 
 p_value_results <- matrix(NA, nrow = ncol(categorical_vars), ncol = ncol(continuous_vars),
                            dimnames = list(colnames(categorical_vars), colnames(continuous_vars)))
-
 
 for(cat_var in colnames(categorical_vars)) {
   for(cont_var in colnames(continuous_vars)) {
@@ -926,7 +1098,6 @@ for(cat_var in colnames(categorical_vars)) {
 
 ```
 
-
 ```{r}
 
 p_value_long <- melt(p_value_results, na.rm = TRUE)  # Remove NAs
@@ -934,18 +1105,20 @@ p_value_long <- melt(p_value_results, na.rm = TRUE)  # Remove NAs
 ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
   geom_tile(color = "white") +
   scale_fill_gradient(low = "blue", high = "red", na.value = "gray90", name = "p-value") +
-  labs(x = "Categorical Variable", y = "Continuous Variable", title = "Heatmap of p-values for Categorical vs Continuous Variables") +
+  labs(x = "Categorical Variable",
+       y = "Continuous Variable",
+       title = "Figure 5. Heatmap of p-values for categorical vs continuous variables") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0),
+        plot.title.position = "plot")
 
 ```
 
-## 4 Modeling
+### 3.3 Data Preprocessing
 
-### 4.1 Data Preprocessing
-
-  - Removal of Cancelled and Diverted Flights
-  - Departure Time HHMM -> Minutes past Midnight (function() from)
+  To prepare the data for analysis, a few changes were made. Diverted and cancelled flights were removed as they both have arrival delays set to "NA" due to them not arriving as scheduled. Including cancelled and diverted flights would introduce complexity and could lead to bias in the model. The goal of the model is to understand typical arrival delays, so the inclusion of cancelled and diverted flights is unnecessary. The data set is also quite large with three million observations, so the data set was sampled to account for computational efficiency. 
+  For the first model, the departure time variable was converted from an "HHMM" format to a "minutes past midnight" format for use by the stan_glm() function. 
 
 ::: {.panel-tabset}
 
@@ -954,10 +1127,11 @@ ggplot(data = p_value_long, aes(x = Var1, y = Var2, fill = value)) +
 
 ggplot(Delays_sample, aes(x = DEP_TIME)) +
   geom_histogram(binwidth = 10, fill = "blue", color = "black") +
-  labs(caption="Distribution of Departure Time",
-       x = "Departure Time (time HHMM)",
-       y = "Frequency") +
-  xlim(NA, 2400)
+  labs(x = "Departure Time (time HHMM)",
+       y = "Frequency",
+       title = "Figure 6. Distribution of departure time") +
+  xlim(NA, 2400) +
+  theme_minimal()
 
 convert_to_minutes <- function(time) {
   hour <- time %/% 100
@@ -968,6 +1142,7 @@ convert_to_minutes <- function(time) {
 
 Delays_sample <- Delays_sample %>%
   mutate("DEP_TIME_MINS" = sapply(DEP_TIME, convert_to_minutes))
+
 ```
 
 ## Format: Minutes Past Midnight
@@ -975,17 +1150,20 @@ Delays_sample <- Delays_sample %>%
 
 ggplot(Delays_sample, aes(x = DEP_TIME_MINS)) +
   geom_histogram(binwidth = 10, fill = "blue", color = "black") +
-  labs(caption = "Distribution of Departure Time",
+  labs(title = "Figure 7. Distribution of adjusted departure time",
         x = "Departure Time (mins past midnight)",
         y = "Frequency") +
-  xlim(NA, 1440)
+  xlim(NA, 1440) +
+  theme_minimal()
 
 ```
 :::
 
-  - FL_DATE -> Day of Week with lubridate [@lubridate]
-
+  For the second model, "Day of the Week" was the chosen predictor variable which was created using the "lubridate" library[@lubridate].
+  
 ::: {.panel-tabset}
+
+
 
 ## Format: Date YYYY-MM-DD
 ```{r wday_predictor}
@@ -995,24 +1173,19 @@ Delays_sample1 <- Delays_sample %>%
 
 ggplot(Delays_sample1, aes(x = FL_DATE)) +
   geom_histogram(binwidth = 30, fill = "skyblue", color = "black") +
-  labs(
-    caption = "Flight Counts by Date",
+  labs(title = "Figure 8. Flight counts by date",
     x = "Flight Date",
-    y = "Count"
-  ) +
+    y = "Count") +
   theme_minimal()
-
-library(lubridate)
 
 Delays_sample <- Delays_sample %>%
   mutate(DAY_OF_WEEK = wday(FL_DATE, label = TRUE, abbr = TRUE))
 
-
 mean_delay_by_day <- Delays_sample %>%
   group_by(DAY_OF_WEEK) %>%
   summarise(mean_arr_delay = mean(ARR_DELAY),
-            sd_arr_delay = sd(ARR_DELAY)
-  )
+            sd_arr_delay = sd(ARR_DELAY))
+
 ```
 
 ## Format: Day of the Week
@@ -1023,41 +1196,29 @@ ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
   geom_point(data = mean_delay_by_day, aes(x = DAY_OF_WEEK, y = mean_arr_delay), 
              color = "red4", size =3, shape = 8) +
   labs(
-    caption = "Arrival Delay by Day of the Week",
+    title = "Figure 9. Arrival delay by the day of the week.",
     x = "Day of the Week",
-    y = "Arrival Delay (minutes)"
-  ) +
+    y = "Arrival Delay (minutes)") +
   theme_minimal()+
   ylim(-45,45)
 
 ```
 :::
 
-### 4.2 The Normal Data Model: Departure Time Predictor
+### 3.4 Modeling 
 
-  For the continuous predictor, Departure Time, three normal models with different priors are sampled:
-    - Flat Priors
-    - Rstanarm's Default Priors
-    - Tuned Priors
-  
-$$  
-\begin{align*}
-Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
-\beta_{0} &\sim N(m_0, s_0^2)\\
-\beta_1 &\sim N(m_1, s_1^2)\\
-\sigma &\sim \text{Exp}(l)
-\end{align*}
-$$
+#### 3.4.1 Bayesian Normal Regression: Departure Time Predictor
 
-#### 4.2.1 Flat Continuous Model
+##### Flat Continuous Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r flat_model_cont}
 
 library(broom.mixed)
 library(rstanarm)
+library(ggpubr)
 
 flat_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
                        data = Delays_sample,
@@ -1077,41 +1238,59 @@ set.seed(123)
 shortcut_prediction1 <- 
   posterior_predict(flat_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-# 95% posterior credible interval
-posterior_interval(shortcut_prediction1, prob = 0.95)
-
-mcmc_dens(shortcut_prediction1) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Flat Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction1) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 10 (a) Predicted Arrival Delays for a Departure Time of Noon, Flat Priors")
+)
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- flat_model_dt
 
-mcmc_trace(model, size = 0.1)
+plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 10 (b) MCMC Trace", 
+    subtitle =  "Intercept")
+plotBeta <- mcmc_trace(model, pars = "DEP_TIME_MINS") + 
+  labs(
+    subtitle = "Departure Time (mins)")
+plotSig <- mcmc_trace(model, pars = "sigma") + 
+  labs(
+    subtitle = "Sigma")
+
+ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 10 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 10 (d) Autocorrelation"))
+
 ```
 :::
 
+The posterior median relationship for the first model with flat priors is 
 
-#### 4.2.2 Default Continuous Model
+$$
+-10.92 + 0.02X.
+$$
+
+That is, at $0 \text{ minutes}$ (i.e. Midnight), the expected delay is $-10.92$. For every minute past midnight, the delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes}$), the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$).  
+
+It is important to note that the uniform prior distribution used are noted as "*not* non-informative" by the documentation as they provide a uniform distribution that gives the same probability to *all values*, whether they are plausible or not. 
+
+##### Default Continuous Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r default_model_cont}
 
 library(rstanarm)
@@ -1131,112 +1310,56 @@ set.seed(123)
 shortcut_prediction2 <- 
   posterior_predict(default_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-# 95% posterior credible interval
-posterior_interval(shortcut_prediction2, prob = 0.95)
-
-mcmc_dens(shortcut_prediction2) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Default Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction2) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 11 (a) Predicted Arrival Delays for a Departure Time of Noon, Default Priors")
+)
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- default_model_dt
 
-mcmc_trace(model, size = 0.1)
+plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 11 (b) MCMC Trace", 
+    subtitle =  "Intercept")
+plotBeta <- mcmc_trace(model, pars = "DEP_TIME_MINS") + 
+  labs(
+    subtitle = "Departure Time (mins)")
+plotSig <- mcmc_trace(model, pars = "sigma") + 
+  labs(
+    subtitle = "Sigma")
+
+ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 11 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 11 (d) Autocorrelation"))
 ```
 :::
 
-
-
-#### 4.2.3 Tuned Continuous Model
-
-###### $\beta_0$ informs the model intercept  
-
-```{r tuning_priors_rstanarm_B_0}
-
-summary(Delays_sample$DEP_TIME_MINS) #mean departure time is 809.3 minutes (~ 1:30pm)
-
-Delays_sample_filtered_B0 <- subset(Delays_sample, DEP_TIME_MINS >= 800 & DEP_TIME_MINS <= 820)
-
-mean(Delays_sample_filtered_B0$ARR_DELAY) #m_0c = 2
-sd(Delays_sample_filtered_B0$ARR_DELAY)  #s_0c = 36
-
-```
-  $\beta_{0c}$ reflects the typical arrival delay at a typical departure time. With a mean departure time at  $\sim$ 1:30pm, the average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 36 minutes. 
+The posterior median relationship for the first model with default priors (tuned via rstanarm package) 
 
 $$
-\beta_{0c} \sim N(2, 36^2)
+-10.94 + 0.02X.
 $$
 
+This version of the model only had a small decrease in the intercept.
 
-###### $\beta_1$ informs the model slope
-  
-
-```{r tuning_priors_rstanarm_B_1}
-
-lm_model <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
-
-summary(lm_model)
-
-coef(lm_model)["DEP_TIME_MINS"] #m_1 = 0.01903
-summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
-
-```
-
-  The slope of the linear model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
-
-
-$$
-\beta_{1} \sim N(0.02, 0.01^2)
-$$
-
-###### $\sigma$ informs the regression standard deviation
-
-```{r tuning_priors_rstanarm_s}
-
-summary(lm_model)$sigma
-
-```
-
-  To tune the exponential model, we set the expected value of the standard deviation, $ E(\sigma) $, equal to the residual standard error, $\sim 50$. With this, we can find the rate parameter, $l$. 
-  
-$$
-\begin{align*}
-E(\sigma) &= \frac{1}{l} = 50\\\\
-l  &= \frac{1}{50} =  0.02\\\\
-\sigma &\sim \text{Exp}(0.02)
-\end{align*}
-$$
-
-
-$$  
-\begin{align*}
-Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_i \\ 
-\beta_{0} &\sim N(2, 36^2)\\
-\beta_1 &\sim N(0.02, 0.01^2)\\
-\sigma &\sim \text{Exp}(0.02)
-\end{align*}
-$$
-
-
+##### Tuned Continuous Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r tuned_model_cont}
 
 library(rstanarm)
@@ -1251,16 +1374,6 @@ tuned_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
                         refresh = 0
                         )
 
-# Effective sample size ratio and Rhat
-neff_ratio(tuned_model_dt)
-rhat(tuned_model_dt)
-
-# Trace plots of parallel chains
-mcmc_trace(tuned_model_dt, size = 0.1)
-
-# Density plots of parallel chains
-mcmc_dens_overlay(tuned_model_dt)
-
 library(broom.mixed)
 
 tmdt <- tidy(tuned_model_dt, effects = c("fixed", "aux"),
@@ -1269,64 +1382,64 @@ tmdt <- tidy(tuned_model_dt, effects = c("fixed", "aux"),
 # Store the 4 chains for each parameter in 1 data frame
 model_tuned_df <- as.data.frame(tuned_model_dt)
 
-
 ##TUNED
 # Simulate a set of predictions
 set.seed(123)
 shortcut_prediction <- 
   posterior_predict(tuned_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
 
-# Construct a 95% posterior credible interval
-posterior_interval(shortcut_prediction, prob = 0.95)
-
-mcmc_dens(shortcut_prediction) + 
-  xlab("Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+ggarrange(
+  mcmc_dens(shortcut_prediction) + 
+  xlab("Delay (minutes)") +
+  ggtitle("Figure 12 (a) Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+)
 ```
-
 
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- tuned_model_dt
 
-mcmc_trace(model, size = 0.1)
+plotInt <- mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 12 (b) MCMC Trace", 
+    subtitle =  "Intercept")
+plotBeta <- mcmc_trace(model, pars = "DEP_TIME_MINS") + 
+  labs(
+    subtitle = "Departure Time (mins)")
+plotSig <- mcmc_trace(model, pars = "sigma") + 
+  labs(
+    subtitle = "Sigma")
+
+ggarrange(plotInt, plotBeta, plotSig, ncol = 1, align = "v", heights = c(4, 4, 4))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 12 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 12 (d) Autocorrelation"))
 ```
 :::
 
+The posterior median relationship for the first model with manually tuned priors is 
 
-### 4.3 The Normal Data Model: Week Day Predictor
-
- For arrival delays by the  day of the week, the mean arrival delays are between 1 and 7 minutes while the median arrival delays are all in the negative, indicating a skew towards larger delays. 
-
-$$  
-\begin{align*}
-Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + ... \beta_6X_{i6}  \\ 
-\beta_{0} &\sim N(m_0, s_0^2)\\
-\beta_1 &\sim N(m_1, s_1^2)\\
-\sigma &\sim \text{Exp}(l)
-\end{align*}
+$$
+-11.66 + 0.02X.
 $$
 
-#### 4.3.1 Flat Categorical Model
+This version of the model had a larger decrease in the intercept (just over 43 seconds), but there was no large change in the slope. 
+
+#### 3.4.2 Bayesian Normal Regression: Week Day Predictor
+
+##### Flat Categorical Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r flat_model_categorical}
-#| fig-cap: "Flat Categorical Model"
-#| layout-ncol: 1
-#| tabbed: true
 
 Delays_sample$DAY_OF_WEEK <- factor(
   Delays_sample$DAY_OF_WEEK, 
@@ -1377,41 +1490,47 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 13 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Flat Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
   theme_minimal()
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- flat_model_dow
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 13 (b) MCMC Trace")) + theme_minimal()
 
-mcmc_trace(model, size = 0.1)
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 13 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 13 (d) Autocorrelation"))
 ```
 :::
 
-#### 4.3.2 Default Categorical Model
+The posterior median relationship for the second model with flat priors is 
+
+$$
+1.57 + 4.92X_1 + 2.66X_2 + 1.86X_3 + 3.43X_4 + 4.36X_5 + 2.93X_6.
+$$
+
+That is, on Tuesday one can expect a delay of $1.57$ minutes ($1$ minute and $34$ seconds). One can expect the longest delay on Wednesday at $6$ minutes and $29$ seconds.
+
+
+##### Default Categorical Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r auto_model_categorical}
 
 default_model_dow <- stan_glm(
@@ -1421,7 +1540,6 @@ default_model_dow <- stan_glm(
   chains = 4, iter = 2000, seed = 123,
   refresh = 0
 )
-
 
 model <- default_model_dow
 
@@ -1453,9 +1571,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 14 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Default Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
@@ -1463,88 +1581,36 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- default_model_dow
-
-mcmc_trace(model, size = 0.1)
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 14 (b) MCMC Trace"))
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 14 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 14 (d) Autocorrelation"))
 ```
 :::
 
-
-#### 4.3.3 Tuned Categorical Model
-
-###### $\beta_0$ informs the model intercept  
-
-```{r tuning_priors_cat_B0}
-#| echo: false
-
-mean_delay_by_day
-
-```
-
-  $\beta_{0}$ reflects the mean arrival delay on Tuesday, our reference. The average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 46 minutes. 
+The posterior median relationship for the second model with default priors is 
 
 $$
-\beta_{0} \sim N(2, 46^2)
+1.54 + 4.40X_1 + 2.69X_2 + 2.97X_3 + 4.96X_4 + 3.48X_5 + 1.89X_6.
 $$
 
+This version of the second model showed little change for the expectations of Tuesday through Thursday, but the rest of the week had shifts of more than a minute for all days except Sunday with a shift of $53$ seconds.
 
-###### $\beta_j$ informs the model slopes
-
-  For a categorical predictor with the stan_glm() function, the tuned prior, $\beta_j$, is applied to to the estimation of each coefficient associated with the individual levels of the predictor ($\beta_1, \beta_2, ..., \beta_6 $). For this reason, we set the coefficient prior to be weakly informative. 
-  
-$$
-\beta_{j} \sim N(0, 50^2)
-$$
-
-###### $\sigma$ informs the regression standard deviation
-
-```{r tuning_priors_cat_s}
-
-lm_model <- lm(ARR_DELAY ~ DAY_OF_WEEK, data = Delays_sample)
-
-summary(lm_model)$sigma
-
-```
-
-  To tune the exponential model, we set the expected value of the standard deviation, $ E(\sigma) $, equal to the residual standard error which is the same as with the previous model, $\sim 50$.
-  
-$$
-\begin{align*}
-E(\sigma) &= \frac{1}{l} = 50\\\\
-l  &= \frac{1}{50} =  0.02\\\\
-\sigma &\sim \text{Exp}(0.02)
-\end{align*}
-$$
-
-  The tuned model is as follows,
-
-$$  
-\begin{align*}
-Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + ... \beta_6X_{i6}  \\ 
-\beta_{0} &\sim N(2, 46^2)\\
-\beta_j &\sim N(0, 50^2)\\
-\sigma &\sim \text{Exp}(0.02)
-\end{align*}
-$$
+##### Tuned Categorical Model
 
 ::: {.panel-tabset}
 
-## Posterior Density Plot
+## Posterior Predictive Plot
 ```{r tuned_model_categorical}
 
 tuned_model_dow <- stan_glm(
@@ -1557,7 +1623,6 @@ tuned_model_dow <- stan_glm(
   chains = 4, iter = 2000, seed = 123,
   refresh = 0
 )
-
 
 model <- tuned_model_dow
 
@@ -1589,9 +1654,9 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
                aes(xintercept = ..x.., color = DAY_OF_WEEK),
                linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
   labs(
-    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    title = "Figure 15 (a) Posterior Predicted Distribution of Arrival Delay by Day of the Week, Tuned Priors",
     x = "Predicted Arrival Delay (minutes)",
-    y = "Day of the Week",
+    y = " ",
     fill = "Day"
   ) +
   xlim(-150,150)+
@@ -1599,368 +1664,1423 @@ ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
 
 ```
 
-
 ## MCMC Trace
 ```{r}
-# MCMC diagnostics
-
 model <- tuned_model_dow
+ggarrange(mcmc_trace(model, size = 0.1) + ggtitle("Figure 15 (b) MCMC Trace"))
 
-mcmc_trace(model, size = 0.1)
 ```
 
 ## MCMC Overlay
 ```{r}
-mcmc_dens_overlay(model)
+ggarrange(mcmc_dens_overlay(model) + ggtitle("Figure 15 (c) MCMC Overlay") + ylab("Density"))
 ```
 
 ## MCMC ACF
 ```{r}
-mcmc_acf(model)
+ggarrange(mcmc_acf(model) + ggtitle("Figure 15 (d) Autocorrelation"))
 ```
 :::
+
+The posterior median relationship for the second model with manually tuned priors is 
+
+$$
+1.54 + 4.96X_1 + 2.70X_2 + 1.91X_3 + 3.50X_4 + 4.41X_5 + 2.99X_6.
+$$
+
+The tuned version of the second model showed coefficients more similar to that of the flat model. 
 
 
 ```{r tidytibble}
 #| include: false
 
 all_models <- bind_rows(
-  tmdt %>% mutate(model = "tmdt"),
-  fmdt %>% mutate(model = "fmdt"),
-  dmdt %>% mutate(model = "dmdt"),
-  tmdow %>% mutate(model = "tmdow"),
-  fmdow %>% mutate(model = "fmdow"),
-  dmdow %>% mutate(model = "dmdow")
+  tmdt %>% mutate(Model = "Tuned"),
+  fmdt %>% mutate(Model = "Flat"),
+  dmdt %>% mutate(Model = "Default"),
+  tmdow %>% mutate(Model = "Tuned"),
+  fmdow %>% mutate(Model = "Flat"),
+  dmdow %>% mutate(Model = "Default")
 )
 
 all_models
 
 ```
 
+### 3.5 Modeling Results
+
+A total of 100,000 observations were included in the model creation for this study. As arrival delay was the outcome of interest, cancelled and diverted flights were excluded from this study for reasons to include missing values and extenuating circumstances that would introduce bias. Following, in Table 2, is a summary of the regression coefficients, their standard error, and 95% credible intervals from the Bayesian regression.  
+
+```{=html}
 <style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
-  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg th{border-bottom-width:1px;border-color:black;border-style:solid;border-top-width:1px;border-width:0px;
-  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg .tg-6txe{background-color:#002B36;border-color:#ffffff;color:#FFF;text-align:center;vertical-align:top}
-.tg .tg-pruk{background-color:#002B36;border-color:#ffffff;text-align:left;vertical-align:top}
-.tg .tg-n3e9{background-color:#002B36;border-color:#002b36;color:#FFF;text-align:center;vertical-align:top}
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-rte4{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-faln{background-color:#002B36;text-align:left;vertical-align:bottom}
+.tg .tg-f9qh{background-color:#002B36;color:#FFF;text-align:center;vertical-align:bottom}
+.tg .tg-uvg0{background-color:#002B36;color:#FFF;font-weight:bold;text-align:center;vertical-align:middle}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
 </style>
 <table class="tg" style="undefined;table-layout: fixed; width: 645px"><colgroup>
-<col style="width: 151px">
-<col style="width: 151px">
-<col style="width: 101px">
-<col style="width: 101px">
-<col style="width: 141px">
+<col style="width: 115.333333px">
+<col style="width: 149.333333px">
+<col style="width: 115.333333px">
+<col style="width: 115.333333px">
+<col style="width: 149.333333px">
 </colgroup>
 <thead>
   <tr>
-    <th class="tg-pruk"></th>
-    <th class="tg-pruk"></th>
-    <th class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Mean</span></th>
-    <th class="tg-6txe"><span style="color:#FFF;background-color:#002B36">SD</span></th>
-    <th class="tg-6txe"><span style="color:#FFF;background-color:#002B36">95% CI</span></th>
+    <th class="tg-rte4" colspan="5"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 2</span><span style="font-style:normal;color:#FFF">. Estimations of the Posterior Distributions’ Regression Coefficients.</span></th>
   </tr></thead>
 <tbody>
   <tr>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Continuous</span></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Mean</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">SE</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">95% CI</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="3"><br><br>Flat Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-10.92</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-11.85; 0.02)</span></td>
+    <td class="tg-uvg0" colspan="2"><span style="font-weight:bold;color:#FFF;background-color:#002B36">Model 1: Continuous Predictor</span></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.02; 50.86)</span></td>
+    <td class="tg-uo0v" rowspan="3">Flat Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">-10.92</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(-11.85; 0.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(50.86; -11.86)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.02; 50.86)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="3"><br><br>Default Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀&nbsp;&nbsp;Intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-10.94</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-11.86; 0.02)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(50.86; -11.86)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.02; 50.86)</span></td>
+    <td class="tg-uo0v" rowspan="3">Default Tuned Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">-10.94</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(-11.86; 0.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(50.86; -12.02)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.02; 50.86)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="3"><br><br>Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">-11.66</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.17</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(-12.02; 0.02)</span></td>
+    <td class="tg-f9qh"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(50.86; -12.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.02; 50.87)</span></td>
+    <td class="tg-uo0v" rowspan="3">Tuned Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">-11.66</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.17</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(-12.02; 0.02)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.10</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(50.87; 0.00)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.02; 50.87)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">Categorical</span></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
-    <td class="tg-pruk"></td>
+    <td class="tg-f9qh"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.10</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(50.87; 0.00)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Flat Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.57</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.69; 3.72)</span></td>
+    <td class="tg-uvg0" colspan="2"><span style="font-weight:bold;color:#FFF;background-color:#002B36">Model 2: Categorical Predictor</span></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.92</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.72; 1.47)</span></td>
+    <td class="tg-uo0v" rowspan="8">Flat Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.57</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.69; 3.72)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.66</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.47; 0.69)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.36</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(3.21; 1.72)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.86</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.69; 2.25)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.93</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(1.72; 51.16)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">3.43</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(2.25; 3.21)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.92</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(3.72; 1.47)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.36</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.21; 1.72)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.66</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(1.47; 0.69)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.93</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.65</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.72; 51.16)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.86</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.69; 2.25)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(51.16; 0.73)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">3.43</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(2.25; 3.21)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Default Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.40</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.73; 3.21)</span></td>
+    <td class="tg-f9qh"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(51.16; 0.73)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.40</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.21; 1.48)</span></td>
+    <td class="tg-uo0v" rowspan="8">Default Tuned Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.40</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.73; 3.21)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.69</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.48; 1.75)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">3.48</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.58</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(2.31; 0.74)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.97</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.75; 3.77)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.89</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.74; 51.17)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.59</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.77; 2.31)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.40</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(3.21; 1.48)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">3.48</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.58</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(2.31; 0.74)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.69</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(1.48; 1.75)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.89</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.74; 51.17)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.97</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(1.75; 3.77)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.40</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(51.17; 0.66)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.59</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(3.77; 2.31)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe" rowspan="8"><br><br><br><br><br><br><br>Tuned Model</td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.66; 3.76)</span></td>
+    <td class="tg-f9qh"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.40</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(51.17; 0.66)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.76; 1.48)</span></td>
+    <td class="tg-uo0v" rowspan="8">Tuned Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.66; 3.76)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.70</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.48; 0.71)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.41</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(3.23; 1.73)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">1.91</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(0.71; 2.28)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.99</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(1.73; 51.17)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">3.50</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.63</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(2.28; 3.23)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(3.76; 1.48)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">4.41</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(3.23; 1.73)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.70</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(1.48; 0.71)</span></td>
   </tr>
   <tr>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">2.99</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
-    <td class="tg-n3e9"><span style="color:#FFF;background-color:#002B36">(1.73; 51.17)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.91</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(0.71; 2.28)</span></td>
   </tr>
   <tr>
-    <td class="tg-6txe"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
-    <td class="tg-6txe"><span style="color:#FFF;background-color:#002B36">(51.17; 0.00)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">3.50</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.63</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(2.28; 3.23)</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="font-weight:normal;color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">(51.17; 0.00)</span></td>
   </tr>
 </tbody></table>
-
-
-
--   Present your key findings in a clear and concise manner.
-
--   Use visuals to support your claims.
-
--   **Tell a story about what the data reveals.**
-
-### 4.4 Evaluation of the Model
-
-:::{.callout-tip}
-
-All notes past this point are for future reference 
-
-:::
-
-#### Consideration the Dataset
-
-- how was data collected, by who and for what purpose, whaty impact might the results have, what biases are baked in to the analyses (scope of the data)
-
-#### Checking Model Assumptions
-
-"Normal regression assumptions
-
-The appropriateness of the Bayesian Normal regression model (9.3) depends upon the following assumptions.
-
-- Structure of the data
-  - Accounting for predictor $X$, the observed data $Y_i$ on case $i$ is independent of the observed data on any other case $j$.
-- Structure of the relationship
-  - The typical $Y$ outcome can be written as a linear function of predictor X, $μ = β_0 + β_1X$.
-- Structure of the variability
-  - At any value of predictor $X$, the observed values of $Y$ will vary normally around their average $μ$  with consistent standard deviation $σ$."
-  
-Assumption 1: <https://www.bayesrulesbook.com/chapter-10#:~:text=Though%20formal%20hypothesis%20tests%20for%20assumption%201%20do%20exist%2C%20we%20can%20typically%20evaluate%20its%20appropriateness%20by%20the%20data%20collection%20context>
-
-Assumption 2 & 3: scatterplot of raw data, pp_check
-
-
-```
-# Examine 50 of the 20000 simulated samples
-pp_check(bike_model, nreps = 50) + 
-  xlab("rides")
 ```
 
+The three versions of Model 1, with departure time as predictor, agree on a $\beta_1$ coefficient of $0.02$ indicating that the delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$) for each minute past midnight. There is some discrepancy with the intercept term $\beta_0$  with values ranging from $-10.92$ to $-11.66\text{ minutes}$. Standard deviation is large comparatively at $\sim$ 51.09 minutes. 
 
-#### Accuracy of Posterior Predictive Models
+There is more variability apparent in the summary of Model 2, though the intercept term is consistent among the three versions of the model at $1.54$ to $1.57 \text{ minutes}$(a matter of $1.8 \text{ seconds}$). Daily estimated delays range from $1.86$ to $4.96 \text{ minutes}$. Again, standard deviation is large comparatively at $\sim 51.39  \text{ minutes}$. 
 
-```
+### 3.6 K-Fold Cross Validation
 
-
-set.seed(84735)
-predictions <- posterior_predict(bike_model, newdata = bikes)
-dim(predictions)
-
-
-library(bayesplot)
-
-#ppc_intervals() function in the bayesplot package provides a quick visual summary of the 500 approximate posterior predictive models stored in predictions
-ppc_intervals(bikes$rides, yrep = predictions, x = bikes$temp_feel, 
-              prob = 0.5, prob_outer = 0.95)
-
+ Cross validation was done to provide an estimation of model performance. The provided posterior predictive summary is comprised of the median absolute error (MAE) which measures the typical difference between observed and posterior predictive means, the scaled MAE (scaled_MAE) which scales MAE by standard deviations, and the proportion of observations that fall within the $50\%$ and $95\%$ posterior prediction intervals. The cross validation assessment (prediction_summary_cv()) was chosen over the posterior prediction summary assessment (prediction_summary()), both from the "bayesrules" package[@bayesrules], as the cross validation procedure provides a more conservative estimate of model performance. Cross validation can also be more computationally efficient with a lower number of folds and the use of a smaller data set. 
+ 
+```{r model1comparison}
+#| output: false
 
 library(bayesrules)
 
-# Posterior predictive summaries
-set.seed(84735)
-prediction_summary(bike_model, data = bikes) # get MAE, MAE scaled, obs values that fall within 50 and 95 % posterior prediction interval   
+# #Posterior Predictive Summary
+# 
+# set.seed(123)
+# ps_fmdt <- prediction_summary(flat_model_dt, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_dmdt <- prediction_summary(default_model_dt, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_tmdt <- prediction_summary(tuned_model_dt, data = Delays_sample)
+# 
+# ps_fmdt <- ps_fmdt %>% 
+#   mutate(Model = "fmdt")
+# ps_dmdt <- ps_dmdt %>% 
+#   mutate(Model = "dmdt")
+# ps_tmdt <- ps_tmdt %>% 
+#   mutate(Model = "tmdt")
+# 
+# ps_results <- bind_rows(ps_fmdt, ps_dmdt, ps_tmdt)
+# 
+# print(ps_results)
+
+#K-fold Cross Validation with k=5, data n=1000
+
+set.seed(123)
+sample_size <- 1000
+Delays_sample2 <- Delays_sample %>% 
+  sample_n(sample_size)
+
+set.seed(123)
+cv_fmdt <- prediction_summary_cv(
+  model = flat_model_dt, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_dmdt <- prediction_summary_cv(
+  model = default_model_dt, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_tmdt <- prediction_summary_cv(
+  model = tuned_model_dt, data = Delays_sample2, k = 5)
+
+cv_fmdt <- cv_fmdt$cv %>% 
+  mutate(Model = "fmdt")
+cv_dmdt <- cv_dmdt$cv %>% 
+  mutate(Model = "dmdt")
+cv_tmdt <- cv_tmdt$cv %>% 
+  mutate(Model = "tmdt")
+
+cv_results <- bind_rows(cv_fmdt, cv_dmdt, cv_tmdt)
+
+print(cv_results)
 
 ```
 
+
+```{r model2comparison}
+#| output: false
+
+#Posterior Predictive Summary
+# 
+# set.seed(123)
+# ps_fmdow <- prediction_summary(flat_model_dow, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_dmdow <- prediction_summary(default_model_dow, data = Delays_sample)
+# 
+# set.seed(123)
+# ps_tmdow <- prediction_summary(tuned_model_dow, data = Delays_sample)
+# 
+# ps_fmdow <- ps_fmdow %>% 
+#   mutate(Model = "fmdow")
+# ps_dmdow <- ps_dmdow %>% 
+#   mutate(Model = "dmdow")
+# ps_tmdow <- ps_tmdow %>% 
+#   mutate(Model = "tmdow")
+# 
+# ps_results2 <- bind_rows(ps_fmdow, ps_dmdow, ps_tmdow)
+# 
+# print(ps_results2)
+
+#K-fold Cross Validation with k=5, data n=1000
+
+set.seed(123)
+sample_size <- 1000
+Delays_sample2 <- Delays_sample %>% 
+  sample_n(sample_size)
+
+set.seed(123)
+cv_fmdow <- prediction_summary_cv(
+  model = flat_model_dow, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_dmdow <- prediction_summary_cv(
+  model = default_model_dow, data = Delays_sample2, k = 5)
+
+set.seed(123)
+cv_tmdow <- prediction_summary_cv(
+  model = tuned_model_dow, data = Delays_sample2, k = 5)
+
+cv_fmdow <- cv_fmdow$cv %>% 
+  mutate(Model = "fmdow")
+cv_dmdow <- cv_dmdow$cv %>% 
+  mutate(Model = "dmdow")
+cv_tmdow <- cv_tmdow$cv %>% 
+  mutate(Model = "tmdow")
+
+cv_results2 <- bind_rows(cv_fmdow, cv_dmdow, cv_tmdow)
+
+print(cv_results2)
+```
+
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-rte4{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-faln{background-color:#002B36;text-align:left;vertical-align:bottom}
+.tg .tg-f9qh{background-color:#002B36;color:#FFF;text-align:center;vertical-align:bottom}
+.tg .tg-l8vy{background-color:#002B36;color:#FFF;font-weight:bold;text-align:left;vertical-align:middle}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 639px"><colgroup>
+<col style="width: 189.333333px">
+<col style="width: 112.333333px">
+<col style="width: 112.333333px">
+<col style="width: 112.333333px">
+<col style="width: 112.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-rte4" colspan="5"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 3</span><span style="font-style:normal;color:#FFF">. Posterior predictive results from k-fold cross validation. </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">MAE</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">MAE Scaled</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Within 50% </span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Within 95% </span></td>
+  </tr>
+  <tr>
+    <td class="tg-l8vy" colspan="5"><span style="font-weight:bold;color:#FFF;background-color:#002B36">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Model 1: Continuous Predictor</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Flat Priors</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">15.730</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.313</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.841</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Default Tuned Priors</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">15.779</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.314</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.840</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Tuned Priors</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">15.668</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.312</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.849</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-l8vy" colspan="5"><span style="font-weight:bold;color:#FFF;background-color:#002B36">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Model 2: Categorical Predictor</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Flat Priors</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">17.110</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.338</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.866</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.965</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Default Tuned Priors</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">17.080</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.338</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.866</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Tuned Priors</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">17.118</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.339</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.867</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.966</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+  </tr>
+</tbody></table>
+```
+
+
+### 3.7 Effective Sample Size
+
+Effective sample sizes ($N_{\text{eff}}$) for the three iterations of the first model are all well above $0.1$. 
+
+```{r neff}
+#| output: false
+
+fmdt_neff <- neff_ratio(flat_model_dt)
+dmdt_neff <- neff_ratio(default_model_dt)
+tmdt_neff <- neff_ratio(tuned_model_dt)
+fmdow_neff <- neff_ratio(flat_model_dow)
+dmdow_neff <- neff_ratio(default_model_dow)
+tmdow_neff <- neff_ratio(tuned_model_dow)
+ 
+fmdt_neff <- as_tibble_row(fmdt_neff) %>%
+  mutate(Model = "fmdt")
+dmdt_neff <- as_tibble_row(dmdt_neff) %>% 
+  mutate(Model = "dmdt")
+tmdt_neff <- as_tibble_row(tmdt_neff) %>% 
+  mutate(Model = "tmdt")
+
+fmdow_neff <- as_tibble_row(fmdow_neff) %>% 
+  mutate(Model = "fmdow")
+dmdow_neff <- as_tibble_row(dmdow_neff) %>% 
+  mutate(Model = "dmdow")
+tmdow_neff <- as_tibble_row(tmdow_neff) %>% 
+  mutate(Model = "tmdow")
+ 
+neff_table_m1 <- bind_rows(fmdt_neff, dmdt_neff, tmdt_neff)
+
+neff_table_m2 <- bind_rows(fmdow_neff, dmdow_neff, tmdow_neff)
+
+neff_table_m1
+neff_table_m2
+
+```
+
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-rte4{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+.tg .tg-f9qh{background-color:#002B36;color:#FFF;text-align:center;vertical-align:bottom}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 440px"><colgroup>
+<col style="width: 102.333333px">
+<col style="width: 102.333333px">
+<col style="width: 133.333333px">
+<col style="width: 102.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-rte4" colspan="4"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 4. </span><span style="font-style:normal;color:#FFF">Effective sample size ratios for Model 1. </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Priors</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Flat</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.83</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.19</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.48</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Default</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.80</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.10</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.80</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Tuned</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.71</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.04</span></td>
+  </tr>
+</tbody></table>
+```
+
+Effective sample sizes for the three iterations of the second model are also well above $0.1$. 
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-72xg{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:middle}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 948px"><colgroup>
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-72xg" colspan="9"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 5</span><span style="font-style:normal;color:#FFF">. Effective sample size ratios for Model 2. </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Priors</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Flat</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.27</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.35</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.36</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.36</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.38</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.36</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.37</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">2.92</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Default</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.37</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.59</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.55</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.56</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.58</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.66</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Tuned</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.97</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.93</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.97</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.89</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">1.00</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.95</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">0.21</span></td>
+  </tr>
+</tbody></table>
+```
+
+
+### 3.8 $\hat{R}$ Analysis
+
+The $\hat{R}$ values for both models fall within an acceptable range such that $\hat{R} \approx 1$.
+
+```{r rhat}
+#| output: false
+
+fmdt_rhat <- rhat(flat_model_dt)
+dmdt_rhat <- rhat(default_model_dt)
+tmdt_rhat <- rhat(tuned_model_dt)
+fmdow_rhat <- rhat(flat_model_dow)
+dmdow_rhat <- rhat(default_model_dow)
+tmdow_rhat <- rhat(tuned_model_dow)
+ 
+fmdt_rhat <- as_tibble_row(fmdt_rhat) %>%
+  mutate(Model = "fmdt")
+dmdt_rhat <- as_tibble_row(dmdt_rhat) %>% 
+  mutate(Model = "dmdt")
+tmdt_rhat <- as_tibble_row(tmdt_rhat) %>% 
+  mutate(Model = "tmdt")
+
+fmdow_rhat <- as_tibble_row(fmdow_rhat) %>% 
+  mutate(Model = "fmdow")
+dmdow_rhat <- as_tibble_row(dmdow_rhat) %>% 
+  mutate(Model = "dmdow")
+tmdow_rhat <- as_tibble_row(tmdow_rhat) %>% 
+  mutate(Model = "tmdow")
+ 
+rhat_table_m1 <- bind_rows(fmdt_rhat, dmdt_rhat, tmdt_rhat)
+rhat_table_m2 <- bind_rows(fmdow_rhat, dmdow_rhat, tmdow_rhat)
+ 
+rhat_table_m1
+rhat_table_m2
+
+```
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-rte4{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+.tg .tg-f9qh{background-color:#002B36;color:#FFF;text-align:center;vertical-align:bottom}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 433px"><colgroup>
+<col style="width: 108.333333px">
+<col style="width: 108.333333px">
+<col style="width: 108.333333px">
+<col style="width: 108.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-rte4" colspan="4"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 6. </span><span style="font-style:normal;color:#FFF">R-hat metric for Model 1. </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Priors</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Flat</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.9997</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.9996</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.0015</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Default</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.0008</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.0005</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.0004</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Tuned</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.0004</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.9996</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.0004</span></td>
+  </tr>
+</tbody></table>
+```
+
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-72xg{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:middle}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 948px"><colgroup>
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+<col style="width: 105.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-72xg" colspan="9"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 7. </span><span style="font-style:normal;color:#FFF">R-hat metric for Model 2. </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Priors</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Flat</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0045</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0036</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0024</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0027</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0027</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0028</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0012</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9994</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Default</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0015</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9995</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0002</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0001</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0015</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9996</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0010</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9995</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v"><span style="color:#FFF;background-color:#002B36">Tuned</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0003</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0008</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9996</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9995</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0002</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9997</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">0.9998</span></td>
+    <td class="tg-uo0v"><span style="font-weight:normal;color:#FFF;background-color:#002B36">1.0056</span></td>
+  </tr>
+</tbody></table>
+```
+
+
+### 3.9 Posterior Predictive Checks
+
+The posterior predictive checks for the two models ($y_\text{rep}$) do not accurately capture the observed values ($y$). The mean and variability of the predictions appear to be higher than the observed values in both models.
+
+#### Model 1
+
+::: {.panel-tabset}
+## Flat Continuous Model
+```{r}
+library(bayesplot)
+model <- flat_model_dt
+
+y <- Delays_sample$ARR_DELAY
+yrep <- posterior_predict(model)
+
+pp_check(y, yrep[1:50,], ppc_dens_overlay) +
+  ggtitle("Figure 16 (a) Posterior Predictive Check Model 1: Flat Priors  ") + xlim (NA, 350)
+```
+
+## Default Continuous Model
+```{r}
+model <- default_model_dt
+
+yrep <- posterior_predict(model)
+
+pp_check(y, yrep[1:50,], ppc_dens_overlay) +
+  ggtitle("Figure 16 (b) Posterior Predictive Check Model 1: Default Priors  ") + xlim (NA, 350)
+```
+
+## Tuned Continuous Model
+```{r}
+
+model <- tuned_model_dt
+
+yrep <- posterior_predict(model)
+
+pp_check(y, yrep[1:50,], ppc_dens_overlay) +
+  ggtitle("Figure 16 (c) Posterior Predictive Check Model 1: Tuned Priors  ") + xlim (NA, 350)
+
+```
+:::
+
+#### Model 2
+
+::: {.panel-tabset}
+## Flat Categorical Model
+```{r}
+
+model <- flat_model_dow
+
+yrep <- posterior_predict(model)
+
+pp_check(y, yrep[1:50,], ppc_dens_overlay) +
+  ggtitle("Figure 17 (a) Posterior Predictive Check Model 2: Flat Priors  ") + xlim (NA, 350)
+
+```
+
+## Default Categorical Model
+```{r}
+
+model <- default_model_dow
+
+yrep <- posterior_predict(model)
+
+pp_check(y, yrep[1:50,], ppc_dens_overlay) +
+  ggtitle("Figure 17 (b) Posterior Predictive Check Model 2: Default Priors  ") + xlim (NA, 350)
+
+
+```
+
+## Tuned Continuous Model 
+```{r}
+
+model <- tuned_model_dow
+
+yrep <- posterior_predict(model)
+
+pp_check(y, yrep[1:50,], ppc_dens_overlay) +
+  ggtitle("Figure 17 (b) Posterior Predictive Check Model 2: Default Priors  ") + xlim (NA, 350)
+
+```
+:::
+
+
+### 3.10 OLS vs. Bayesian Regression
+
+The results from ordinary least squares regression are not identical to the results from the Bayesian regression, but there is remarkable similarity. The linear models were constructed using the lm() function from the stats package[@stats]. 
+
+```{r}
+#| output: false
+
+library(tibble)
+
+
+ols_model1 <- lm(ARR_DELAY ~ DEP_TIME_MINS, data = Delays_sample)
+om1t <- as_tibble(summary(ols_model1)$coefficients)
+
+ols_model2 <- lm(ARR_DELAY ~ DAY_OF_WEEK, data = Delays_sample) 
+om2t <- as_tibble(summary(ols_model2)$coefficients)
+
+om1t
+om2t
+```
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-rte4{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-faln{background-color:#002B36;text-align:left;vertical-align:bottom}
+.tg .tg-f9qh{background-color:#002B36;color:#FFF;text-align:center;vertical-align:bottom}
+.tg .tg-uvg0{background-color:#002B36;color:#FFF;font-weight:bold;text-align:center;vertical-align:middle}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 482px"><colgroup>
+<col style="width: 139.333333px">
+<col style="width: 128.33333299999998px">
+<col style="width: 107.333333px">
+<col style="width: 107.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-rte4" colspan="4"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 8. </span><span style="font-style:normal;color:#FFF">Model 1 Comparison: Bayesian and OLS </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Estimate</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">SE</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uvg0" colspan="2"><span style="font-weight:bold;color:#FFF;background-color:#002B36">Model 1: Continuous Predictor</span></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v" rowspan="3">Default Tuned <br>Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">-10.94</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uvg0" colspan="2"><span style="font-weight:bold;color:#FFF;background-color:#002B36">OLS Model: Continuous Predictor</span></td>
+    <td class="tg-faln"></td>
+    <td class="tg-faln"></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">-10.92</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.47</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Departure Time</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.02</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.00</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Residual Standard Error</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.09</span></td>
+    <td class="tg-faln"></td>
+  </tr>
+</tbody></table>
+```
+
+```{=html}
+<style type="text/css">
+.tg  {border:none;border-collapse:collapse;border-spacing:0;}
+.tg td{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;
+  padding:10px 5px;word-break:normal;}
+.tg th{border-style:solid;border-width:0px;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-wkir{background-color:#002B36;text-align:center;vertical-align:bottom}
+.tg .tg-rte4{background-color:#002B36;border-color:#002b36;color:#FFF;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-eqov{background-color:#002b36;text-align:left;vertical-align:top}
+.tg .tg-f9qh{background-color:#002B36;color:#FFF;text-align:center;vertical-align:bottom}
+.tg .tg-l8vy{background-color:#002B36;color:#FFF;font-weight:bold;text-align:left;vertical-align:middle}
+.tg .tg-uo0v{background-color:#002B36;color:#FFF;text-align:center;vertical-align:middle}
+.tg .tg-faln{background-color:#002B36;text-align:left;vertical-align:bottom}
+</style>
+<table class="tg" style="undefined;table-layout: fixed; width: 533px"><colgroup>
+<col style="width: 144.333333px">
+<col style="width: 166.333333px">
+<col style="width: 111.333333px">
+<col style="width: 111.333333px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-rte4" colspan="4"><span style="font-weight:bold;font-style:normal;color:#FFF">Table 9. </span><span style="font-style:normal;color:#FFF">Model 2 Comparison: Bayesian and OLS </span></th>
+  </tr></thead>
+<tbody>
+  <tr>
+    <td class="tg-eqov"></td>
+    <td class="tg-eqov"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Estimate</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">SE</span></td>
+  </tr>
+  <tr>
+    <td class="tg-l8vy" colspan="4"><span style="font-weight:bold;color:#FFF;background-color:#002B36">&nbsp;&nbsp;&nbsp;&nbsp;Model 2: Categorical Predictor</span></td>
+  </tr>
+  <tr>
+    <td class="tg-uo0v" rowspan="8">Default Tuned<br>Priors</td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.54</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.40</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">3.48</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.58</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.89</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.40</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.69</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.60</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.97</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.96</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.59</span></td>
+  </tr>
+  <tr>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝜎</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.40</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.12</span></td>
+  </tr>
+  <tr>
+    <td class="tg-l8vy" colspan="4"><span style="font-weight:bold;color:#FFF;background-color:#002B36">    OLS Model: Categorical Predictor</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₀ Intercept (Tuesday)</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.55</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.44</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₅ Sunday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.95</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₆ Monday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.68</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₁ Wednesday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">1.88</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₂ Thursday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">3.47</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.62</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₃ Friday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">4.40</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.61</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">𝛽₄ Saturday</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">2.96</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">0.64</span></td>
+  </tr>
+  <tr>
+    <td class="tg-faln"></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">Residual Standard Error</span></td>
+    <td class="tg-f9qh"><span style="color:#FFF;background-color:#002B36">51.39</span></td>
+    <td class="tg-wkir"></td>
+  </tr>
+</tbody></table>
+```
+
+
+::: {.panel-tabset}
+
+## Regression Comparison
+```{r}
+
+dep_time_seq <- seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 100)
+
+prediction_data <- data.frame(DEP_TIME_MINS = dep_time_seq)
+
+prediction_data <- prediction_data %>%
+  mutate(
+   ppfmdt  = predict(flat_model_dt, newdata = prediction_data, type = "response"),
+   ppdmdt  = predict(default_model_dt, newdata = prediction_data, type = "response"),
+    pptmdt = predict(tuned_model_dt, newdata = prediction_data, type = "response"),
+    OLSmdt = predict(ols_model1, newdata = prediction_data)
+  )
+
+plot_data <- prediction_data %>%
+  pivot_longer(cols = -DEP_TIME_MINS, names_to = "Model", values_to = "Predicted_ARR_DELAY")
+
+time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
+time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
+
+ggplot(plot_data,
+       aes(
+         x = DEP_TIME_MINS, 
+         y = Predicted_ARR_DELAY, 
+         color = Model)
+       ) +
+  geom_line(size = 1) +
+  labs(
+    title = "Figure 18 (a) Comparison of Regression Lines",
+    x = "Departure Time (Minutes Past Midnight)",
+    y = "Predicted Arrival Delay (Minutes)"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels)+
+  scale_color_discrete(
+    labels =  c(
+    "ppfmdt" = "Flat",
+    "ppdmdt" = "Default",
+    "pptmdt" = "Tuned",
+    "OLSmdt" = "OLS"
+  )
+)
+```
+
+## Zoomed
+```{r}
+time_breaks <- c(600, 660, 720, 780, 840)
+time_labels <- c("10 AM", "11 AM", "12 PM", "1 PM", "2 PM")
+
+ggplot(
+  plot_data, 
+  aes(
+    x = DEP_TIME_MINS, 
+    y = Predicted_ARR_DELAY, 
+    color = Model)
+  ) +
+  geom_line(size = 1) +
+  labs(
+    title = "Figure 18 (b) Comparison of Regression Lines",
+    x = "Departure Time",
+    y = "Predicted Arrival Delay (Minutes)"
+  ) +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels,
+    limits = c(600, 840)) +
+  theme_minimal() +
+  ylim(0,6) +
+  scale_color_discrete(
+    labels =  c(
+    "ppfmdt" = "Flat",
+    "ppdmdt" = "Default",
+    "pptmdt" = "Tuned",
+    "OLSmdt" = "OLS"
+  )
+)
+```
+
+## Scatter Overlay
+```{r}
+time_breaks <- c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440)
+time_labels <- c("12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM", "12 AM")
+ggplot() +
+  geom_jitter(
+    data = Delays_sample, 
+    aes(x = DEP_TIME_MINS, y = ARR_DELAY),
+    color = "darkgray", alpha = 0.3, size = 1,
+    width = 5, height = 0.5
+  ) +
+  geom_line(
+    data = plot_data, 
+    aes(x = DEP_TIME_MINS, y = Predicted_ARR_DELAY, color = Model),
+    size = 1
+  ) +
+  labs(
+    title = "Figure 18 (c) Comparison of Regression Lines",
+    x = "Departure Time",
+    y = "Arrival Delay (Minutes)"
+  ) +
+  scale_x_continuous(
+    breaks = time_breaks, 
+    labels = time_labels) +
+  theme_minimal() +
+  ylim(NA, 2000) +
+  scale_color_discrete(
+    labels = c(
+      "ppfmdt" = "Flat",
+      "ppdmdt" = "Default",
+      "pptmdt" = "Tuned",
+      "OLSmdt" = "OLS"
+    )
+  )
+```
+
+:::
+
+## 4 Discussion
+
+This project investigated the use of different types of priors with Bayesian linear regression to understand the influence of different predictors on arrival delays for U.S. flights. Flight data was chosen as it could provide an interesting real-world application to examine the use of Bayesian regression.   
+
+#### 4.1 Modeling Results
+
+Model 1 examined the effect of departure time on arrival delays. All three versions of the model estimated the regression coefficient $\beta_1$ to be $0.02$.  That is, for every minute past midnight on any given day, arrival delay is expected to increase by $0.02 \text{ minutes}$ ($1.2 \text{ seconds}$). At noon ($X = 720 \text{ minutes),}$ the expected delay for any flight is $3.48 \text{ minutes}$ ($\sim 3 \text{ minutes and } 29\text{ seconds}$). The flat, default, and tuned models found intercepts, $\beta_0$, to be $-10.92, -10.94, \text{ and } -11.66$ respectively. The difference shown in the intercept of the tuned model (just over 43 seconds), shows a small effect from the adjusted prior. There are no remarkable differences in the estimated standard deviations, $\sigma$, for Model 1. There are no large differences in standard error for any of the estimates. 
+
+Model 2 examined the effect of the day of the week as a categorical variable on arrival delays. Tuesday was set to the reference as it had the lowest average delay. The estimated intercepts, $\beta_0$, for the three versions of the model are all fairly similar as are the estimated standard deviations. The flat and tuned models have similar estimates for the coefficients of the day variables, though the model with default tuned priors has higher weights associated with the Friday and Saturday coefficients and lower weights for the Sunday, Monday and Wednesday coefficients. There are no large differences in standard error for any of the estimates. 
+
+The lack of any large differences between the models is likely due to the large amount of data, 100,000 observations, put into the models. This indicated a limited effect of the priors on the models in light of a large amount of data.  
+
+#### 4.2 Evaluation of the Models
+
+The 5-fold cross validation provides median absolute errors of $\sim 15.7$ for Model 1 and $\sim 17.1$ for Model 2. This indicated a typical error of $15.7$ and $17.1 \text{ minutes}$, or standard deviations of $\sim 0.31$ and $\sim 0.31$, for the models respectively. The cross validation does also estimate that $\sim 96.6\%$ of the observations fall within their $95\%$ prediction interval. This assessment provides reassurance that the models do provide accurate predictions. 
+
+The results from analysis of effective sample size and R-hat metrics also provide  positive indicators for model accuracy. Effective sample sizes ($N_{\text{eff}}$) for all iterations of each model are all well above $0.1$ indicating that sample is of an appropriate volume for the Markov chain. 
+
+Other MCMC diagnostics, including the trace plots, density plots of individual chains and autocorrelations, indicated solid convergence of the Markov chains for all versions of both models. The trace plots showed noise that was higher than desirable, but the chains were well mixed with no visible pi trends. The density plots were fairly consistent across chains for all models, no bimodality was observed. Autocorrelation plots showed rapid decay and weak dependence which mirrors the results from the effective sample size ratios. 
+
+The $\hat{R}$ values for both models fall within an acceptable range such that $\hat{R} \approx 1$, indicating stability across parallel Markov chains. 
+
+The posterior predictive checks for each prior version of the two models are all fairly similar, so they will be considered as a group, and they are concerning. The posterior predictive checks for the two models ($y_\text{rep}$) do not accurately capture the observed values ($y$). With wider distributions with an upward shift, the mean and variability of the predictions appear to be higher than the observed values in both models. Based on the appearance of the distribution of the y values, it may be appropriate to use a log transformation on the data model, i.e.
+$\log(Y_i) \mid \beta_0, \beta_1, \sigma \overset{\text{ind}}{\sim} N(\mu_i, \sigma^2) \quad \text{with} \quad \mu_i = \beta_0 + \beta_1 X_i$. 
+
+As the differences between the model version with differing priors was slight, linear models were constructed via ordinary least squares(OLS) for comparison. The OLS models were compared to the Bayesian models with default priors. Model 1 was found to have similar parameter estimates  to the OLS model to include the standard errors for those parameter estimates. The residual standard error from the OLS model was also similar to the standard deviation of the Bayesian model. Model 2 had similar intercept and standard deviation estimates to the OLS model, though there were differences in the other parameter estimates.
+
+In checking the model assumptions, it is relevant to examine the context of the data. The data was assembled by the Department of Transportation and includes all national flights, within the U.S., from January of 2019 through August of 2023. Each observation in the data set is an individual flight with it's associated times, locations, and attributed causes for delay. The first observation requires that each observation be independent. While we assumed this to generally be true, a fault in this logic may occur due to a domino effect of late flights. This domino effect could likely be the cause of the slight increase in delays throughout the day. Assumptions two and three which require linearity and both Normal and homoscedastic variance can be assessed through the posterior predictive check. The posterior predictive checks of the models demonstrated that assumptions two and three were violated as the predictions did not reliably capture the observations which were not Gaussian in nature. 
+
 ## 5 Conclusion
 
--   Summarize your key findings.
+This analysis highlighted the diminished effect priors have on posterior distributions in light of large amounts of data. Model 1 resulted in the coefficient $\beta_1= 0.02 \text{ minutes}$, indicating 1.2 second increase in arrival delay per each minute past midnight, predicting, for example, a 3 and a half minute arrival delay at noon. Model 2 indicated that delays varied by the day of the week, but with no clear trend. Comparison of Model 1 with an OLS model showed little differences, further supporting the diminished effect of priors with large data sets. There were some differences with the categorical OLS model and the categorical coefficients of Model 2, but nothing greater than the differences provided by the three different iterations the Bayesian model.
 
--   Discuss the implications of your results.
+Diagnostics provided support of the MCMC sampling with effective sample sizes all larger than 0.1, $\hat{R} \approx 1$ and desirable trace plots, density plots and autocorrelations. Although the Markov Chain Monte Carlo provided good results, the posterior predictive check indicated issues with the model, indicating a non-normal posterior would be a better fit. A log transformation of the outcome variable may be of benefit.
+
+The posterior predictive check also indicated a potential violation of assumptions. It may be of interest in future research to account for the domino effect that results from late flights - one of the potential issues with the first model.  
 
 ##  References
 
 ::: {#refs}
 :::
 
+##  Index
+
+### MCMC Trace of Categorical Model With Flat Priors
+
+```{r}
+model <- flat_model_dow
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 13 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+
+```
+
+### MCMC Trace of Categorical Model With Default Tuned Priors
+
+```{r}
+model <- default_model_dow
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 14 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+
+```
+
+### MCMC Trace of Categorical Model With Default Tuned Priors
+
+```{r}
+model <- tuned_model_dow
+
+mcmc_trace(model, pars = "(Intercept)") + 
+  labs(
+    title = "Figure 15 (b) MCMC Trace", 
+    subtitle = "Intercept(Tuesday)" )
+ mcmc_trace(model, pars = "DAY_OF_WEEKSun") + 
+  labs(subtitle = "Sunday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKMon") + 
+  labs(subtitle = "Monday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKWed") + 
+  labs(subtitle = "Wednesday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKThu") + 
+  labs(subtitle = "Thursday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKFri") + 
+  labs(subtitle = "Friday")
+ mcmc_trace(model, pars = "DAY_OF_WEEKSat") + 
+  labs(subtitle = "Saturday")
+ mcmc_trace(model, pars = "sigma") + 
+  labs(subtitle = "Sigma")
+```
+
+
+### **Prior Summary: Model 1** 
+
+#### **Default Priors**
+
+```{r}
+prior_summary(default_model_dt)
+```
+
+#### **Flat Priors**
+
+```{r}
+prior_summary(flat_model_dt)
+```
+
+
+### **Prior Summary: Model 2** 
+
+#### **Default Priors**
+
+```{r}
+prior_summary(default_model_dow)
+```
+
+#### **Flat Priors**
+
+```{r}
+prior_summary(flat_model_dt)
+```

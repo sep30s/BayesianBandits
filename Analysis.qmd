@@ -32,8 +32,7 @@ pre {
 
 ```{r dataset}
 
-#| echo: false
-
+#| include: false
 
 library(brms)
 library(tidyverse)
@@ -79,6 +78,7 @@ Delays_sample <- Delays_sample %>%
 
 
 ```{r hist_arr_delay}
+
 #ARR_DELAY is the outcome variable chosen for BLR
 
 #histogram arr_delay
@@ -161,14 +161,6 @@ head(Delays_sample$DEP_TIME_HHMM)
 
 ```
 
-```{r setting_priors_brms}
-
-prior1 <- prior(normal(-7, 30), class = "Intercept")
-prior2 <- prior(normal(0, 10), class = "b")
-prior3 <- prior(cauchy(0, 200), class = "sigma")
-```
-
-
 ```{r arr_delay_vs_dep_time_eda}
 library(ggplot2)
 library(broom)
@@ -202,6 +194,8 @@ summary(fit)
 
 tidy(fit)
 
+
+
 coefficients_by_airline <- Delays_sample %>%
   group_by(AIRLINE) %>%
   do(tidy(lm(ARR_DELAY ~ DEP_TIME_MINS, data = .)))
@@ -232,11 +226,12 @@ ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
     x = "Day of the Week",
     y = "Arrival Delay (minutes)"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  ylim(-100,100)
 
 ```
 
-## The Normal Data Model 
+## The Normal Data Model: Departure Time Predictor
 
   To generate a model for our analysis, we start with the normal data model $Y_i|\beta_0, \beta_1, \sigma \sim N(\mu, \sigma^2)$ and include a the mean specific to our predictor, departure time, $\mu_i$. The model is:
   
@@ -256,22 +251,22 @@ Where:
 concerned about how this model is interpreted, the bayes rule book uses an example of bike ridership ~ temperature so the model \mu_i is a "temperature specific local mean" with a smaller \sigma. This feels like it would be a weird translation to a time specific local mean
 --->
 
-```{r stanarm_model}
+```{r default_model_cont}
 library(rstanarm)
 
-model_stan <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+default_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
                         data = Delays_sample,
                         family = gaussian(),
                         chains = 4,
                         iter = 2000,
                         seed = 123)
 
-mcmc_trace(model_stan, size = 0.1)
+mcmc_trace(default_model_dt, size = 0.1)
 
-mcmc_dens_overlay(model_stan)
+mcmc_dens_overlay(default_model_dt)
 
 
-summary(model_stan)
+summary(default_model_dt)
 
 #default priors in rstanarm are normal, normal, and exponential for the intercept, slope, and error respectively. The rstanarm framework also assumes independence of the priors [@bayesrulesbook].
 
@@ -282,11 +277,11 @@ predictions <- data.frame(
   DEP_TIME_MINS = seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 1440)
 )
 
-predictions$fitted <- predict(model_stan, newdata = predictions)
+predictions$fitted <- predict(default_model_dt, newdata = predictions)
 
 #labelfor lm
-intercept <- coef(model_stan)[1]
-slope <- coef(model_stan)[2]
+intercept <- coef(default_model_dt)[1]
+slope <- coef(default_model_dt)[2]
 model_label <- paste("Y = ", round(intercept, 2), " + ", round(slope, 2), "* DEP_TIME", sep = "")
 
 
@@ -318,9 +313,10 @@ summary(Delays_sample$ARR_DELAY)
 
 ```
 
+
 ## Specifying Priors
 
-  Since we are only using two data variables, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
+  Since we are only using two variables, arrival delay and departure time, the regression parameters will be $\beta_0$, $\beta_1$, and $\sigma$ for intercept, slope, and error
   As intercept and slope regression parameters can take any real value, we will use normal prior models [@bayesrulesbook]. 
 
 $$
@@ -396,7 +392,7 @@ summary(lm_model)$coefficients["DEP_TIME_MINS", "Std. Error"] #s_1 = 0.0005
 
 ```
 
-  The slope of the lineal model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
+  The slope of the linear model indicates a 0.019 minute increase in arrival delay per minute increase in departure time, so we set $m_1 = 0.02$. The standard error reflects high confidence at 0.0005, but  as to not limit the model we will set it lower at $s_1 = 0.01$. 
 
 
 $$
@@ -432,221 +428,450 @@ Y_i|\beta_0, \beta_1, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && 
 \end{align*}
 $$
 
+```{r tuned_model_cont}
 
+tuned_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS, 
+                        data = Delays_sample,
+                        family = gaussian(),
+                        prior_intercept = normal(2, 1296),
+                        prior = normal(0.02, 0.0001), 
+                        prior_aux = exponential(0.02),
+                        chains = 4, iter = 2000, seed = 123)
 
+# Effective sample size ratio and Rhat
+neff_ratio(tuned_model_dt)
+rhat(tuned_model_dt)
 
-```{}
-library(ggplot2)
-library(dplyr)
-library(broom)
-library(bayesrules)
-library(rstanarm)
-library(bayesplot)
-library(tidyverse)
+# Trace plots of parallel chains
+mcmc_trace(tuned_model_dt, size = 0.1)
+
+# Density plots of parallel chains
+mcmc_dens_overlay(tuned_model_dt)
+
 library(broom.mixed)
-library(tidybayes)
 
-posterior_preds <- posterior_predict(model_stan)
+tmdt <- tidy(tuned_model_dt, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
 
-# Calculate mean and credible intervals
-predicted_means <- apply(posterior_preds, 2, mean)
-predicted_intervals <- apply(posterior_preds, 2, quantile, probs = c(0.025, 0.975))
+# Store the 4 chains for each parameter in 1 data frame
+model_tuned_df <- as.data.frame(tuned_model_dt)
 
-# Create a new data frame for plotting
-predictions <- data.frame(
-  DEP_TIME = Delays_sample$DEP_TIME,
-  ARR_DELAY = Delays_sample$ARR_DELAY,
-  fitted = predicted_means,
-  lower = predicted_intervals[1, ],
-  upper = predicted_intervals[2, ]
+
+##TUNED
+# Simulate a set of predictions
+set.seed(123)
+shortcut_prediction <- 
+  posterior_predict(tuned_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
+
+# Construct a 95% posterior credible interval
+posterior_interval(shortcut_prediction, prob = 0.95)
+
+# Plot the approximate predictive model
+mcmc_dens(shortcut_prediction) + 
+  xlab("Predicted Arrival Delays for a Departure Time of Noon, Tuned Priors")
+
+```
+
+```{r default_model_cont}
+
+default_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+                       data = Delays_sample,
+                       family = gaussian(),
+                       chains = 4, iter = 2000, seed = 123)
+
+dmdt <- tidy(default_model_dt, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+# Simulate a set of predictions
+set.seed(123)
+shortcut_prediction2 <- 
+  posterior_predict(default_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
+
+# 95% posterior credible interval
+posterior_interval(shortcut_prediction2, prob = 0.95)
+
+# predictive model
+mcmc_dens(shortcut_prediction2) + 
+  xlab("Predicted Arrival Delays for a Departure Time of Noon, Default Priors")
+
+```
+
+```{r flat_model_cont}
+
+flat_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+                       data = Delays_sample,
+                       family = gaussian(),
+                       prior = NULL,
+                       prior_intercept = NULL,
+                       prior_aux = NULL,
+                       chains = 4, iter = 2000, seed = 123)
+
+fmdt <- tidy(flat_model_dt, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+# Simulate a set of predictions
+set.seed(123)
+shortcut_prediction1 <- 
+  posterior_predict(flat_model_dt, newdata = data.frame(DEP_TIME_MINS = 720))
+
+# 95% posterior credible interval
+posterior_interval(shortcut_prediction1, prob = 0.95)
+
+# predictive model
+mcmc_dens(shortcut_prediction1) + 
+  xlab("Predicted Arrival Delays for a Departure Time of Noon, Flat Priors")
+
+```
+
+## The Normal Data Model: Week Day Predictor
+
+ For arrival delays by the  day of the week, the mean arrival delays are between 1 and 7 minutes while the median arrival delays are all in the negative, indicating a skew towards larger delays. 
+
+$$  
+\begin{align*}
+Y_i|\beta_0, \beta_1, ... \beta_6, \sigma &\overset{\text{ind}}{\sim} N (\mu_i, \sigma^2) && \text{with } && \mu_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + ... \beta_6X_{i6}  \\ 
+\beta_{0} &\sim N(m_0, s_0^2)\\
+\beta_1 &\sim N(m_1, s_1^2)\\
+\sigma &\sim \text{Exp}(l)
+\end{align*}
+$$
+
+
+```{r wday_predictor}
+
+mean_delay_by_day <- Delays_sample %>%
+  group_by(DAY_OF_WEEK) %>%
+  summarise(mean_arr_delay = mean(ARR_DELAY),
+            sd_arr_delay = sd(ARR_DELAY)
+  )
+
+ggplot(Delays_sample, aes(x = DAY_OF_WEEK, y = ARR_DELAY)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(data = mean_delay_by_day, aes(x = DAY_OF_WEEK, y = mean_arr_delay), 
+             color = "red4", size =3, shape = 8) +
+  labs(
+    title = "Arrival Delay by Day of the Week",
+    x = "Day of the Week",
+    y = "Arrival Delay (minutes)"
+  ) +
+  theme_minimal()+
+  ylim(-45,45)
+
+
+
+```
+
+
+```{r flat_model_categorical}
+
+Delays_sample$DAY_OF_WEEK <- factor(
+  Delays_sample$DAY_OF_WEEK, 
+  ordered = FALSE)
+
+Delays_sample <- Delays_sample %>%
+  mutate(DAY_OF_WEEK = relevel(as.factor(DAY_OF_WEEK), ref = "Tue"))
+
+flat_model_dow <- stan_glm(
+  ARR_DELAY ~ DAY_OF_WEEK, 
+  data = Delays_sample, 
+  family = gaussian(),
+  prior = NULL, 
+  prior_intercept = NULL, 
+  prior_aux = NULL,
+  chains = 4, iter = 2000, seed = 123,
+  refresh = 0
 )
 
-# Plot with credible intervals
-ggplot(predictions, aes(x = DEP_TIME)) +
-  geom_point(aes(y = ARR_DELAY), color = "blue", alpha = 0.5) +
-  geom_line(aes(y = fitted), color = "red", linewidth = 1) +
-  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "red") +
-  labs(title = "Bayesian Linear Regression: Arrival Delay vs Departure Time",
-       x = "Departure Time",
-       y = "Arrival Delay") +
-  theme_minimal()
+model <- flat_model_dow
 
-prior_summary(model_stan)
+fmdow <- tidy(model, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
 
 # MCMC diagnostics
-mcmc_trace(weather_model_1, size = 0.1)
-mcmc_dens_overlay(weather_model_1)
-mcmc_acf(weather_model_1)
-neff_ratio(weather_model_1)
-rhat(weather_model_1)
+mcmc_trace(model, size = 0.1)
+mcmc_dens_overlay(model)
+mcmc_acf(model)
 
-```
-
-
-- The mean is -7, large skew to the right
-
-Priors: 
-- for the intercept 
-  - prior(normal(-7, 30), class = "Intercept")
-  - -7 for the mean, 30 for the large variance of the variable
-- for the coeff
-  - prior(normal(0, 10), class = "b")
-  - unsure of the relationship between the dependent and independent variables
-- for the sd
-  - prior(cauchy(0, 200), class = "sigma")
-  - vary large sd to account for the skew of the target variable, this allows the model the variability to account for the large range of delays [-96, 2083]
-
-
-```{{r echo=FALSE}}
-Delays1 <- Delays %>%
-  mutate(
-    DELAY_DUE_CARRIER = replace_na(DELAY_DUE_CARRIER, 0),
-    DELAY_DUE_WEATHER = replace_na(DELAY_DUE_WEATHER, 0),
-    DELAY_DUE_NAS = replace_na(DELAY_DUE_NAS, 0),
-    DELAY_DUE_SECURITY = replace_na(DELAY_DUE_SECURITY, 0),
-    DELAY_DUE_LATE_AIRCRAFT = replace_na(DELAY_DUE_LATE_AIRCRAFT, 0)
-  ) %>%
-  rename_with(tolower) %>%
-  rename(
-    carrier_delay = delay_due_carrier,
-    weather_delay = delay_due_weather,
-    nas_delay = delay_due_nas,
-    security_delay = delay_due_security,
-    lateaircraft_delay = delay_due_late_aircraft
-  )
-#removing cancelled and NA gets rid of all but 2 NAs, so those are just dropped
-Delays1_cleaned  <- Delays1 %>%
-  filter(diverted == 0, cancelled == 0 ) %>%
-  drop_na()
-
-#determining a prior
-
-```
-
-
-``` brms
-library(brms)
-
-blr_gauss = brm(ARR_DELAY ~ DEP_TIME, 
-  Delays_sample, 
-  prior = c(prior1, prior2, prior3),
-  family = gaussian(),
-  chains = 4, 
-  iter = 2000)
-
-blr_student = brm(ARR_DELAY ~ DEP_TIME, 
-  Delays_sample, 
-  prior = c(prior1, prior2, prior3),
-  family = student(),
-  chains = 4, 
-  iter = 2000)
-
-blr_skew = brm(ARR_DELAY ~ DEP_TIME, 
-  Delays_sample, 
-  prior = c(prior1, prior2, prior3),
-  family = skew_normal(),
-  chains = 4, 
-  iter = 2000)
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-``` BlrArrDelFromAirlineCode
-#| echo: false
-
-
-
-
-
-
-
-#noninformative prior with uniform distribution
-
-bas_result <- bas.lm(
-  formula = arr_delay ~ airline_code,
-  data = Delays1_cleaned,
-  prior = "JZS",
-  modelprior = uniform(),
-  method = "BAS"
-)
-summary(bas_result)
-
-posterior_samples <- bas_result$coefficients[["model 1"]]
-posterior_df <- as.data.frame(posterior_samples)
-
-
-posterior_samples <- as.mcmc(bas_result)
-
-post_samples <- as.data.frame(bas_result$posterior)
-mcmc_trace(posterior_samples, facet_args = list(ncol = 2))
-str(posterior_samples)
-
-
-library(bayesplot)
-
-mcmc_intervals(as.mcmc(bas_result))
-
-```
-
-
-``` BlrSampled
-#| echo: false
-
-
-library(brms)
-library(tidyverse)
+library(ggplot2)
+library(ggridges)
 library(dplyr)
-library(bayesplot)
-library(BAS)
-library(coda)
 
-set.seed(123)
-Delays_sample  <- Delays1 %>%
-  filter(diverted == 0, cancelled == 0) %>%
-  drop_na()%>% 
-  sample_n(10000)
+#Stacked distributions
 
-bas_result <- bas.lm(
-  formula = arr_delay ~ airline_code,
-  data = Delays_sample,
-  prior = "JZS",
-  modelprior = uniform(),
-  method = "BAS" 
+new_data <- data.frame(DAY_OF_WEEK = levels(Delays_sample$DAY_OF_WEEK))
+predictions <- posterior_predict(model, newdata = new_data)
+
+pred_df <- as.data.frame(predictions)
+colnames(pred_df) <- levels(Delays_sample$DAY_OF_WEEK)
+
+pred_long <- pred_df %>%
+  pivot_longer(cols = everything(), names_to = "DAY_OF_WEEK", values_to = "ARR_DELAY")
+
+
+pred_long$DAY_OF_WEEK <- factor(pred_long$DAY_OF_WEEK, levels = c("Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"))
+
+
+ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
+  geom_density_ridges(alpha = 0.7, scale = 0.8) +
+  stat_summary(fun = mean, 
+               geom = "vline", 
+               aes(xintercept = ..x.., color = DAY_OF_WEEK),
+               linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
+  labs(
+    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    x = "Predicted Arrival Delay (minutes)",
+    y = "Day of the Week",
+    fill = "Day"
+  ) +
+  xlim(-150,150)+
+  theme_minimal()
+
+
+```
+
+
+```{r auto_model_categorical}
+
+default_model_dow <- stan_glm(
+  ARR_DELAY ~ DAY_OF_WEEK, 
+  data = Delays_sample, 
+  family = gaussian(),
+  chains = 4, iter = 2000, seed = 123,
+  refresh = 0
 )
 
-summary(bas_result)
 
-posterior_samples <- predict(bas_result, estimator="BMA", nsim=1000)$beta
+model <- default_model_dow
 
-posterior_mcmc <- as.mcmc(posterior_samples)
+dmdow <- tidy(model, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
 
-str(posterior_mcmc)
+# MCMC diagnostics
+mcmc_trace(model, size = 0.1)
+mcmc_dens_overlay(model)
+mcmc_acf(model)
 
-mcmc_trace(posterior_mcmc, facet_args = list(ncol = 2))
+library(ggplot2)
+library(ggridges)
+library(dplyr)
 
-mcmc_intervals(posterior_mcmc)
+#Stacked distributions
+
+new_data <- data.frame(DAY_OF_WEEK = levels(Delays_sample$DAY_OF_WEEK))
+predictions <- posterior_predict(model, newdata = new_data)
+
+pred_df <- as.data.frame(predictions)
+colnames(pred_df) <- levels(Delays_sample$DAY_OF_WEEK)
+
+pred_long <- pred_df %>%
+  pivot_longer(cols = everything(), names_to = "DAY_OF_WEEK", values_to = "ARR_DELAY")
+
+
+pred_long$DAY_OF_WEEK <- factor(pred_long$DAY_OF_WEEK, levels = c("Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"))
+
+
+ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
+  geom_density_ridges(alpha = 0.7, scale = 0.8) +
+  stat_summary(fun = mean, 
+               geom = "vline", 
+               aes(xintercept = ..x.., color = DAY_OF_WEEK),
+               linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
+  labs(
+    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    x = "Predicted Arrival Delay (minutes)",
+    y = "Day of the Week",
+    fill = "Day"
+  ) +
+  xlim(-150,150)+
+  theme_minimal()
+
+```
+
+## Hyperparameters
+
+
+### $\beta_0$ informs the model intercept  
+
+```{r tuning_priors_categorical_B0}
+#| echo: false
+
+mean_delay_by_day
+
+```
+
+  $\beta_{0c}$ reflects the mean arrival delay on Tuesday, our reference. The average arrival delay is  $\sim$ 2 minutes with a standard deviation  $\sim$ 46 minutes. 
+
+$$
+\beta_{0c} \sim N(2, 46^2)
+$$
+
+
+### $\beta_j$ informs the model slope
+
+  For a categorical predictor with the stan_glm() function, the tuned prior is applied to to the estimation of each coefficient associated with the individual levels of the predictor (e.g. $\beta_1, \beta_2, ..., \beta_6 $). For this reason, we set the coefficient prior to be weakly informative. 
+  
+
+
+$$
+\beta_{1} \sim N(0, 50^2)
+$$
+
+### $\sigma$ informs the regression standard deviation
+
+```{r tuning_priors_rstanarm_s}
+
+lm_model <- lm(ARR_DELAY ~ DAY_OF_WEEK, data = Delays_sample)
+
+summary(lm_model)$sigma
+
+```
+
+  To tune the exponential model, we set the expected value of the standard deviation, $ E(\sigma) $, equal to the residual standard error which is the same as with the previous model, $\sim 50$.
+  
+$$
+\begin{align*}
+E(\sigma) &= \frac{1}{l} = 50\\\\
+l  &= \frac{1}{50} =  0.02\\\\
+\sigma &\sim \text{Exp}(0.02)
+\end{align*}
+$$
+
+```{r tuned_model_categorical}
+
+tuned_model_dow <- stan_glm(
+  ARR_DELAY ~ DAY_OF_WEEK, 
+  data = Delays_sample, 
+  family = gaussian(),
+  prior = normal(2,2116), 
+  prior_intercept = normal(0,2500), 
+  prior_aux = exponential(0.02),
+  chains = 4, iter = 2000, seed = 123
+)
+
+
+model <- tuned_model_dow
+
+tmdow <- tidy(model, effects = c("fixed", "aux"),
+     conf.int = TRUE, conf.level = 0.95)
+
+# MCMC diagnostics
+mcmc_trace(model, size = 0.1)
+mcmc_dens_overlay(model)
+mcmc_acf(model)
+
+library(ggplot2)
+library(ggridges)
+library(dplyr)
+
+#Stacked distributions
+
+new_data <- data.frame(DAY_OF_WEEK = levels(Delays_sample$DAY_OF_WEEK))
+predictions <- posterior_predict(model, newdata = new_data)
+
+pred_df <- as.data.frame(predictions)
+colnames(pred_df) <- levels(Delays_sample$DAY_OF_WEEK)
+
+pred_long <- pred_df %>%
+  pivot_longer(cols = everything(), names_to = "DAY_OF_WEEK", values_to = "ARR_DELAY")
+
+
+pred_long$DAY_OF_WEEK <- factor(pred_long$DAY_OF_WEEK, levels = c("Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"))
+
+
+ggplot(pred_long, aes(x = ARR_DELAY, y = DAY_OF_WEEK, fill = DAY_OF_WEEK)) +
+  geom_density_ridges(alpha = 0.7, scale = 0.8) +
+  stat_summary(fun = mean, 
+               geom = "vline", 
+               aes(xintercept = ..x.., color = DAY_OF_WEEK),
+               linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
+  labs(
+    title = "Posterior Predicted Distribution of Arrival Delay by Day of the Week",
+    x = "Predicted Arrival Delay (minutes)",
+    y = "Day of the Week",
+    fill = "Day"
+  ) +
+  xlim(-150,150)+
+  theme_minimal()
+
+```
+
+
+```{r tidytibble}
+
+all_models <- bind_rows(
+  tmdt %>% mutate(model = "tmdt"),
+  fmdt %>% mutate(model = "fmdt"),
+  dmdt %>% mutate(model = "dmdt"),
+  tmdow %>% mutate(model = "tmdow"),
+  fmdow %>% mutate(model = "fmdow"),
+  dmdow %>% mutate(model = "dmdow")
+)
+
+all_models
+
+```
+# DIC Deviance Information Criterion
+
+
+
+
+```{r extra_block_maybe}
+
+#| include: false
+
+library(rstanarm)
+
+default_model_dt <- stan_glm(ARR_DELAY ~ DEP_TIME_MINS,
+                        data = Delays_sample,
+                        family = gaussian(),
+                        chains = 4,
+                        iter = 2000,
+                        seed = 123)
+
+mcmc_trace(default_model_dt, size = 0.1)
+
+mcmc_dens_overlay(default_model_dt)
+
+summary(default_model_dt)
+
+#default priors in rstanarm are normal, normal, and exponential for the intercept, slope, and error respectively. The rstanarm framework also assumes independence of the priors [@bayesrulesbook].
+
+#1 minute intervals for dep_time on x axis
+predictions <- data.frame(
+  DEP_TIME_MINS = seq(min(Delays_sample$DEP_TIME_MINS), max(Delays_sample$DEP_TIME_MINS), length.out = 1440)
+)
+
+predictions$fitted <- predict(default_model_dt, newdata = predictions)
+
+#labelfor lm
+intercept <- coef(default_model_dt)[1]
+slope <- coef(default_model_dt)[2]
+model_label <- paste("Y = ", round(intercept, 2), " + ", round(slope, 2), "* DEP_TIME", sep = "")
+
+
+#plot for predictions
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS, y = ARR_DELAY)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_line(data = predictions, aes(x = DEP_TIME_MINS, y = fitted), color = "red", linewidth = 1) +
+  labs(title = "Arrival Delay vs Departure Time",
+       x = "Departure Time",
+       y = "Arrival Delay") +
+  theme_minimal() +
+  annotate("text", x = 1000, y = 10, label = model_label, 
+           color = "red", size = 4, hjust = 0)
+
+ggplot(Delays_sample, aes(x = DEP_TIME_MINS, y = ARR_DELAY)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_line(data = predictions, aes(x = DEP_TIME_MINS, y = fitted), color = "red", linewidth = 1) +
+  labs(title = "Arrival Delay vs Departure Time: Zoomed In ",
+       x = "Departure Time",
+       y = "Arrival Delay") +
+  theme_minimal() +
+  ylim(NA, 45) +
+  annotate("text", x = 1000, y = 10, label = model_label, 
+           color = "red", size = 4, hjust = 0)
+
+summary(Delays_sample$DEP_TIME_MINS)
+summary(Delays_sample$ARR_DELAY)
 
 ```
