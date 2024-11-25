@@ -1,0 +1,547 @@
+---
+title: "Bayesian Analysis of Flipper Length"
+subtitle: "Chinstrap Penguins"
+author: "Heather Anderson, Maria Drury, Hailee Hawkins, Carolyn Herrera, Liz Miller, Sara Parrish (Advisor: Dr. Seals)"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+date-format: "MMM D, YYYY"
+format:
+  revealjs:
+    css: style.css
+    embed-resources: true
+    slide-number: true
+    width: 1600
+    height: 900
+    df-print: paged
+    html-math-method: katex
+course: Capstone Projects in Data Science
+bibliography: refpenguin.bib
+csl: ieee.csl
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+pdf-separate-fragments: true
+fig-align: center
+---
+
+## The Species: Chinstrap Penguins{.smaller transition="fade"}
+<!-- Slide 1-->
+
+```{r}
+#| echo: false
+
+library(bayesrules)
+library(tidyverse)
+library(tidymodels)
+
+data("penguins_bayes")
+
+chindata <- penguins %>%
+  filter(species == "Chinstrap") %>%
+  select(flipper_length_mm) %>%
+  drop_na()
+
+
+```
+
+:::: {layout="[ 40, 60 ]" layout-valign="center"}
+
+::: {#first-column}
+
+ Chinstrap penguins are one of the most abundant penguin species in
+    the Antarctic, with an estimated population of nearly eight million
+    pairs. They are the most abundant penguin species breeding at the
+    South Sandwich Islands. According to the study, the penguins take
+    more than 10,000 naps a day, with each one lasting only four
+    seconds, totaling 11-12 hours per day.
+ Today we will analyze flipper lengths for Chinstrap penguins.
+
+:::
+
+::: {#second-column}
+
+![](penguin5.png){fig-align="center"}
+
+:::
+
+::::
+
+
+::: footer
+Image Source: Gemini AI
+:::
+
+
+<!-- Slide 2-->
+## Bayesian Model Selection{.smaller transition="fade"}
+
+:::: {layout="[ 60, 40 ]" layout-valign="center"}
+
+::: {#first-column}
+
+![](Histo_Penguin.png){fig-align="center" width="600"}
+
+$$
+Y_i|\mu \sim N(\mu, \sigma^2)
+$$
+:::
+
+::: {#second-column}
+ Since flipper lengths are generally well-distributed and
+    approximately normal for penguins, the Normal-Normal Bayesian Model
+    is the most appropriate for the analysis of Chinstrap penguin
+    flipper lengths.
+:::
+::::
+
+<!-- Slide 3-->
+
+## Prior Specification: The Data{.smaller transition="fade"}
+
+:::: {layout="[ 30, 70 ]" layout-valign="center"}
+
+::: {#first-column}
+
+Using prior studies we have determined the average flipper length of
+    Chinstrap penguins is 193.37mm with a standard deviation of 6.12
+    [@Moreno1999]
+:::
+
+::: {#second-column}
+
+![](Chinstrap_Penguin_1.jpg){fig-align="center" height="315"}
+:::
+
+::::
+
+::: footer
+
+Image Source: wikipedia.org
+
+:::
+
+<!-- Slide 4-->
+
+## Prior Specification: The Model{transition="fade"}
+
+```{r, echo=FALSE, results='hide'}
+mu_0 <- 193.37 
+sigma_0 <- 6.12
+prior_variance <- sigma_0^2
+
+cat("Prior mean:", mu_0, "\n")
+cat("Prior Standard deviation", sigma_0, "\n")
+cat("Prior variance:", prior_variance, "\n")
+```
+
+$$
+\mu \sim N(193.7, {6.12}^2)
+$$
+
+```{r, echo=FALSE, results='hide'}
+#plot_normal(193.37,6.12)
+```
+
+<center>
+```{r}
+
+x <- seq(180, 210, length.out = 1000)
+prior_density <- dnorm(x, mean = mu_0, sd = sigma_0)
+
+
+plot(x, prior_density, type = "l", lwd = 2, col = "blue",
+     xlab = "Flipper Length (mm)", ylab = "Density",
+     main = "Prior Distribution for Flipper Length (Normal)")
+abline(v = mu_0, col = "red", lty = 2)
+legend("topright", legend = c("Prior Mean (193 mm)"), col = "red", lty = 2)
+```
+</center>
+
+<!-- Slide 5-->
+
+## The Sample Data{transition="fade"}
+
+-   There are 68 data points for the Chinstrap penguins. The sample mean
+    is 195.8235mm with a standard deviation of 7.131894.
+
+```{r, echo=FALSE, results='hide'}
+library(psych)
+
+chinstrap_flipper <- chindata$flipper_length_mm
+
+summ <- function(data) {
+  c(
+    summary = summary(data), 
+    sd = sd(data), 
+    n = length(data))
+}
+
+chinstrap_flipper %>%
+  summ()
+```
+
+
+<center>
+```{r}
+library(ggplot2)
+
+n_chin <- nrow(chindata)
+mean_chin <- mean(chindata$flipper_length_mm)
+sd_chin <- sd(chindata$flipper_length_mm)
+
+
+ggplot(chindata, aes(x = flipper_length_mm)) +
+  geom_histogram(aes(y = ..density..), binwidth = 2, fill = "skyblue", color = "black", alpha = 0.7) +
+  geom_density(color = "darkblue", linewidth = 1) +
+  labs(
+    title = "Chinstrap Penguins' Flipper Length\nHistogram and Summary Statistics",
+    x = "Flipper Length (mm)",
+    y = "Density"
+  ) +
+  annotate(
+    "text", x = 220, y = 0.04, hjust = 1,
+    label = paste("Data Points: ", n_chin, "\n",
+                   "Mean: ", round(mean_chin, 2), " mm\n",
+                   "Std Dev: ", round(sd_chin, 2), " mm"),
+    size = 5, color = "darkblue", fontface = "bold", 
+    box.color = "lightblue", bg.color = "lightblue"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  )
+
+#ggplot(chindata, aes(x = flipper_length_mm)) +
+#  geom_histogram(aes(y = ..density..), binwidth = 2, fill = "skyblue", color = "black") +
+#  geom_density(color = "darkblue", linewidth = 1) +
+#  labs(
+#    title = "Histogram and Density of Chinstrap Penguins' Flipper Lengths",
+#    x = "Flipper Length (mm)",
+#    y = "Density"
+#  ) +
+#  theme_minimal()  +
+#  theme(
+#    plot.background = element_rect(fill = "transparent", color = NA),
+#    panel.background = element_rect(fill = "transparent", color = NA))
+```
+</center>
+
+<!-- Slide 6-->
+
+## The Posterior Model{transition="fade"}
+
+<!-- $$ -->
+<!-- \begin{align*} -->
+<!-- \mu|&(Y = 68) \sim N(?,?) \ \sigma = 7.13, \ n = 68, \ \tau = 6.12, \ \bar{y} = 193.37\\ -->
+<!-- \mu |& \overset{\to}y \sim N\left( 195.82 \frac{7.13 ^2}{68*6.12^2 + 7.13^2} + 193.37\frac{68*6.12^2}{68*6.12^2 + 7.13^2}, \frac{6.12^2 7^2}{68*6.12^2 + 7.13^2} \right)\\ -->
+<!-- \mu |& \overset{\to}y \sim N (193.42, 0.856^2) -->
+<!-- \end{align*} -->
+<!-- $$ -->
+
+:::: {layout="[100], [100]" layout-valign="center"}
+
+::: {#first-row}
+
+<center>
+```{r}
+plot_normal_normal(mean =193.37, sd = 6.12, sigma = 7.13, y_bar = 195.82, n = 68)
+
+#summarize_normal_normal(mean = 193.37, sd = 6.12, sigma = 7.13, y_bar = 195.82, n = 68)
+```
+</center>
+:::
+
+::: {#second-row}
+<center>
+
+| Model     | Mean     | Mode     | Variance  | SD        |
+|:----------|:---------|:---------|:----------|:----------|
+| Prior     | 193.37   | 193.37   | 37.4544   | 6.12      |
+| Posterior | 195.7721 | 195.7721 | 0.7329711 | 0.8561373 |
+
+</center>
+
+:::
+::::
+
+<!-- Slide 7-->
+
+## Credible Intervals{transition="fade"}
+
+:::: {layout="[ 60, 40 ]" layout-valign="center"}
+
+::: {#first-column}
+
+```{r, echo=TRUE}
+#| output: false
+qnorm(c(0.025, 0.975), 195.77, 0.86)
+```
+
+
+$95\% \text{ CI} = [194.08, 197.46]$
+
+```{r}
+library(ggplot2)
+
+mean_value <- 195.7721
+sd_value <- 0.8561373
+ci <- c(194.08, 197.46)
+
+x <- seq(mean_value - 4 * sd_value, mean_value + 4 * sd_value, length.out = 1000)
+
+y <- dnorm(x, mean = mean_value, sd = sd_value)
+
+ggplot(data = data.frame(x, y), aes(x = x, y = y)) +
+  geom_line() +
+  geom_area(data = data.frame(x = x, y = y)[x >= ci[1] & x <= ci[2], ],
+            aes(x = x, y = y), fill = "skyblue", alpha = 0.5) +
+  geom_vline(xintercept = ci, linetype = "dashed", color = "red") +
+  labs(x = "Flipper Length (mm)", y = "Density") +
+  theme_minimal()
+```
+
+:::
+::: {#second-column}
+
+![](Chinstrap_Penguin_3.jpg){fig-align="center"}
+:::
+::::
+
+```{r}
+# Compute the 95% credible interval
+
+#credible_interval <- qnorm(c(0.025, 0.975), mean = 195.77, sd = 0.86)
+
+# Plot the posterior distribution
+
+#hist(posterior_samples, breaks = 30, probability = TRUE,
+
+#     main = "Posterior Distribution of mu",
+
+#     xlab = "mu")
+
+#abline(v = credible_interval, col = "blue", lwd = 2, lty = 2) # Update CI to blue
+
+#legend("topright", legend = c("95% CI"), col = "blue", lty = 2)
+```
+
+::: footer
+
+Image Source: commons.wikimedia.org
+
+:::
+
+<!-- Slide 8-->
+
+## Hypotheses{transition="fade"}
+
+::::: {layout="[ 40, 60 ]" layout-valign="center"}
+
+:::: {#first-column}
+
+![](penguins4.png){fig-align="center"}
+
+::::
+
+:::: {#second-column}
+
+Is the average flipper length for Chinstraps between 215 and 225mm?
+
+-   Null Hypothesis $H_0$:
+
+    -   $H_0: \mu \in (215,225)$ 
+
+-   Alternative Hypothesis $H_1$:
+
+    -   $H_1: \mu \notin (215,225)$
+
+::::
+:::::
+
+
+
+::: footer
+
+Image Source: Gemini AI
+
+:::
+
+<!-- Slide 9-->
+
+## Hypotheses: Conclusions{.smaller transition="fade"}
+
+::::: {layout="[ 50, 50 ]" layout-valign="center"}
+
+:::: {#first-column}
+
+ The 95% credible interval for the posterior is \[194.08, 197.46\],
+    which does not overlap with the range specified in the null
+    hypothesis \[215, 225\]. This indicates the posterior belief
+    supports values below 215mm, resulting in no evidence for the null
+    hypothesis.
+::::
+
+:::: {#second-column}
+
+![](Chinstrap_Penguin_2.jpg){fig-align="center"}
+
+::::
+:::::
+
+::: footer
+
+Image Source: crittersquad.com
+
+:::
+
+<!-- Slide 10-->
+
+## Posterior Probability{transition="fade"}
+
+```{r, echo=TRUE}
+posterior_prob <- pnorm(225, 195.77,0.86)-pnorm(215,195.77,0.86)
+posterior_prob
+```
+
+$$
+P(215\le\mu\le225|Y=68)=0
+$$
+<center>
+This confirms the conclusion drawn previously.
+</center>
+
+![](penguin6.png){fig-align="center" width="400"}
+
+::: footer
+
+Image Source: redbubble.com
+
+:::
+
+<!-- Slide 11-->
+
+## Bayes Factor{transition="fade"}
+
+|         Hypotheses          | Prior Probability |  Posterior Probability   |
+|:---------------------------:|:-----------------:|:------------------------:|
+|  $H_0: \mu \in (215,225)$   | $P[H_0] = 0.9998$ | $P[H_0 \mid Y = 68] = 1$ |
+| $H_1: \mu \notin (215,225)$ | $P[H_1] = 0.0002$ | $P[H_1 \mid Y = 68] = 0$ |
+
+```{r, echo=TRUE}
+#| code-fold: true
+prior_prob <- pnorm(225,193.37, 6.12)-pnorm(215,193.37,6.12)
+prior_odds <-(prior_prob/(1-prior_prob))
+posterior_odds <- (posterior_prob/(1-posterior_prob))
+bayes_factor <- posterior_odds/prior_odds
+```
+
+<center>
+$\text{Bayes Factor}= \frac{\text{Posterior Odds}}{\text{Prior Odds}}= \frac{0}{0.0002}=0$
+</center>
+
+-   $BF < 1$
+    - Plausibility of $H_1$ decreased in light of the observed data
+- This along with the 95% credible interval confirms our belief that the average flipper length is not between $215mm$ and $225mm$.
+
+
+
+<!-- Slide 12-->
+
+## Summary{.smaller transition="fade" transition-speed="fast"}
+
+::::: {layout="[ 50, 50 ]" }
+
+:::: {#first-column}
+
+ - Chinstrap penguins had flipper length 
+    - Prior: $\mu \sim N(193.37, 6.12^2)$
+    - Posterior: $\mu|(Y=68) \sim N(195.77, 0.86^2)$
+ - We noted no extra large penguins in our sample.
+    - Maximum recorded flipper length was $212.0mm$
+ - Bayes Factor and CI indicated that $H_1$ should be rejected
+    - Confirming $H_0$, average flipper length is not between $215mm$ and $225mm$
+
+::::
+
+:::: {#second-column}
+
+<center>
+```{r}
+
+ci <- c(194.08, 197.46)
+ggplot(data = data.frame(x, y), aes(x = x, y = y)) +
+  geom_line() +
+  geom_area(data = data.frame(x = x, y = y)[x >= ci[1] & x <= ci[2], ],
+            aes(x = x, y = y), fill = "skyblue", alpha = 0.5) +
+  geom_vline(xintercept = ci, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(215, 225), linetype = "dashed", color = "blue") +
+  labs(x = "Flipper Length (mm)", y = "Density") +
+  theme_minimal() + 
+  xlim(NA, 225)
+
+```
+</center>
+
+::::
+:::::
+
+::: footer
+
+Image Source: Gemini AI
+
+:::
+
+<!-- Slide 12-->
+
+## Summary{.smaller transition="fade" transition-speed="fast"}
+
+::::: {layout="[ 50, 50 ]"}
+
+:::: {#first-column}
+
+ - Chinstrap penguins had flipper length 
+    - Prior: $\mu \sim N(193.37, 6.12^2)$
+    - Posterior: $\mu|(Y=68) \sim N(195.77, 0.86^2)$
+ - We noted no extra large penguins in our sample.
+    - Maximum recorded flipper length was $212.0mm$
+ - Bayes Factor and CI indicated that $H_1$ should be rejected
+    - Confirming $H_0$, average flipper length is not between $215mm$ and $225mm$
+    
+::::
+
+:::: {#second-column}
+![](dontjudgemepenguin.png){fig-align="center"}
+
+::::
+:::::
+
+::: footer
+
+Image Source: Gemini AI
+
+:::
+
+## References
+
+::: {#refs}
+:::
+
+## Study Locations
+
+::: {layout-ncol=2}
+
+![Palmer Sampling Grid](map.png)
+
+![Palmer Station, Deception Island(Prior Study)](map2.png)
+
+:::
+
+::: footer
+
+Image Sources: Palmer Station Antarctica LTER, Google Maps
+
+:::
