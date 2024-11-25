@@ -2,7 +2,7 @@
 title: "Bayesian Analysis of Flipper Length"
 subtitle: "Chinstrap Penguins"
 author: "Heather Anderson, Maria Drury, Hailee Hawkins, Carolyn Herrera, Liz Miller, Sara Parrish (Advisor: Dr. Seals)"
-date: "{{< date >}}"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 date-format: "MMM D, YYYY"
 format:
   revealjs:
