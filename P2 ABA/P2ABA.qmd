@@ -2,7 +2,7 @@
 title: "Bayesian Analysis of Flipper Length"
 subtitle: "Chinstrap Penguins"
 author: "Heather Anderson, Maria Drury, Hailee Hawkins, Carolyn Herrera, Liz Miller, Sara Parrish (Advisor: Dr. Seals)"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "{{< date >}}"
 date-format: "MMM D, YYYY"
 format:
   revealjs:
@@ -462,8 +462,8 @@ $\text{Bayes Factor}= \frac{\text{Posterior Odds}}{\text{Prior Odds}}= \frac{0}{
     - Posterior: $\mu|(Y=68) \sim N(195.77, 0.86^2)$
  - We noted no extra large penguins in our sample.
     - Maximum recorded flipper length was $212.0mm$
- - Bayes Factor and CI indicated that $H_1$ should be rejected
-    - Confirming $H_0$, average flipper length is not between $215mm$ and $225mm$
+ - Bayes Factor and CI indicated that $H_0$ should be rejected
+    - Confirming $H_1$, average flipper length is not between $215mm$ and $225mm$
 
 ::::
 
@@ -508,8 +508,8 @@ Image Source: Gemini AI
     - Posterior: $\mu|(Y=68) \sim N(195.77, 0.86^2)$
  - We noted no extra large penguins in our sample.
     - Maximum recorded flipper length was $212.0mm$
- - Bayes Factor and CI indicated that $H_1$ should be rejected
-    - Confirming $H_0$, average flipper length is not between $215mm$ and $225mm$
+ - Bayes Factor and CI indicated that $H_0$ should be rejected
+    - Confirming $H_1$, average flipper length is not between $215mm$ and $225mm$
     
 ::::
 
