@@ -447,7 +447,25 @@ $\text{Bayes Factor}= \frac{\text{Posterior Odds}}{\text{Prior Odds}}= \frac{0}{
     - Plausibility of $H_1$ decreased in light of the observed data
 - This along with the 95% credible interval confirms our belief that the average flipper length is not between $215mm$ and $225mm$.
 
+::: {.notes}
+Alright, now moving to Bayes Factor
+- you can see the calculated prior and posterior 
+- probabilities for the hypothesis.
+- Our calculated Bayes factor ends up being zero 
+- due to the posterior odds. 
 
+
+Because our bayes factor is less than one, 
+- we can say that the plausibility of the 
+- alternative hypothesis decreased in light of the 
+- observed data
+
+- Due to this bayes factor and our 95% posterior 
+- credible interval, this confirms our belief
+-  that the average flipper length is 
+- not between 215mm and 225mm
+
+:::
 
 <!-- Slide 12-->
 
@@ -463,7 +481,7 @@ $\text{Bayes Factor}= \frac{\text{Posterior Odds}}{\text{Prior Odds}}= \frac{0}{
  - We noted no extra large penguins in our sample.
     - Maximum recorded flipper length was $212.0mm$
  - Bayes Factor and CI indicated that $H_0$ should be rejected
-    - Confirming $H_1$, average flipper length is not between $215mm$ and $225mm$
+    - $H_1$ is supported, average flipper length is not between $215mm$ and $225mm$
 
 ::::
 
@@ -495,6 +513,26 @@ Image Source: Gemini AI
 
 :::
 
+::: {.notes}
+
+to summarize our presentation
+
+we had a prior flipper length of 193.37 mm 
+with standard deviation of 6.12 mm
+
+we had a predicted flipper length of 195.77 mm 
+with a 0.86 mm standard deviation
+
+There were no extra large penguins in our data
+as we had a maximum flipper length of 212 mm
+
+and as a result, our Bayes factor and 
+95% credible interval indicated that we should 
+reject the null hypothesis 
+in favor of the alternative hypothesis
+
+:::
+
 <!-- Slide 12-->
 
 ## Summary{.smaller transition="fade" transition-speed="fast"}
@@ -509,7 +547,7 @@ Image Source: Gemini AI
  - We noted no extra large penguins in our sample.
     - Maximum recorded flipper length was $212.0mm$
  - Bayes Factor and CI indicated that $H_0$ should be rejected
-    - Confirming $H_1$, average flipper length is not between $215mm$ and $225mm$
+    - $H_1$ is supported, average flipper length is not between $215mm$ and $225mm$
     
 ::::
 
